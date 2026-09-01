@@ -36,18 +36,18 @@ export const Colors = {
     warningLight: 'rgba(251, 191, 36, 0.15)',
     danger: '#F87171',
     dangerLight: 'rgba(248, 113, 113, 0.15)',
-    background: '#0F172A',
-    cardBackground: '#1E293B',
-    surfaceElevated: '#334155',
-    text: '#F8FAFC',
-    textSecondary: '#94A3B8',
-    textMuted: '#64748B',
-    border: '#334155',
-    borderLight: '#1E293B',
+    background: '#000000', // Pure AMOLED Black
+    cardBackground: '#121212', // Deep Pitch Black Surface
+    surfaceElevated: '#1E1E1E',
+    text: '#FFFFFF',
+    textSecondary: '#A1A1AA',
+    textMuted: '#71717A',
+    border: '#27272A',
+    borderLight: '#18181B',
     shadowColor: '#000000',
     statusBar: 'light' as 'dark' | 'light',
-    backgroundElement: '#1E293B',
-    backgroundSelected: '#334155',
+    backgroundElement: '#18181B',
+    backgroundSelected: '#27272A',
   },
 };
 
@@ -98,23 +98,23 @@ export const MaxContentWidth = 600;
 
 export const Shadows = {
   small: {
-    shadowColor: '#0F172A',
+    shadowColor: '#000000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
+    shadowOpacity: 0.2,
     shadowRadius: 6,
     elevation: 2,
   },
   medium: {
-    shadowColor: '#0F172A',
+    shadowColor: '#000000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.3,
     shadowRadius: 12,
     elevation: 4,
   },
   large: {
-    shadowColor: '#0F172A',
+    shadowColor: '#000000',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.12,
+    shadowOpacity: 0.4,
     shadowRadius: 24,
     elevation: 8,
   },
