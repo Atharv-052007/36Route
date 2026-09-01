@@ -10,14 +10,15 @@ function RootLayoutNav() {
     <>
       <StatusBar style={isDarkMode ? 'light' : 'dark'} />
       <Stack
+        initialRouteName="(tabs)"
         screenOptions={{
           headerShown: false,
           contentStyle: { backgroundColor: themeColors.background },
           animation: 'fade_from_bottom',
         }}
       >
-        <Stack.Screen name="login" />
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="login" />
         <Stack.Screen name="book-ride" />
         <Stack.Screen name="ride-details" />
         <Stack.Screen name="sos" />
