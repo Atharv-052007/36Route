@@ -1,65 +1,121 @@
-/**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
- */
-
-import '@/global.css';
-
-import { Platform } from 'react-native';
-
 export const Colors = {
   light: {
-    text: '#000000',
-    background: '#ffffff',
-    backgroundElement: '#F0F0F3',
-    backgroundSelected: '#E0E1E6',
-    textSecondary: '#60646C',
+    primary: '#1E3A8A', // Deep Blue / Indigo
+    primaryLight: '#EFF6FF',
+    primaryHover: '#1D4ED8',
+    secondary: '#3B82F6', // Vibrant Indigo/Blue
+    secondaryLight: '#DBEAFE',
+    accent: '#10B981', // Emerald Emerald accent
+    accentLight: '#D1FAE5',
+    warning: '#F59E0B',
+    warningLight: '#FEF3C7',
+    danger: '#EF4444',
+    dangerLight: '#FEE2E2',
+    background: '#F8FAFC',
+    cardBackground: '#FFFFFF',
+    surfaceElevated: '#FFFFFF',
+    text: '#0F172A',
+    textSecondary: '#64748B',
+    textMuted: '#94A3B8',
+    border: '#E2E8F0',
+    borderLight: '#F1F5F9',
+    shadowColor: '#0F172A',
+    statusBar: 'dark' as 'dark' | 'light',
+    backgroundElement: '#F1F5F9',
+    backgroundSelected: '#DBEAFE',
   },
   dark: {
-    text: '#ffffff',
-    background: '#000000',
-    backgroundElement: '#212225',
-    backgroundSelected: '#2E3135',
-    textSecondary: '#B0B4BA',
+    primary: '#3B82F6',
+    primaryLight: 'rgba(59, 130, 246, 0.15)',
+    primaryHover: '#60A5FA',
+    secondary: '#60A5FA',
+    secondaryLight: 'rgba(96, 165, 250, 0.15)',
+    accent: '#34D399',
+    accentLight: 'rgba(52, 211, 153, 0.15)',
+    warning: '#FBBF24',
+    warningLight: 'rgba(251, 191, 36, 0.15)',
+    danger: '#F87171',
+    dangerLight: 'rgba(248, 113, 113, 0.15)',
+    background: '#0F172A',
+    cardBackground: '#1E293B',
+    surfaceElevated: '#334155',
+    text: '#F8FAFC',
+    textSecondary: '#94A3B8',
+    textMuted: '#64748B',
+    border: '#334155',
+    borderLight: '#1E293B',
+    shadowColor: '#000000',
+    statusBar: 'light' as 'dark' | 'light',
+    backgroundElement: '#1E293B',
+    backgroundSelected: '#334155',
   },
-} as const;
+};
 
-export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
+export type ThemeColor = keyof typeof Colors.light;
 
-export const Fonts = Platform.select({
-  ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
-    sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
-    serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
-    rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
-    mono: 'ui-monospace',
+export const Typography = {
+  fontSizes: {
+    xs: 12,
+    sm: 13,
+    md: 15,
+    lg: 18,
+    xl: 22,
+    xxl: 28,
   },
-  default: {
-    sans: 'normal',
-    serif: 'serif',
-    rounded: 'normal',
-    mono: 'monospace',
+  weights: {
+    regular: '400' as const,
+    medium: '500' as const,
+    semibold: '600' as const,
+    bold: '700' as const,
   },
-  web: {
-    sans: 'var(--font-display)',
-    serif: 'var(--font-serif)',
-    rounded: 'var(--font-rounded)',
-    mono: 'var(--font-mono)',
-  },
-});
+};
+
+export const Fonts = {
+  regular: 'System',
+  medium: 'System',
+  semibold: 'System',
+  bold: 'System',
+  mono: 'System',
+};
 
 export const Spacing = {
-  half: 2,
-  one: 4,
-  two: 8,
-  three: 16,
-  four: 24,
-  five: 32,
-  six: 64,
-} as const;
+  half: 4,
+  one: 8,
+  two: 16,
+  three: 24,
+  four: 32,
+  five: 40,
+  six: 48,
+  xs: 4,
+  sm: 8,
+  md: 16,
+  lg: 24,
+  xl: 32,
+};
 
-export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
-export const MaxContentWidth = 800;
+export const BottomTabInset = 60;
+export const MaxContentWidth = 600;
+
+export const Shadows = {
+  small: {
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  medium: {
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  large: {
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.12,
+    shadowRadius: 24,
+    elevation: 8,
+  },
+};
