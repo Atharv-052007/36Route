@@ -32,7 +32,7 @@ export default function SOSScreen() {
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity
-            onPress={() => router.back()}
+            onPress={() => router.dismissTo('/(tabs)')}
             style={[styles.backBtn, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}
           >
             <Ionicons name="arrow-back" size={20} color={themeColors.text} />

@@ -69,7 +69,7 @@ export default function BookRideScreen() {
         'Your ride has been scheduled successfully.',
         [
           { text: 'View Schedule', onPress: () => router.replace('/(tabs)/rides') },
-          { text: 'OK', onPress: () => router.back() },
+          { text: 'OK', onPress: () => router.dismissTo('/(tabs)') },
         ]
       );
     } catch (e) {
@@ -85,7 +85,7 @@ export default function BookRideScreen() {
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity
-            onPress={() => router.back()}
+            onPress={() => router.dismissTo('/(tabs)')}
             style={[styles.backBtn, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}
           >
             <Ionicons name="arrow-back" size={20} color={themeColors.text} />

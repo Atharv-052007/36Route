@@ -31,7 +31,7 @@ export default function EditProfileScreen() {
     setTimeout(() => {
       setLoading(false);
       Alert.alert('Saved', 'Profile updated successfully');
-      router.back();
+      router.dismissTo('/(tabs)');
     }, 600);
   };
 
@@ -40,7 +40,7 @@ export default function EditProfileScreen() {
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity
-            onPress={() => router.back()}
+            onPress={() => router.dismissTo('/(tabs)')}
             style={[styles.backBtn, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}
           >
             <Ionicons name="arrow-back" size={20} color={themeColors.text} />

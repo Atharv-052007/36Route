@@ -41,7 +41,7 @@ export default function RideDetailsScreen() {
         style: 'destructive',
         onPress: async () => {
           await cancelRide(ride.id);
-          router.back();
+          router.dismissTo('/(tabs)');
         },
       },
     ]);
@@ -53,7 +53,7 @@ export default function RideDetailsScreen() {
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity
-            onPress={() => router.back()}
+            onPress={() => router.dismissTo('/(tabs)')}
             style={[styles.backBtn, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}
           >
             <Ionicons name="arrow-back" size={20} color={themeColors.text} />

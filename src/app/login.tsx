@@ -6,13 +6,13 @@ import {
   KeyboardAvoidingView,
   Platform,
   TouchableOpacity,
-  Alert,
+  ScrollView,
 } from 'react-native';
 import { AppSafeAreaView } from '@/components/ui/AppSafeAreaView';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useApp } from '@/context/AppContext';
-import { Typography, BorderRadius } from '@/constants/theme';
+import { Typography, BorderRadius, Shadows } from '@/constants/theme';
 import { AppInput } from '@/components/ui/AppInput';
 import { AppButton } from '@/components/ui/AppButton';
 
@@ -46,106 +46,163 @@ export default function LoginScreen() {
     }
   };
 
+  const handleDemoLogin = async () => {
+    setIdentifier('aayush.sharma@corptech.com');
+    setCode('123456');
+    setError('');
+    setLoading(true);
+    try {
+      await login('aayush.sharma@corptech.com', '123456');
+      router.replace('/(tabs)');
+    } catch (e: any) {
+      setError(e.message || 'Demo login failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <AppSafeAreaView edges={['top']} style={[styles.safe, { backgroundColor: themeColors.primary }]}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.flex}
       >
-        {/* Header */}
-        <View style={styles.header}>
-          <View style={[styles.logoCircle, { backgroundColor: 'rgba(255,255,255,0.15)' }]}>
-            <Ionicons name="bus" size={32} color="#FFFFFF" />
-          </View>
-          <Text style={styles.brand}>36Route</Text>
-          <Text style={styles.tagline}>Your route. Your ride. Your safety.</Text>
-        </View>
-
-        {/* Login Card */}
-        <View style={[styles.card, { backgroundColor: themeColors.cardBackground }]}>
-          <Text style={[styles.cardTitle, { color: themeColors.text }]}>Welcome back</Text>
-          <Text style={[styles.cardSubtitle, { color: themeColors.textSecondary }]}>
-            Sign in to continue
-          </Text>
-
-          {/* Auth Mode Toggle */}
-          <View style={[styles.modeToggle, { backgroundColor: themeColors.backgroundElement }]}>
-            <TouchableOpacity
-              onPress={() => setAuthMode('otp')}
-              style={[
-                styles.modeBtn,
-                authMode === 'otp' && { backgroundColor: themeColors.secondary },
-              ]}
-              activeOpacity={0.7}
-            >
-              <Text
-                style={[
-                  styles.modeBtnText,
-                  { color: authMode === 'otp' ? '#FFFFFF' : themeColors.textSecondary },
-                ]}
-              >
-                OTP Sign In
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => setAuthMode('password')}
-              style={[
-                styles.modeBtn,
-                authMode === 'password' && { backgroundColor: themeColors.secondary },
-              ]}
-              activeOpacity={0.7}
-            >
-              <Text
-                style={[
-                  styles.modeBtnText,
-                  { color: authMode === 'password' ? '#FFFFFF' : themeColors.textSecondary },
-                ]}
-              >
-                Password
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          {error ? (
-            <View style={[styles.errorBanner, { backgroundColor: themeColors.dangerLight }]}>
-              <Ionicons name="alert-circle" size={16} color={themeColors.danger} />
-              <Text style={[styles.errorText, { color: themeColors.danger }]}>{error}</Text>
+        <ScrollView
+          contentContainerStyle={styles.scrollContainer}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          bounces={false}
+        >
+          {/* Header Branding */}
+          <View style={styles.header}>
+            <View style={[styles.logoCircle, { backgroundColor: 'rgba(255,255,255,0.18)' }]}>
+              <Ionicons name="bus" size={32} color="#FFFFFF" />
             </View>
-          ) : null}
+            <Text style={styles.brand}>36Route</Text>
+            <Text style={styles.tagline}>Corporate Commute & Transit Portal</Text>
+          </View>
 
-          <AppInput
-            label="Email or Employee ID"
-            placeholder="you@company.com"
-            value={identifier}
-            onChangeText={setIdentifier}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            leftIcon={<Ionicons name="mail-outline" size={18} color={themeColors.textMuted} />}
-          />
-
-          <AppInput
-            label={authMode === 'otp' ? 'Enter OTP' : 'Password'}
-            placeholder={authMode === 'otp' ? '6-digit OTP' : 'Enter password'}
-            value={code}
-            onChangeText={setCode}
-            keyboardType="number-pad"
-            secureTextEntry={authMode === 'password'}
-            leftIcon={<Ionicons name="key-outline" size={18} color={themeColors.textMuted} />}
-          />
-
-          <TouchableOpacity style={styles.forgotBtn} activeOpacity={0.7}>
-            <Text style={[styles.forgotText, { color: themeColors.secondary }]}>
-              Forgot {authMode === 'otp' ? 'OTP' : 'Password'}?
+          {/* Login Card */}
+          <View style={[styles.card, { backgroundColor: themeColors.cardBackground }, Shadows.medium]}>
+            <Text style={[styles.cardTitle, { color: themeColors.text }]}>Welcome Back</Text>
+            <Text style={[styles.cardSubtitle, { color: themeColors.textSecondary }]}>
+              Sign in to manage and track your employee commute
             </Text>
-          </TouchableOpacity>
 
-          <AppButton
-            title="Sign In"
-            onPress={handleLogin}
-            loading={loading}
-            size="lg"
-          />
-        </View>
+            {/* Auth Mode Toggle */}
+            <View style={[styles.modeToggle, { backgroundColor: themeColors.backgroundElement }]}>
+              <TouchableOpacity
+                onPress={() => {
+                  setAuthMode('otp');
+                  setError('');
+                }}
+                style={[
+                  styles.modeBtn,
+                  authMode === 'otp' && { backgroundColor: themeColors.secondary },
+                ]}
+                activeOpacity={0.7}
+              >
+                <Ionicons
+                  name="shield-checkmark-outline"
+                  size={16}
+                  color={authMode === 'otp' ? '#FFFFFF' : themeColors.textSecondary}
+                  style={{ marginRight: 6 }}
+                />
+                <Text
+                  style={[
+                    styles.modeBtnText,
+                    { color: authMode === 'otp' ? '#FFFFFF' : themeColors.textSecondary },
+                  ]}
+                >
+                  OTP Sign In
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  setAuthMode('password');
+                  setError('');
+                }}
+                style={[
+                  styles.modeBtn,
+                  authMode === 'password' && { backgroundColor: themeColors.secondary },
+                ]}
+                activeOpacity={0.7}
+              >
+                <Ionicons
+                  name="key-outline"
+                  size={16}
+                  color={authMode === 'password' ? '#FFFFFF' : themeColors.textSecondary}
+                  style={{ marginRight: 6 }}
+                />
+                <Text
+                  style={[
+                    styles.modeBtnText,
+                    { color: authMode === 'password' ? '#FFFFFF' : themeColors.textSecondary },
+                  ]}
+                >
+                  Password
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {error ? (
+              <View style={[styles.errorBanner, { backgroundColor: themeColors.dangerLight }]}>
+                <Ionicons name="alert-circle" size={16} color={themeColors.danger} />
+                <Text style={[styles.errorText, { color: themeColors.danger }]}>{error}</Text>
+              </View>
+            ) : null}
+
+            <AppInput
+              label="Official Email or Employee ID"
+              placeholder="e.g. name@corptech.com or EMP-1042"
+              value={identifier}
+              onChangeText={setIdentifier}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              leftIcon={<Ionicons name="mail-outline" size={18} color={themeColors.textMuted} />}
+            />
+
+            <AppInput
+              label={authMode === 'otp' ? 'Verification OTP' : 'Account Password'}
+              placeholder={authMode === 'otp' ? 'Enter 6-digit OTP' : 'Enter your password'}
+              value={code}
+              onChangeText={setCode}
+              keyboardType={authMode === 'otp' ? 'number-pad' : 'default'}
+              secureTextEntry={authMode === 'password'}
+              leftIcon={<Ionicons name="lock-closed-outline" size={18} color={themeColors.textMuted} />}
+            />
+
+            <View style={styles.helperRow}>
+              <Text style={[styles.demoHint, { color: themeColors.textMuted }]}>
+                Default test code: <Text style={{ fontWeight: '700' }}>123456</Text>
+              </Text>
+              <TouchableOpacity activeOpacity={0.7}>
+                <Text style={[styles.forgotText, { color: themeColors.secondary }]}>
+                  Forgot {authMode === 'otp' ? 'OTP' : 'Password'}?
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <AppButton
+              title="Sign In"
+              onPress={handleLogin}
+              loading={loading}
+              size="lg"
+            />
+
+            {/* Quick Demo Login Shortcut */}
+            <TouchableOpacity
+              style={[styles.demoBtn, { borderColor: themeColors.border, backgroundColor: themeColors.backgroundElement }]}
+              onPress={handleDemoLogin}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="flash-outline" size={16} color={themeColors.secondary} />
+              <Text style={[styles.demoBtnText, { color: themeColors.secondary }]}>
+                One-Tap Quick Demo Login
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </AppSafeAreaView>
   );
@@ -154,15 +211,19 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1 },
   flex: { flex: 1 },
+  scrollContainer: {
+    flexGrow: 1,
+  },
   header: {
     alignItems: 'center',
-    paddingTop: 40,
-    paddingBottom: 32,
+    paddingTop: 36,
+    paddingBottom: 28,
+    paddingHorizontal: 20,
   },
   logoCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 68,
+    height: 68,
+    borderRadius: 34,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 12,
@@ -174,25 +235,28 @@ const styles = StyleSheet.create({
     letterSpacing: -0.5,
   },
   tagline: {
-    color: 'rgba(255,255,255,0.7)',
+    color: 'rgba(255,255,255,0.8)',
     fontSize: Typography.fontSizes.sm,
     marginTop: 4,
+    textAlign: 'center',
   },
   card: {
     flex: 1,
     borderTopLeftRadius: BorderRadius.xl,
     borderTopRightRadius: BorderRadius.xl,
     padding: 24,
-    paddingTop: 32,
+    paddingTop: 28,
+    paddingBottom: 40,
   },
   cardTitle: {
-    fontSize: Typography.fontSizes.xl,
+    fontSize: Typography.fontSizes.xxl,
     fontWeight: Typography.weights.bold as any,
     marginBottom: 4,
   },
   cardSubtitle: {
-    fontSize: Typography.fontSizes.md,
-    marginBottom: 24,
+    fontSize: Typography.fontSizes.sm,
+    lineHeight: 20,
+    marginBottom: 20,
   },
   modeToggle: {
     flexDirection: 'row',
@@ -202,9 +266,11 @@ const styles = StyleSheet.create({
   },
   modeBtn: {
     flex: 1,
+    flexDirection: 'row',
     paddingVertical: 10,
     borderRadius: BorderRadius.sm,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   modeBtnText: {
     fontSize: Typography.fontSizes.sm,
@@ -222,12 +288,32 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSizes.sm,
     flex: 1,
   },
-  forgotBtn: {
-    alignSelf: 'flex-end',
+  helperRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 20,
+    marginTop: 4,
+  },
+  demoHint: {
+    fontSize: Typography.fontSizes.xs,
   },
   forgotText: {
+    fontSize: Typography.fontSizes.xs,
+    fontWeight: Typography.weights.semibold as any,
+  },
+  demoBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    marginTop: 14,
+    gap: 8,
+  },
+  demoBtnText: {
     fontSize: Typography.fontSizes.sm,
-    fontWeight: Typography.weights.medium as any,
+    fontWeight: Typography.weights.semibold as any,
   },
 });

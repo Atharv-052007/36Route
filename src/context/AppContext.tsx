@@ -35,7 +35,7 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(true);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [employee, setEmployee] = useState<Employee | null>(MOCK_EMPLOYEE);
   const [rides, setRides] = useState<Ride[]>(MOCK_RIDES);
   const [activeRide, setActiveRide] = useState<Ride | null>(MOCK_ACTIVE_RIDE);
