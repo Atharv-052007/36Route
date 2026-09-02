@@ -3,152 +3,122 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
+  SafeAreaView,
   TouchableOpacity,
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { useApp } from '../context/AppContext';
-import { Typography, Shadows } from '../constants/theme';
-import { DriverCard, LocationCard, StatusBadge } from '../components/ui/RideCards';
-import { AppButton } from '../components/ui/AppButton';
+import { useApp } from '@/context/AppContext';
+import { Typography, BorderRadius, Shadows } from '@/constants/theme';
+import { RideCard, DriverCard, LocationCard } from '@/components/ui/RideCards';
+import { StatusBadge } from '@/components/ui/AppStates';
+import { AppButton } from '@/components/ui/AppButton';
 
 export default function RideDetailsScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { rides, themeColors, cancelRide } = useApp();
+  const { rides, activeRide, cancelRide, themeColors } = useApp();
 
-  const ride = rides.find((r) => r.id === id) || rides[0];
+  const ride = rides.find((r) => r.id === id) || activeRide || rides[0];
+
+  if (!ride) {
+    return (
+      <SafeAreaView style={[styles.safe, { backgroundColor: themeColors.background }]}>
+        <Text style={{ textAlign: 'center', marginTop: 40, color: themeColors.textSecondary }}>
+          Ride not found
+        </Text>
+      </SafeAreaView>
+    );
+  }
 
   const handleCancel = () => {
-    Alert.alert('Cancel Ride', 'Are you sure you want to cancel this scheduled commute?', [
+    Alert.alert('Cancel Ride', 'Are you sure you want to cancel?', [
       { text: 'No', style: 'cancel' },
       {
         text: 'Yes, Cancel',
         style: 'destructive',
         onPress: async () => {
-          if (ride) {
-            await cancelRide(ride.id);
-            router.back();
-          }
+          await cancelRide(ride.id);
+          router.back();
         },
       },
     ]);
   };
 
-  if (!ride) return null;
-
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: themeColors.background }]}>
       <ScrollView contentContainerStyle={styles.container}>
         {/* Header */}
-        <View style={styles.headerRow}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-            <Ionicons name="arrow-back" size={24} color={themeColors.text} />
+        <View style={styles.header}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={[styles.backBtn, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}
+          >
+            <Ionicons name="arrow-back" size={20} color={themeColors.text} />
           </TouchableOpacity>
-          <Text style={[styles.title, { color: themeColors.text }]}>Ride Details</Text>
+          <Text style={[styles.headerTitle, { color: themeColors.text }]}>Ride Details</Text>
+          <View style={{ width: 40 }} />
         </View>
 
-        {/* Main Details Card */}
-        <View
-          style={[
-            styles.card,
-            { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border },
-            Shadows.medium,
-          ]}
-        >
-          <View style={styles.idRow}>
-            <View>
-              <Text style={[styles.bookingLabel, { color: themeColors.textMuted }]}>
-                BOOKING ID
-              </Text>
-              <Text style={[styles.bookingId, { color: themeColors.text }]}>
-                {ride.bookingId}
-              </Text>
-            </View>
+        {/* Status & Info */}
+        <View style={[styles.infoCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.small]}>
+          <View style={styles.infoHeader}>
+            <Text style={[styles.bookingId, { color: themeColors.text }]}>{ride.bookingId}</Text>
             <StatusBadge status={ride.status} />
           </View>
+          <Text style={[styles.dateTime, { color: themeColors.textSecondary }]}>
+            {ride.date} • {ride.time} • {ride.shiftType === 'PICKUP' ? 'Morning Pickup' : 'Evening Drop'}
+          </Text>
 
-          <View style={[styles.divider, { borderTopColor: themeColors.border }]} />
-
-          <View style={styles.infoRow}>
-            <View style={styles.infoCol}>
-              <Text style={[styles.infoLabel, { color: themeColors.textMuted }]}>DATE & TIME</Text>
-              <Text style={[styles.infoVal, { color: themeColors.text }]}>
-                {ride.date} • {ride.time}
-              </Text>
-            </View>
-            <View style={styles.infoCol}>
-              <Text style={[styles.infoLabel, { color: themeColors.textMuted }]}>SHIFT TYPE</Text>
-              <Text style={[styles.infoVal, { color: themeColors.primary }]}>
-                {ride.shiftType === 'PICKUP' ? 'Morning Pickup' : 'Evening Drop'}
-              </Text>
-            </View>
-          </View>
-
-          {/* OTP Box */}
           {ride.otp && (
-            <View style={[styles.otpBox, { backgroundColor: themeColors.primaryLight }]}>
-              <Text style={[styles.otpText, { color: themeColors.primary }]}>
-                Boarding OTP Code: <Text style={{ fontWeight: '700' }}>{ride.otp}</Text>
-              </Text>
+            <View style={[styles.otpBox, { backgroundColor: themeColors.backgroundElement }]}>
+              <Ionicons name="key" size={16} color={themeColors.secondary} />
+              <Text style={[styles.otpLabel, { color: themeColors.textSecondary }]}>OTP</Text>
+              <Text style={[styles.otpValue, { color: themeColors.text }]}>{ride.otp}</Text>
             </View>
           )}
 
-          {/* Route Section */}
-          <LocationCard pickup={ride.pickup.address} drop={ride.drop.address} />
+          <LocationCard pickup={ride.pickup} drop={ride.drop} />
 
-          <View style={[styles.metricsRow, { backgroundColor: themeColors.borderLight }]}>
-            <View style={styles.metricCol}>
-              <Text style={[styles.metricVal, { color: themeColors.text }]}>
-                {ride.estimatedDistanceKm} km
-              </Text>
-              <Text style={[styles.metricLabel, { color: themeColors.textSecondary }]}>
-                Est. Distance
-              </Text>
+          <View style={styles.metrics}>
+            <View style={[styles.metric, { backgroundColor: themeColors.backgroundElement }]}>
+              <Text style={[styles.metricValue, { color: themeColors.text }]}>{ride.estimatedDistanceKm}</Text>
+              <Text style={[styles.metricLabel, { color: themeColors.textSecondary }]}>km</Text>
             </View>
-            <View style={[styles.vertDivider, { backgroundColor: themeColors.border }]} />
-            <View style={styles.metricCol}>
-              <Text style={[styles.metricVal, { color: themeColors.text }]}>
-                {ride.estimatedDurationMins} mins
-              </Text>
-              <Text style={[styles.metricLabel, { color: themeColors.textSecondary }]}>
-                Est. Duration
-              </Text>
+            <View style={[styles.metric, { backgroundColor: themeColors.backgroundElement }]}>
+              <Text style={[styles.metricValue, { color: themeColors.text }]}>{ride.estimatedDurationMins}</Text>
+              <Text style={[styles.metricLabel, { color: themeColors.textSecondary }]}>min</Text>
             </View>
+            {ride.coPassengersCount !== undefined && (
+              <View style={[styles.metric, { backgroundColor: themeColors.backgroundElement }]}>
+                <Text style={[styles.metricValue, { color: themeColors.text }]}>{ride.coPassengersCount}</Text>
+                <Text style={[styles.metricLabel, { color: themeColors.textSecondary }]}>co-pass</Text>
+              </View>
+            )}
           </View>
         </View>
 
-        {/* Driver Card if Assigned */}
         {ride.driver && (
-          <DriverCard
-            driver={ride.driver}
-            vehicle={ride.vehicle}
-            onCall={() => Alert.alert('Call', `Dialing ${ride.driver?.phone}`)}
-          />
+          <DriverCard driver={ride.driver} vehicle={ride.vehicle} />
         )}
 
         {/* Actions */}
-        <View style={{ marginTop: 16 }}>
+        <View style={styles.actions}>
           {ride.status === 'IN_TRANSIT' && (
             <AppButton
               title="Track Live Vehicle"
               onPress={() => router.push('/(tabs)/track')}
-              size="lg"
               icon={<Ionicons name="navigate" size={18} color="#FFF" />}
             />
           )}
-
           {(ride.status === 'SCHEDULED' || ride.status === 'BOARDING') && (
             <AppButton
-              title="Cancel Commute Request"
+              title="Cancel Ride"
               onPress={handleCancel}
-              variant="outline"
-              size="lg"
-              textStyle={{ color: themeColors.danger }}
-              style={{ borderColor: themeColors.dangerLight, marginTop: 10 }}
+              variant="danger"
+              icon={<Ionicons name="close-circle" size={18} color="#FFF" />}
             />
           )}
         </View>
@@ -158,95 +128,72 @@ export default function RideDetailsScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-  },
-  container: {
-    padding: 18,
-    paddingBottom: 40,
-  },
-  headerRow: {
+  safe: { flex: 1 },
+  container: { padding: 18, paddingBottom: 40 },
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: 16,
   },
   backBtn: {
-    marginRight: 12,
+    width: 40, height: 40, borderRadius: 20, borderWidth: 1,
+    justifyContent: 'center', alignItems: 'center',
   },
-  title: {
-    fontSize: Typography.fontSizes.xl,
+  headerTitle: {
+    fontSize: Typography.fontSizes.lg,
     fontWeight: Typography.weights.bold as any,
   },
-  card: {
-    borderRadius: 20,
-    padding: 18,
+  infoCard: {
+    borderRadius: BorderRadius.md,
     borderWidth: 1,
-    marginBottom: 16,
+    padding: 16,
+    marginBottom: 12,
   },
-  idRow: {
+  infoHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-  },
-  bookingLabel: {
-    fontSize: 10,
-    fontWeight: Typography.weights.bold as any,
+    marginBottom: 4,
   },
   bookingId: {
     fontSize: Typography.fontSizes.md,
     fontWeight: Typography.weights.bold as any,
-    marginTop: 2,
   },
-  divider: {
-    borderTopWidth: 1,
-    marginVertical: 14,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  dateTime: {
+    fontSize: Typography.fontSizes.sm,
     marginBottom: 12,
   },
-  infoCol: {
-    flex: 1,
-  },
-  infoLabel: {
-    fontSize: 10,
-    fontWeight: Typography.weights.bold as any,
-  },
-  infoVal: {
-    fontSize: Typography.fontSizes.xs,
-    fontWeight: Typography.weights.semibold as any,
-    marginTop: 2,
-  },
   otpBox: {
-    padding: 10,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginVertical: 6,
-  },
-  otpText: {
-    fontSize: Typography.fontSizes.xs,
-  },
-  metricsRow: {
     flexDirection: 'row',
+    alignItems: 'center',
     padding: 12,
-    borderRadius: 12,
-    marginTop: 14,
+    borderRadius: BorderRadius.sm,
+    gap: 8,
+    marginBottom: 12,
   },
-  metricCol: {
+  otpLabel: { fontSize: Typography.fontSizes.sm },
+  otpValue: {
+    fontSize: Typography.fontSizes.lg,
+    fontWeight: Typography.weights.bold as any,
+    letterSpacing: 4,
+    marginLeft: 'auto',
+  },
+  metrics: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 12,
+  },
+  metric: {
     flex: 1,
     alignItems: 'center',
+    padding: 12,
+    borderRadius: BorderRadius.sm,
   },
-  metricVal: {
-    fontSize: Typography.fontSizes.md,
+  metricValue: {
+    fontSize: Typography.fontSizes.xl,
     fontWeight: Typography.weights.bold as any,
   },
-  metricLabel: {
-    fontSize: Typography.fontSizes.xs,
-    marginTop: 2,
-  },
-  vertDivider: {
-    width: 1,
-    height: '100%',
-  },
+  metricLabel: { fontSize: Typography.fontSizes.xs },
+  actions: { marginTop: 16, gap: 12 },
 });

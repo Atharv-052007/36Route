@@ -1,13 +1,14 @@
 import React from 'react';
-import { View, Text, TextInput, StyleSheet, TextInputProps } from 'react-native';
+import { View, Text, TextInput, TextInputProps, ViewStyle } from 'react-native';
 import { useApp } from '../../context/AppContext';
-import { Typography } from '../../constants/theme';
+import { BorderRadius, Typography } from '../../constants/theme';
 
 interface AppInputProps extends TextInputProps {
   label?: string;
   error?: string;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
+  containerStyle?: ViewStyle;
 }
 
 export const AppInput: React.FC<AppInputProps> = ({
@@ -15,78 +16,73 @@ export const AppInput: React.FC<AppInputProps> = ({
   error,
   leftIcon,
   rightIcon,
-  style,
+  containerStyle,
+  multiline,
   ...props
 }) => {
   const { themeColors } = useApp();
 
   return (
-    <View style={styles.container}>
+    <View style={[{ marginBottom: 16 }, containerStyle]}>
       {label && (
-        <Text style={[styles.label, { color: themeColors.textSecondary }]}>
+        <Text
+          style={{
+            fontSize: Typography.fontSizes.sm,
+            fontWeight: Typography.weights.medium as any,
+            color: themeColors.textSecondary,
+            marginBottom: 6,
+          }}
+        >
           {label}
         </Text>
       )}
       <View
-        style={[
-          styles.inputContainer,
-          {
-            backgroundColor: themeColors.cardBackground,
-            borderColor: error ? themeColors.danger : themeColors.border,
-          },
-        ]}
+        style={{
+          flexDirection: 'row',
+          alignItems: multiline ? 'flex-start' : 'center',
+          backgroundColor: themeColors.cardBackground,
+          borderWidth: 1,
+          borderColor: error ? themeColors.danger : themeColors.border,
+          borderRadius: BorderRadius.md,
+          paddingHorizontal: 14,
+          minHeight: multiline ? 100 : 50,
+          paddingVertical: multiline ? 12 : 0,
+        }}
       >
-        {leftIcon && <View style={styles.iconContainer}>{leftIcon}</View>}
+        {leftIcon && (
+          <View style={{ marginRight: 10, marginTop: multiline ? 4 : 0 }}>
+            {leftIcon}
+          </View>
+        )}
         <TextInput
+          style={{
+            flex: 1,
+            fontSize: Typography.fontSizes.md,
+            color: themeColors.text,
+            paddingVertical: 12,
+            textAlignVertical: multiline ? 'top' : 'center',
+          }}
           placeholderTextColor={themeColors.textMuted}
-          style={[
-            styles.input,
-            { color: themeColors.text },
-            leftIcon ? { paddingLeft: 4 } : null,
-            rightIcon ? { paddingRight: 4 } : null,
-            style,
-          ]}
+          multiline={multiline}
           {...props}
         />
-        {rightIcon && <View style={styles.iconContainer}>{rightIcon}</View>}
+        {rightIcon && (
+          <View style={{ marginLeft: 10, marginTop: multiline ? 4 : 0 }}>
+            {rightIcon}
+          </View>
+        )}
       </View>
-      {error ? (
-        <Text style={[styles.errorText, { color: themeColors.danger }]}>
+      {error && (
+        <Text
+          style={{
+            fontSize: Typography.fontSizes.xs,
+            color: themeColors.danger,
+            marginTop: 4,
+          }}
+        >
           {error}
         </Text>
-      ) : null}
+      )}
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: Typography.fontSizes.sm,
-    fontWeight: Typography.weights.medium as any,
-    marginBottom: 6,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    height: 50,
-  },
-  input: {
-    flex: 1,
-    fontSize: Typography.fontSizes.md,
-  },
-  iconContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginHorizontal: 4,
-  },
-  errorText: {
-    fontSize: Typography.fontSizes.xs,
-    marginTop: 4,
-  },
-});

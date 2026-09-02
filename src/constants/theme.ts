@@ -1,53 +1,109 @@
 export const Colors = {
   light: {
-    primary: '#1E3A8A', // Deep Blue / Indigo
-    primaryLight: '#EFF6FF',
-    primaryHover: '#1D4ED8',
-    secondary: '#3B82F6', // Vibrant Indigo/Blue
-    secondaryLight: '#DBEAFE',
-    accent: '#10B981', // Emerald Emerald accent
-    accentLight: '#D1FAE5',
+    // Primary - Deep Navy (headers, navbar, sidebar)
+    primary: '#0B1220',
+    primaryLight: '#1A2744',
+    primaryHover: '#162036',
+
+    // Accent - Route Blue (buttons, active nav, route lines, links)
+    secondary: '#2563EB',
+    secondaryLight: '#EFF6FF',
+
+    // Success - Green (active, completed, available, safe)
+    accent: '#22C55E',
+    accentLight: '#DCFCE7',
+
+    // Warning - Amber (delayed, warning, pending)
     warning: '#F59E0B',
     warningLight: '#FEF3C7',
+
+    // Danger - Red (SOS, emergency, cancel, critical alerts ONLY)
     danger: '#EF4444',
     dangerLight: '#FEE2E2',
+
+    // Background & Surface
     background: '#F8FAFC',
     cardBackground: '#FFFFFF',
     surfaceElevated: '#FFFFFF',
+    backgroundElement: '#F1F5F9',
+    backgroundSelected: '#DBEAFE',
+
+    // Text
     text: '#0F172A',
     textSecondary: '#64748B',
     textMuted: '#94A3B8',
+
+    // Border
     border: '#E2E8F0',
     borderLight: '#F1F5F9',
+
+    // Misc
     shadowColor: '#0F172A',
     statusBar: 'dark' as 'dark' | 'light',
-    backgroundElement: '#F1F5F9',
-    backgroundSelected: '#DBEAFE',
+
+    // Extra semantic colors
+    onTrip: '#2563EB',
+    onTripLight: '#EFF6FF',
+    available: '#22C55E',
+    availableLight: '#DCFCE7',
+    maintenance: '#F59E0B',
+    maintenanceLight: '#FEF3C7',
+    offline: '#94A3B8',
+    offlineLight: '#F1F5F9',
+    sosRed: '#EF4444',
   },
   dark: {
+    // Primary - Deep Navy (lighter for dark mode)
     primary: '#3B82F6',
     primaryLight: 'rgba(59, 130, 246, 0.15)',
     primaryHover: '#60A5FA',
+
+    // Accent - Route Blue
     secondary: '#60A5FA',
     secondaryLight: 'rgba(96, 165, 250, 0.15)',
-    accent: '#34D399',
-    accentLight: 'rgba(52, 211, 153, 0.15)',
+
+    // Success
+    accent: '#4ADE80',
+    accentLight: 'rgba(74, 222, 128, 0.15)',
+
+    // Warning
     warning: '#FBBF24',
     warningLight: 'rgba(251, 191, 36, 0.15)',
+
+    // Danger
     danger: '#F87171',
     dangerLight: 'rgba(248, 113, 113, 0.15)',
-    background: '#000000', // Pure AMOLED Black
-    cardBackground: '#121212', // Deep Pitch Black Surface
+
+    // Background & Surface
+    background: '#000000',
+    cardBackground: '#121212',
     surfaceElevated: '#1E1E1E',
+    backgroundElement: '#18181B',
+    backgroundSelected: '#27272A',
+
+    // Text
     text: '#FFFFFF',
     textSecondary: '#A1A1AA',
     textMuted: '#71717A',
+
+    // Border
     border: '#27272A',
     borderLight: '#18181B',
+
+    // Misc
     shadowColor: '#000000',
     statusBar: 'light' as 'dark' | 'light',
-    backgroundElement: '#18181B',
-    backgroundSelected: '#27272A',
+
+    // Extra semantic colors
+    onTrip: '#60A5FA',
+    onTripLight: 'rgba(96, 165, 250, 0.15)',
+    available: '#4ADE80',
+    availableLight: 'rgba(74, 222, 128, 0.15)',
+    maintenance: '#FBBF24',
+    maintenanceLight: 'rgba(251, 191, 36, 0.15)',
+    offline: '#71717A',
+    offlineLight: 'rgba(113, 113, 122, 0.15)',
+    sosRed: '#F87171',
   },
 };
 
@@ -61,6 +117,7 @@ export const Typography = {
     lg: 18,
     xl: 22,
     xxl: 28,
+    hero: 32,
   },
   weights: {
     regular: '400' as const,
@@ -71,11 +128,11 @@ export const Typography = {
 };
 
 export const Fonts = {
-  regular: 'System',
-  medium: 'System',
-  semibold: 'System',
-  bold: 'System',
-  mono: 'System',
+  regular: 'Inter',
+  medium: 'Inter',
+  semibold: 'Inter',
+  bold: 'Inter',
+  mono: 'Inter',
 };
 
 export const Spacing = {
@@ -96,25 +153,33 @@ export const Spacing = {
 export const BottomTabInset = 60;
 export const MaxContentWidth = 600;
 
+export const BorderRadius = {
+  sm: 8,
+  md: 12,
+  lg: 16,
+  xl: 20,
+  full: 9999,
+};
+
 export const Shadows = {
   small: {
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.08,
     shadowRadius: 6,
     elevation: 2,
   },
   medium: {
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.12,
     shadowRadius: 12,
     elevation: 4,
   },
   large: {
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
+    shadowOpacity: 0.16,
     shadowRadius: 24,
     elevation: 8,
   },

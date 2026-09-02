@@ -1,31 +1,31 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 import { useColorScheme } from 'react-native';
-import { Employee, Ride, NotificationItem } from '../types';
-import { MOCK_EMPLOYEE, MOCK_RIDES, MOCK_NOTIFICATIONS, MOCK_ACTIVE_RIDE } from '../mock';
+import { Employee, Ride, NotificationItem, Route } from '../types';
+import { MOCK_EMPLOYEE, MOCK_RIDES, MOCK_NOTIFICATIONS, MOCK_ACTIVE_RIDE, MOCK_ROUTE, MOCK_ROUTE_2 } from '../mock';
 import { Colors } from '../constants/theme';
 import { authService, rideService, notificationService } from '../services';
 
 interface AppContextType {
-  // Auth
   isLoggedIn: boolean;
   employee: Employee | null;
   login: (emailOrPhone: string, code: string) => Promise<void>;
   logout: () => Promise<void>;
 
-  // Rides state
   rides: Ride[];
   activeRide: Ride | null;
   refreshRides: () => Promise<void>;
   cancelRide: (rideId: string) => Promise<void>;
   bookRide: (req: any) => Promise<Ride>;
 
-  // Notifications state
+  routes: Route[];
+  selectedRoute: Route | null;
+  setSelectedRoute: (route: Route | null) => void;
+
   notifications: NotificationItem[];
   unreadNotificationCount: number;
   markNotificationRead: (id: string) => void;
   markAllNotificationsRead: () => void;
 
-  // Theme
   isDarkMode: boolean;
   toggleDarkMode: () => void;
   themeColors: typeof Colors.light;
@@ -36,11 +36,13 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const systemColorScheme = useColorScheme();
   const [isDarkMode, setIsDarkMode] = useState<boolean>(systemColorScheme === 'dark');
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(true); // Default logged in for demo
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(true);
   const [employee, setEmployee] = useState<Employee | null>(MOCK_EMPLOYEE);
   const [rides, setRides] = useState<Ride[]>(MOCK_RIDES);
   const [activeRide, setActiveRide] = useState<Ride | null>(MOCK_ACTIVE_RIDE);
   const [notifications, setNotifications] = useState<NotificationItem[]>(MOCK_NOTIFICATIONS);
+  const [routes] = useState<Route[]>([MOCK_ROUTE, MOCK_ROUTE_2]);
+  const [selectedRoute, setSelectedRoute] = useState<Route | null>(null);
 
   const themeColors = isDarkMode ? Colors.dark : Colors.light;
 
@@ -101,6 +103,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         refreshRides,
         cancelRide,
         bookRide,
+        routes,
+        selectedRoute,
+        setSelectedRoute,
         notifications,
         unreadNotificationCount,
         markNotificationRead,

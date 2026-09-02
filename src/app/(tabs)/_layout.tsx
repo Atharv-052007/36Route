@@ -2,6 +2,7 @@ import React from 'react';
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useApp } from '@/context/AppContext';
+import { Typography, BorderRadius } from '@/constants/theme';
 
 export default function TabLayout() {
   const { themeColors, unreadNotificationCount } = useApp();
@@ -10,18 +11,20 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: themeColors.primary,
+        tabBarActiveTintColor: themeColors.secondary,
         tabBarInactiveTintColor: themeColors.textMuted,
         tabBarStyle: {
           backgroundColor: themeColors.cardBackground,
           borderTopColor: themeColors.border,
-          height: 60,
+          height: 62,
           paddingBottom: 8,
           paddingTop: 8,
+          borderTopWidth: 1,
         },
         tabBarLabelStyle: {
           fontSize: 11,
-          fontWeight: '600',
+          fontWeight: Typography.weights.semibold as any,
+          fontFamily: 'Inter',
         },
       }}
     >

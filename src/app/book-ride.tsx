@@ -10,123 +10,131 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useApp } from '../context/AppContext';
-import { Typography, Shadows } from '../constants/theme';
-import { AppInput } from '../components/ui/AppInput';
-import { AppButton } from '../components/ui/AppButton';
-import { ShiftType } from '../types';
+import { useApp } from '@/context/AppContext';
+import { Typography, BorderRadius, Shadows } from '@/constants/theme';
+import { AppInput } from '@/components/ui/AppInput';
+import { AppButton } from '@/components/ui/AppButton';
+import { ShiftType } from '@/types';
 
 export default function BookRideScreen() {
   const router = useRouter();
-  const { employee, bookRide, themeColors } = useApp();
-
+  const { bookRide, themeColors, routes } = useApp();
   const [shiftType, setShiftType] = useState<ShiftType>('PICKUP');
-  const [date, setDate] = useState('Tomorrow, 2 Sep 2026');
-  const [time, setTime] = useState(shiftType === 'PICKUP' ? '08:30 AM' : '06:30 PM');
-  const [pickup, setPickup] = useState(
-    shiftType === 'PICKUP' ? employee?.defaultPickup || '' : employee?.defaultDrop || ''
-  );
-  const [drop, setDrop] = useState(
-    shiftType === 'PICKUP' ? employee?.defaultDrop || '' : employee?.defaultPickup || ''
-  );
+  const [date, setDate] = useState('Tomorrow, 3 Sep 2026');
+  const [time, setTime] = useState('08:30 AM');
+  const [pickup, setPickup] = useState('Kothrud, Pune');
+  const [drop, setDrop] = useState('36Route Tech Park, Electronic City');
+  const [selectedRoute, setSelectedRoute] = useState(routes[0]?.id || '');
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const handleShiftChange = (type: ShiftType) => {
-    setShiftType(type);
-    if (type === 'PICKUP') {
-      setTime('08:30 AM');
-      setPickup(employee?.defaultPickup || '');
-      setDrop(employee?.defaultDrop || '');
-    } else {
+  const toggleShift = () => {
+    const newType = shiftType === 'PICKUP' ? 'DROP' : 'PICKUP';
+    setShiftType(newType);
+    if (newType === 'DROP') {
       setTime('06:30 PM');
-      setPickup(employee?.defaultDrop || '');
-      setDrop(employee?.defaultPickup || '');
+      setPickup('36Route Tech Park, Electronic City');
+      setDrop('Kothrud, Pune');
+    } else {
+      setTime('08:30 AM');
+      setPickup('Kothrud, Pune');
+      setDrop('36Route Tech Park, Electronic City');
     }
   };
 
-  const handleConfirmBooking = async () => {
-    if (!pickup || !drop) {
-      Alert.alert('Error', 'Please fill pickup and drop locations');
-      return;
-    }
+  const validate = () => {
+    const newErrors: Record<string, string> = {};
+    if (!pickup.trim()) newErrors.pickup = 'Pickup location is required';
+    if (!drop.trim()) newErrors.drop = 'Drop location is required';
+    if (!date.trim()) newErrors.date = 'Date is required';
+    if (!time.trim()) newErrors.time = 'Time is required';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
+  const handleBook = async () => {
+    if (!validate()) return;
+    setLoading(true);
     try {
-      setLoading(true);
       await bookRide({
         date,
         time,
         shiftType,
         pickupAddress: pickup,
         dropAddress: drop,
+        routeId: selectedRoute,
       });
+      Alert.alert(
+        'Ride Booked!',
+        'Your ride has been scheduled successfully.',
+        [
+          { text: 'View Schedule', onPress: () => router.replace('/(tabs)/rides') },
+          { text: 'OK', onPress: () => router.back() },
+        ]
+      );
+    } catch (e) {
+      Alert.alert('Error', 'Failed to book ride');
+    } finally {
       setLoading(false);
-      Alert.alert('Success 🎉', 'Your corporate commute cab has been booked!', [
-        {
-          text: 'View Schedule',
-          onPress: () => router.replace('/(tabs)/rides'),
-        },
-      ]);
-    } catch (err: any) {
-      setLoading(false);
-      Alert.alert('Booking Error', err.message || 'Failed to book ride');
     }
   };
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: themeColors.background }]}>
       <ScrollView contentContainerStyle={styles.container}>
-        {/* Top Header */}
-        <View style={styles.headerRow}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-            <Ionicons name="arrow-back" size={24} color={themeColors.text} />
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={[styles.backBtn, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}
+          >
+            <Ionicons name="arrow-back" size={20} color={themeColors.text} />
           </TouchableOpacity>
-          <Text style={[styles.title, { color: themeColors.text }]}>Book Shift Commute</Text>
+          <Text style={[styles.headerTitle, { color: themeColors.text }]}>Book a Ride</Text>
+          <View style={{ width: 40 }} />
         </View>
 
-        {/* Shift Type Toggle */}
-        <View style={[styles.shiftToggle, { backgroundColor: themeColors.borderLight }]}>
+        {/* Shift Toggle */}
+        <View style={[styles.shiftToggle, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}>
           <TouchableOpacity
+            onPress={() => shiftType !== 'PICKUP' && toggleShift()}
             style={[
               styles.shiftBtn,
-              shiftType === 'PICKUP' && { backgroundColor: themeColors.cardBackground },
-              Shadows.small,
+              shiftType === 'PICKUP' && { backgroundColor: themeColors.secondary },
             ]}
-            onPress={() => handleShiftChange('PICKUP')}
+            activeOpacity={0.7}
           >
             <Ionicons
-              name="sunny-outline"
-              size={18}
-              color={shiftType === 'PICKUP' ? themeColors.primary : themeColors.textSecondary}
+              name="arrow-up"
+              size={16}
+              color={shiftType === 'PICKUP' ? '#FFFFFF' : themeColors.textSecondary}
             />
             <Text
               style={[
                 styles.shiftBtnText,
-                {
-                  color: shiftType === 'PICKUP' ? themeColors.primary : themeColors.textSecondary,
-                },
+                { color: shiftType === 'PICKUP' ? '#FFFFFF' : themeColors.textSecondary },
               ]}
             >
               Morning Pickup
             </Text>
           </TouchableOpacity>
-
           <TouchableOpacity
+            onPress={() => shiftType !== 'DROP' && toggleShift()}
             style={[
               styles.shiftBtn,
-              shiftType === 'DROP' && { backgroundColor: themeColors.cardBackground },
-              Shadows.small,
+              shiftType === 'DROP' && { backgroundColor: themeColors.secondary },
             ]}
-            onPress={() => handleShiftChange('DROP')}
+            activeOpacity={0.7}
           >
             <Ionicons
-              name="moon-outline"
-              size={18}
-              color={shiftType === 'DROP' ? themeColors.primary : themeColors.textSecondary}
+              name="arrow-down"
+              size={16}
+              color={shiftType === 'DROP' ? '#FFFFFF' : themeColors.textSecondary}
             />
             <Text
               style={[
                 styles.shiftBtnText,
-                { color: shiftType === 'DROP' ? themeColors.primary : themeColors.textSecondary },
+                { color: shiftType === 'DROP' ? '#FFFFFF' : themeColors.textSecondary },
               ]}
             >
               Evening Drop
@@ -134,71 +142,97 @@ export default function BookRideScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Booking Form Card */}
-        <View
-          style={[
-            styles.card,
-            { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border },
-            Shadows.medium,
-          ]}
-        >
-          <Text style={[styles.cardTitle, { color: themeColors.text }]}>Commute Details</Text>
-
+        {/* Form */}
+        <View style={[styles.formCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.small]}>
           <AppInput
-            label="Schedule Date"
+            label="Date"
             value={date}
             onChangeText={setDate}
-            leftIcon={<Ionicons name="calendar-outline" size={20} color={themeColors.primary} />}
+            placeholder="Select date"
+            leftIcon={<Ionicons name="calendar-outline" size={18} color={themeColors.textMuted} />}
+            error={errors.date}
           />
 
           <AppInput
-            label="Shift Time Slot"
+            label="Time"
             value={time}
             onChangeText={setTime}
-            leftIcon={<Ionicons name="time-outline" size={20} color={themeColors.primary} />}
+            placeholder="Select time"
+            leftIcon={<Ionicons name="time-outline" size={18} color={themeColors.textMuted} />}
+            error={errors.time}
           />
 
           <AppInput
-            label="Pickup Address"
+            label="Pickup Location"
             value={pickup}
             onChangeText={setPickup}
-            multiline
-            leftIcon={
-              <Ionicons name="ellipse" size={14} color={themeColors.accent} style={{ margin: 3 }} />
-            }
+            placeholder="Enter pickup address"
+            leftIcon={<Ionicons name="location-outline" size={18} color={themeColors.accent} />}
+            error={errors.pickup}
           />
 
           <AppInput
-            label="Drop Address"
+            label="Drop Location"
             value={drop}
             onChangeText={setDrop}
-            multiline
-            leftIcon={<Ionicons name="location" size={20} color={themeColors.primary} />}
+            placeholder="Enter drop address"
+            leftIcon={<Ionicons name="location" size={18} color={themeColors.secondary} />}
+            error={errors.drop}
           />
+
+          {/* Route Selection */}
+          {routes.length > 0 && (
+            <View style={{ marginBottom: 16 }}>
+              <Text style={[styles.routeLabel, { color: themeColors.textSecondary }]}>Available Routes</Text>
+              <View style={styles.routeList}>
+                {routes.map((route) => (
+                  <TouchableOpacity
+                    key={route.id}
+                    onPress={() => setSelectedRoute(route.id)}
+                    style={[
+                      styles.routeOption,
+                      {
+                        backgroundColor: selectedRoute === route.id ? themeColors.secondaryLight : themeColors.backgroundElement,
+                        borderColor: selectedRoute === route.id ? themeColors.secondary : themeColors.border,
+                      },
+                    ]}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons
+                      name={selectedRoute === route.id ? 'radio-button-on' : 'radio-button-off'}
+                      size={18}
+                      color={selectedRoute === route.id ? themeColors.secondary : themeColors.textMuted}
+                    />
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.routeName, { color: themeColors.text }]}>{route.name}</Text>
+                      <Text style={[styles.routeDetail, { color: themeColors.textSecondary }]}>
+                        {route.startingPoint} → {route.destination} • {route.distance} km
+                      </Text>
+                    </View>
+                    <Text style={[styles.routeCapacity, { color: themeColors.textMuted }]}>
+                      {route.occupiedSeats}/{route.capacity}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          )}
         </View>
 
-        {/* Summary Card */}
-        <View
-          style={[
-            styles.summaryCard,
-            { backgroundColor: themeColors.primaryLight, borderColor: themeColors.border },
-          ]}
-        >
-          <View style={styles.summaryRow}>
-            <Ionicons name="information-circle-outline" size={20} color={themeColors.primary} />
-            <Text style={[styles.summaryText, { color: themeColors.primary }]}>
-              Roster Policy: Cancellations and schedule changes are permitted up to 2 hours prior to
-              pickup time.
-            </Text>
-          </View>
+        {/* Policy */}
+        <View style={[styles.policyCard, { backgroundColor: themeColors.backgroundElement }]}>
+          <Ionicons name="information-circle-outline" size={16} color={themeColors.textMuted} />
+          <Text style={[styles.policyText, { color: themeColors.textSecondary }]}>
+            Cancellations permitted up to 2 hours before scheduled time.
+          </Text>
         </View>
 
         <AppButton
-          title="Confirm & Request Ride"
-          onPress={handleConfirmBooking}
+          title="Confirm Booking"
+          onPress={handleBook}
           loading={loading}
           size="lg"
-          style={{ marginTop: 20 }}
+          style={{ marginTop: 8 }}
         />
       </ScrollView>
     </SafeAreaView>
@@ -206,30 +240,32 @@ export default function BookRideScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-  },
-  container: {
-    padding: 18,
-    paddingBottom: 40,
-  },
-  headerRow: {
+  safe: { flex: 1 },
+  container: { padding: 18, paddingBottom: 40 },
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    justifyContent: 'space-between',
+    marginBottom: 20,
   },
   backBtn: {
-    marginRight: 12,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  title: {
-    fontSize: Typography.fontSizes.xl,
+  headerTitle: {
+    fontSize: Typography.fontSizes.lg,
     fontWeight: Typography.weights.bold as any,
   },
   shiftToggle: {
     flexDirection: 'row',
-    borderRadius: 14,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
     padding: 4,
-    marginBottom: 18,
+    marginBottom: 16,
   },
   shiftBtn: {
     flex: 1,
@@ -237,37 +273,45 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 12,
-    borderRadius: 10,
+    borderRadius: BorderRadius.sm,
+    gap: 6,
   },
   shiftBtnText: {
-    fontSize: Typography.fontSizes.xs,
-    fontWeight: Typography.weights.bold as any,
-    marginLeft: 6,
+    fontSize: Typography.fontSizes.sm,
+    fontWeight: Typography.weights.semibold as any,
   },
-  card: {
-    borderRadius: 20,
-    padding: 18,
+  formCard: {
+    borderRadius: BorderRadius.md,
     borderWidth: 1,
+    padding: 16,
+    marginBottom: 12,
   },
-  cardTitle: {
-    fontSize: Typography.fontSizes.md,
-    fontWeight: Typography.weights.bold as any,
-    marginBottom: 14,
+  routeLabel: {
+    fontSize: Typography.fontSizes.sm,
+    fontWeight: Typography.weights.medium as any,
+    marginBottom: 8,
   },
-  summaryCard: {
-    padding: 14,
-    borderRadius: 14,
-    borderWidth: 1,
-    marginTop: 16,
-  },
-  summaryRow: {
+  routeList: { gap: 8 },
+  routeOption: {
     flexDirection: 'row',
     alignItems: 'center',
+    padding: 12,
+    borderRadius: BorderRadius.sm,
+    borderWidth: 1,
+    gap: 10,
   },
-  summaryText: {
-    flex: 1,
-    fontSize: Typography.fontSizes.xs,
-    marginLeft: 8,
-    lineHeight: 18,
+  routeName: {
+    fontSize: Typography.fontSizes.md,
+    fontWeight: Typography.weights.semibold as any,
   },
+  routeDetail: { fontSize: Typography.fontSizes.xs, marginTop: 2 },
+  routeCapacity: { fontSize: Typography.fontSizes.xs },
+  policyCard: {
+    flexDirection: 'row',
+    padding: 12,
+    borderRadius: BorderRadius.sm,
+    gap: 8,
+    marginBottom: 16,
+  },
+  policyText: { fontSize: Typography.fontSizes.xs, flex: 1, lineHeight: 18 },
 });

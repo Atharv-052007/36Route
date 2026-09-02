@@ -3,27 +3,25 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
+  SafeAreaView,
   TouchableOpacity,
   RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useApp } from '../../context/AppContext';
-import { Typography, Shadows } from '../../constants/theme';
+import { Typography, BorderRadius } from '../../constants/theme';
 import { RideCard } from '../../components/ui/RideCards';
-import { EmptyState, ConfirmationModal } from '../../components/ui/AppStates';
-import { AppButton } from '../../components/ui/AppButton';
+import { ConfirmationModal, EmptyState } from '../../components/ui/AppStates';
 
 export default function RidesScreen() {
   const router = useRouter();
-  const { rides, cancelRide, refreshRides, themeColors } = useApp();
-  const [tab, setTab] = useState<'UPCOMING' | 'HISTORY'>('UPCOMING');
+  const { rides, refreshRides, cancelRide, themeColors } = useApp();
+  const [activeTab, setActiveTab] = useState<'upcoming' | 'history'>('upcoming');
   const [filter, setFilter] = useState<'ALL' | 'COMPLETED' | 'CANCELLED'>('ALL');
   const [refreshing, setRefreshing] = useState(false);
-
-  const [selectedCancelId, setSelectedCancelId] = useState<string | null>(null);
+  const [cancelId, setCancelId] = useState<string | null>(null);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -31,23 +29,11 @@ export default function RidesScreen() {
     setRefreshing(false);
   };
 
-  const upcomingRides = rides.filter(
-    (r) => r.status === 'SCHEDULED' || r.status === 'BOARDING' || r.status === 'IN_TRANSIT'
-  );
+  const upcoming = rides.filter((r) => ['SCHEDULED', 'BOARDING', 'IN_TRANSIT'].includes(r.status));
+  const history = rides.filter((r) => ['COMPLETED', 'CANCELLED'].includes(r.status));
+  const filteredHistory = filter === 'ALL' ? history : history.filter((r) => r.status === filter);
 
-  const historyRides = rides.filter((r) => {
-    if (r.status !== 'COMPLETED' && r.status !== 'CANCELLED') return false;
-    if (filter === 'COMPLETED') return r.status === 'COMPLETED';
-    if (filter === 'CANCELLED') return r.status === 'CANCELLED';
-    return true;
-  });
-
-  const handleConfirmCancel = async () => {
-    if (selectedCancelId) {
-      await cancelRide(selectedCancelId);
-      setSelectedCancelId(null);
-    }
-  };
+  const displayRides = activeTab === 'upcoming' ? upcoming : filteredHistory;
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: themeColors.background }]}>
@@ -55,78 +41,49 @@ export default function RidesScreen() {
         contentContainerStyle={styles.container}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        {/* Top Header */}
+        {/* Header */}
         <View style={styles.header}>
-          <Text style={[styles.title, { color: themeColors.text }]}>My Commutes</Text>
-          <AppButton
-            title="+ Book"
+          <Text style={[styles.headerTitle, { color: themeColors.text }]}>My Rides</Text>
+          <TouchableOpacity
+            style={[styles.addBtn, { backgroundColor: themeColors.secondary }]}
             onPress={() => router.push('/book-ride')}
-            size="sm"
-            style={{ borderRadius: 20 }}
-          />
+          >
+            <Ionicons name="add" size={18} color="#FFF" />
+            <Text style={styles.addBtnText}>Book</Text>
+          </TouchableOpacity>
         </View>
 
-        {/* Tab Switcher */}
-        <View style={[styles.tabBar, { backgroundColor: themeColors.borderLight }]}>
-          <TouchableOpacity
-            style={[
-              styles.tabBtn,
-              tab === 'UPCOMING' && { backgroundColor: themeColors.cardBackground },
-              Shadows.small,
-            ]}
-            onPress={() => setTab('UPCOMING')}
-          >
-            <Text
-              style={[
-                styles.tabText,
-                { color: tab === 'UPCOMING' ? themeColors.primary : themeColors.textSecondary },
-              ]}
+        {/* Tabs */}
+        <View style={[styles.tabs, { backgroundColor: themeColors.backgroundElement }]}>
+          {(['upcoming', 'history'] as const).map((tab) => (
+            <TouchableOpacity
+              key={tab}
+              onPress={() => setActiveTab(tab)}
+              style={[styles.tab, activeTab === tab && { backgroundColor: themeColors.secondary }]}
             >
-              Upcoming ({upcomingRides.length})
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.tabBtn,
-              tab === 'HISTORY' && { backgroundColor: themeColors.cardBackground },
-              Shadows.small,
-            ]}
-            onPress={() => setTab('HISTORY')}
-          >
-            <Text
-              style={[
-                styles.tabText,
-                { color: tab === 'HISTORY' ? themeColors.primary : themeColors.textSecondary },
-              ]}
-            >
-              History
-            </Text>
-          </TouchableOpacity>
+              <Text style={[styles.tabText, { color: activeTab === tab ? '#FFF' : themeColors.textSecondary }]}>
+                {tab === 'upcoming' ? 'Upcoming' : 'History'}
+              </Text>
+            </TouchableOpacity>
+          ))}
         </View>
 
         {/* History Filters */}
-        {tab === 'HISTORY' && (
-          <View style={styles.filterRow}>
+        {activeTab === 'history' && (
+          <View style={styles.filters}>
             {(['ALL', 'COMPLETED', 'CANCELLED'] as const).map((f) => (
               <TouchableOpacity
                 key={f}
+                onPress={() => setFilter(f)}
                 style={[
                   styles.filterChip,
                   {
-                    backgroundColor:
-                      filter === f ? themeColors.primaryLight : themeColors.cardBackground,
-                    borderColor: filter === f ? themeColors.primary : themeColors.border,
+                    backgroundColor: filter === f ? themeColors.secondaryLight : themeColors.cardBackground,
+                    borderColor: filter === f ? themeColors.secondary : themeColors.border,
                   },
                 ]}
-                onPress={() => setFilter(f)}
               >
-                <Text
-                  style={[
-                    styles.filterChipText,
-                    { color: filter === f ? themeColors.primary : themeColors.textSecondary },
-                  ]}
-                >
+                <Text style={[styles.filterText, { color: filter === f ? themeColors.secondary : themeColors.textSecondary }]}>
                   {f}
                 </Text>
               </TouchableOpacity>
@@ -134,109 +91,97 @@ export default function RidesScreen() {
           </View>
         )}
 
-        {/* Content Section */}
-        {tab === 'UPCOMING' ? (
-          upcomingRides.length > 0 ? (
-            upcomingRides.map((ride) => (
-              <RideCard
-                key={ride.id}
-                ride={ride}
-                onTrack={
-                  ride.status === 'IN_TRANSIT' ? () => router.push('/(tabs)/track') : undefined
-                }
-                onViewDetails={() =>
-                  router.push({ pathname: '/ride-details', params: { id: ride.id } })
-                }
-                onCancel={() => setSelectedCancelId(ride.id)}
-              />
-            ))
-          ) : (
-            <EmptyState
-              title="No Upcoming Commutes"
-              description="You have no active or scheduled rides at this time."
-              actionTitle="Schedule a Ride"
-              onAction={() => router.push('/book-ride')}
-            />
-          )
-        ) : historyRides.length > 0 ? (
-          historyRides.map((ride) => (
+        {/* Ride List */}
+        {displayRides.length === 0 ? (
+          <EmptyState
+            title={activeTab === 'upcoming' ? 'No Upcoming Rides' : 'No History'}
+            description={activeTab === 'upcoming' ? 'Book a ride for your next shift' : 'Your completed rides will appear here'}
+            actionTitle={activeTab === 'upcoming' ? 'Book a Ride' : undefined}
+            onAction={activeTab === 'upcoming' ? () => router.push('/book-ride') : undefined}
+          />
+        ) : (
+          displayRides.map((ride) => (
             <RideCard
               key={ride.id}
               ride={ride}
-              onViewDetails={() =>
-                router.push({ pathname: '/ride-details', params: { id: ride.id } })
-              }
+              onTrack={() => router.push('/(tabs)/track')}
+              onViewDetails={() => router.push({ pathname: '/ride-details', params: { id: ride.id } })}
+              onCancel={() => setCancelId(ride.id)}
             />
           ))
-        ) : (
-          <EmptyState
-            title="No Commute History"
-            description="Your completed and cancelled rides will appear here."
-          />
         )}
       </ScrollView>
 
-      {/* Cancel Confirmation Modal */}
       <ConfirmationModal
-        visible={!!selectedCancelId}
-        title="Cancel Scheduled Commute?"
-        message="Are you sure you want to cancel this ride? Late cancellations may notify your transport coordinator."
-        confirmText="Yes, Cancel"
-        cancelText="Keep Ride"
-        isDanger
-        onConfirm={handleConfirmCancel}
-        onCancel={() => setSelectedCancelId(null)}
+        visible={!!cancelId}
+        title="Cancel Ride"
+        message="Are you sure you want to cancel this ride?"
+        confirmText="Cancel Ride"
+        onConfirm={async () => {
+          if (cancelId) await cancelRide(cancelId);
+          setCancelId(null);
+        }}
+        onCancel={() => setCancelId(null)}
+        variant="danger"
       />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-  },
-  container: {
-    padding: 18,
-    paddingBottom: 40,
-  },
+  safe: { flex: 1 },
+  container: { padding: 18, paddingBottom: 40 },
   header: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 16,
   },
-  title: {
+  headerTitle: {
     fontSize: Typography.fontSizes.xl,
     fontWeight: Typography.weights.bold as any,
   },
-  tabBar: {
+  addBtn: {
     flexDirection: 'row',
-    borderRadius: 14,
-    padding: 4,
-    marginBottom: 16,
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: BorderRadius.md,
+    gap: 4,
   },
-  tabBtn: {
+  addBtnText: {
+    color: '#FFF',
+    fontSize: Typography.fontSizes.sm,
+    fontWeight: Typography.weights.semibold as any,
+  },
+  tabs: {
+    flexDirection: 'row',
+    borderRadius: BorderRadius.md,
+    padding: 4,
+    marginBottom: 14,
+  },
+  tab: {
     flex: 1,
     paddingVertical: 10,
+    borderRadius: BorderRadius.sm,
     alignItems: 'center',
-    borderRadius: 10,
   },
   tabText: {
-    fontSize: Typography.fontSizes.xs,
-    fontWeight: Typography.weights.bold as any,
+    fontSize: Typography.fontSizes.sm,
+    fontWeight: Typography.weights.semibold as any,
   },
-  filterRow: {
+  filters: {
     flexDirection: 'row',
+    gap: 8,
     marginBottom: 14,
   },
   filterChip: {
     paddingHorizontal: 14,
     paddingVertical: 6,
-    borderRadius: 16,
+    borderRadius: BorderRadius.full,
     borderWidth: 1,
-    marginRight: 8,
   },
-  filterChipText: {
+  filterText: {
     fontSize: Typography.fontSizes.xs,
     fontWeight: Typography.weights.semibold as any,
   },

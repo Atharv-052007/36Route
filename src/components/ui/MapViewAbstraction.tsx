@@ -1,67 +1,91 @@
 import React from 'react';
-import { View, Text, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useApp } from '../../context/AppContext';
-import { Typography, Shadows } from '../../constants/theme';
-import { Ride } from '../../types';
+import { BorderRadius, Typography, Shadows } from '../../constants/theme';
 
-interface MapViewProps {
-  ride: Ride;
+interface MapViewAbstractionProps {
+  eta?: string;
   onRefresh?: () => void;
 }
 
-export const MapViewAbstraction: React.FC<MapViewProps> = ({ ride, onRefresh }) => {
-  const { themeColors, isDarkMode } = useApp();
+export const MapViewAbstraction: React.FC<MapViewAbstractionProps> = ({
+  eta,
+  onRefresh,
+}) => {
+  const { themeColors } = useApp();
+  const isDark = themeColors.background === '#000000';
 
   return (
-    <View style={styles.container}>
-      {/* Visual Canvas Representation of Map */}
-      <View style={[styles.mapCanvas, { backgroundColor: isDarkMode ? '#0F172A' : '#E2E8F0' }]}>
-        {/* Map Grid Roads Visualization */}
-        <View style={styles.gridLinesHorizontal} />
-        <View style={styles.gridLinesVertical} />
-        <View style={[styles.mainRoad, { backgroundColor: isDarkMode ? '#334155' : '#CBD5E1' }]} />
-        <View style={[styles.routeLine, { borderColor: themeColors.primary }]} />
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor: isDark ? '#0F172A' : '#E2E8F0',
+          borderRadius: BorderRadius.lg,
+        },
+      ]}
+    >
+      {/* Grid lines */}
+      <View style={[styles.gridH, { top: '25%', backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}]} />
+      <View style={[styles.gridH, { top: '50%', backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}]} />
+      <View style={[styles.gridH, { top: '75%', backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}]} />
+      <View style={[styles.gridV, { left: '25%', backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}]} />
+      <View style={[styles.gridV, { left: '50%', backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}]} />
+      <View style={[styles.gridV, { left: '75%', backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}]} />
 
-        {/* Pickup Pin */}
-        <View style={[styles.pinContainer, { top: '25%', left: '20%' }]}>
-          <View style={[styles.pinBadge, { backgroundColor: themeColors.accent }]}>
-            <Text style={styles.pinText}>Pickup</Text>
-          </View>
-          <View style={[styles.pinDot, { backgroundColor: themeColors.accent }]} />
-        </View>
+      {/* Main road */}
+      <View
+        style={[
+          styles.road,
+          {
+            backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
+          },
+        ]}
+      />
 
-        {/* Moving Vehicle Marker */}
-        <View style={[styles.vehicleMarker, { top: '48%', left: '48%', backgroundColor: themeColors.primary }, Shadows.medium]}>
-          <Ionicons name="car-sport" size={20} color="#FFFFFF" />
-        </View>
+      {/* Route line */}
+      <View style={[styles.routeLine, { borderColor: themeColors.secondary }]} />
 
-        {/* Drop Destination Pin */}
-        <View style={[styles.pinContainer, { top: '70%', left: '75%' }]}>
-          <View style={[styles.pinBadge, { backgroundColor: themeColors.danger }]}>
-            <Text style={styles.pinText}>Drop</Text>
-          </View>
-          <View style={[styles.pinDot, { backgroundColor: themeColors.danger }]} />
-        </View>
-
-        {/* Map Overlay Floating Info Pill */}
-        <View style={[styles.etaPill, { backgroundColor: themeColors.cardBackground }, Shadows.medium]}>
-          <Ionicons name="time-outline" size={16} color={themeColors.primary} />
-          <Text style={[styles.etaPillText, { color: themeColors.text }]}>
-            ETA: <Text style={{ color: themeColors.primary, fontWeight: '700' }}>{ride.eta || '12 mins'}</Text>
-          </Text>
-        </View>
-
-        {/* Map Controls */}
-        {onRefresh && (
-          <TouchableOpacity
-            style={[styles.refreshBtn, { backgroundColor: themeColors.cardBackground }, Shadows.medium]}
-            onPress={onRefresh}
-          >
-            <Ionicons name="refresh-outline" size={20} color={themeColors.text} />
-          </TouchableOpacity>
-        )}
+      {/* Pickup pin */}
+      <View style={[styles.pin, { top: '25%', left: '20%', backgroundColor: themeColors.accent }]}>
+        <Ionicons name="location" size={16} color="#FFFFFF" />
       </View>
+      <View style={[styles.pinLabel, { top: '19%', left: '14%', backgroundColor: themeColors.accentLight }]}>
+        <Text style={[styles.pinLabelText, { color: themeColors.accent }]}>Pickup</Text>
+      </View>
+
+      {/* Vehicle marker */}
+      <View style={[styles.vehicleMarker, { backgroundColor: themeColors.secondary }]}>
+        <Ionicons name="car-sport" size={18} color="#FFFFFF" />
+      </View>
+
+      {/* Drop pin */}
+      <View style={[styles.pin, { top: '70%', left: '75%', backgroundColor: themeColors.secondary }]}>
+        <Ionicons name="flag" size={14} color="#FFFFFF" />
+      </View>
+      <View style={[styles.pinLabel, { top: '64%', left: '68%', backgroundColor: themeColors.secondaryLight }]}>
+        <Text style={[styles.pinLabelText, { color: themeColors.secondary }]}>Drop</Text>
+      </View>
+
+      {/* ETA pill */}
+      {eta && (
+        <View style={[styles.etaPill, { backgroundColor: themeColors.cardBackground, ...Shadows.small }]}>
+          <Ionicons name="time" size={14} color={themeColors.secondary} />
+          <Text style={[styles.etaText, { color: themeColors.text }]}>{eta}</Text>
+        </View>
+      )}
+
+      {/* Refresh button */}
+      {onRefresh && (
+        <TouchableOpacity
+          onPress={onRefresh}
+          style={[styles.refreshBtn, { backgroundColor: themeColors.cardBackground, ...Shadows.small }]}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="refresh" size={18} color={themeColors.textSecondary} />
+        </TouchableOpacity>
+      )}
     </View>
   );
 };
@@ -70,97 +94,93 @@ const styles = StyleSheet.create({
   container: {
     height: 320,
     width: '100%',
-    borderRadius: 24,
     overflow: 'hidden',
-  },
-  mapCanvas: {
-    flex: 1,
     position: 'relative',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
-  gridLinesHorizontal: {
+  gridH: {
     position: 'absolute',
-    top: '35%',
     left: 0,
     right: 0,
-    height: 20,
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    height: 1,
   },
-  gridLinesVertical: {
+  gridV: {
     position: 'absolute',
-    left: '45%',
     top: 0,
     bottom: 0,
-    width: 24,
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    width: 1,
   },
-  mainRoad: {
+  road: {
     position: 'absolute',
-    width: '90%',
+    top: '40%',
+    left: '-10%',
+    width: '120%',
     height: 60,
     transform: [{ rotate: '-25deg' }],
-    borderRadius: 30,
+    borderRadius: 8,
   },
   routeLine: {
     position: 'absolute',
-    width: '80%',
-    height: 120,
-    borderWidth: 4,
+    top: '30%',
+    left: '25%',
+    width: '55%',
+    height: 0,
+    borderWidth: 2,
     borderStyle: 'dashed',
-    borderRadius: 60,
-    transform: [{ rotate: '-20deg' }],
+    borderRadius: 1,
+    transform: [{ rotate: '35deg' }],
   },
-  pinContainer: {
+  pin: {
     position: 'absolute',
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: 'center',
     alignItems: 'center',
+    ...Shadows.small,
   },
-  pinBadge: {
+  pinLabel: {
+    position: 'absolute',
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: 8,
+    borderRadius: BorderRadius.sm,
   },
-  pinText: {
-    color: '#FFF',
-    fontSize: 10,
-    fontWeight: Typography.weights.bold as any,
-  },
-  pinDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    marginTop: 2,
+  pinLabelText: {
+    fontSize: Typography.fontSizes.xs,
+    fontWeight: Typography.weights.semibold as any,
   },
   vehicleMarker: {
     position: 'absolute',
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    top: '48%',
+    left: '48%',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
+    ...Shadows.medium,
   },
   etaPill: {
     position: 'absolute',
-    top: 16,
-    left: 16,
+    top: 12,
+    left: 12,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: 20,
+    borderRadius: BorderRadius.full,
+    gap: 6,
   },
-  etaPillText: {
-    fontSize: Typography.fontSizes.xs,
-    marginLeft: 6,
+  etaText: {
+    fontSize: Typography.fontSizes.sm,
     fontWeight: Typography.weights.semibold as any,
   },
   refreshBtn: {
     position: 'absolute',
-    top: 16,
-    right: 16,
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+    top: 12,
+    right: 12,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
   },

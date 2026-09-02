@@ -3,147 +3,93 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
+  SafeAreaView,
   TouchableOpacity,
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useApp } from '../context/AppContext';
-import { Typography, Shadows } from '../constants/theme';
-import { AppInput } from '../components/ui/AppInput';
-import { AppButton } from '../components/ui/AppButton';
+import { useApp } from '@/context/AppContext';
+import { Typography, BorderRadius } from '@/constants/theme';
+import { AppInput } from '@/components/ui/AppInput';
+import { AppButton } from '@/components/ui/AppButton';
 
 const FAQS = [
-  {
-    q: 'How is cab allocation done for shift commutes?',
-    a: 'Cabs are automatedly routed based on office shifts, employee roster bookings, and optimized geofenced pickup clusters to minimize travel time.',
-  },
-  {
-    q: 'Where do I find my boarding OTP?',
-    a: 'Your boarding OTP is visible on your Active Trip card on the Home dashboard and inside Live Tracking 15 minutes before pickup.',
-  },
-  {
-    q: 'What is the cutoff time for cancelling or rescheduling?',
-    a: 'Corporate policy allows free cancellations up to 2 hours prior to your scheduled pickup time.',
-  },
-  {
-    q: 'How do I report a lost item in the cab?',
-    a: 'You can use the Lost & Found section below to submit details. Our corporate transport team will contact the driver and escort team immediately.',
-  },
+  { q: 'How is my cab allocated?', a: 'Based on your pickup locality, shift timing and route availability, our system auto-assigns the optimal vehicle.' },
+  { q: 'How does boarding OTP work?', a: 'A 4-digit OTP is shown on your app. Share it with the driver to verify boarding. This ensures you board the right vehicle.' },
+  { q: 'Can I cancel my booking?', a: 'Yes, cancellations are permitted up to 2 hours before your scheduled pickup time.' },
+  { q: 'I left something in the cab', a: 'Contact Transport Control immediately at 1800-36-ROUTE. We will coordinate with the driver to retrieve your item.' },
 ];
 
 export default function HelpScreen() {
   const router = useRouter();
   const { themeColors } = useApp();
-
-  const [expandedIndex, setExpandedIndex] = useState<number | null>(0);
-  const [issueText, setIssueText] = useState('');
+  const [expanded, setExpanded] = useState<number | null>(null);
+  const [issue, setIssue] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmitIssue = () => {
-    if (!issueText.trim()) {
-      Alert.alert('Error', 'Please describe your query or issue.');
-      return;
-    }
-    setSubmitted(true);
-    setIssueText('');
+  const handleSubmit = () => {
+    if (!issue.trim()) return;
     setTimeout(() => {
-      setSubmitted(false);
-      Alert.alert('Ticket Raised', 'Your query has been logged with Transport Desk (Ticket #36-TK-9021).');
+      setSubmitted(true);
+      setIssue('');
+      Alert.alert('Ticket Submitted', 'Your issue has been logged. Ticket #36-TK-9021');
+      setTimeout(() => setSubmitted(false), 2000);
     }, 500);
   };
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: themeColors.background }]}>
       <ScrollView contentContainerStyle={styles.container}>
-        {/* Header */}
-        <View style={styles.headerRow}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-            <Ionicons name="arrow-back" size={24} color={themeColors.text} />
+        <View style={styles.header}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={[styles.backBtn, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}
+          >
+            <Ionicons name="arrow-back" size={20} color={themeColors.text} />
           </TouchableOpacity>
-          <Text style={[styles.title, { color: themeColors.text }]}>Help & Support Desk</Text>
+          <Text style={[styles.headerTitle, { color: themeColors.text }]}>Help & Support</Text>
+          <View style={{ width: 40 }} />
         </View>
 
-        {/* Support Hotline Banner */}
-        <View
-          style={[
-            styles.banner,
-            { backgroundColor: themeColors.primaryLight, borderColor: themeColors.border },
-          ]}
-        >
-          <Ionicons name="headset" size={28} color={themeColors.primary} />
-          <View style={{ marginLeft: 12, flex: 1 }}>
-            <Text style={[styles.bannerTitle, { color: themeColors.primary }]}>
-              24/7 Corporate Transport Desk
-            </Text>
-            <Text style={[styles.bannerSub, { color: themeColors.textSecondary }]}>
-              Toll Free: 1800-36-ROUTE • support@36route.corp
-            </Text>
+        {/* Support Banner */}
+        <View style={[styles.banner, { backgroundColor: themeColors.secondary }]}>
+          <Ionicons name="headset" size={24} color="#FFF" />
+          <View style={{ flex: 1 }}>
+            <Text style={styles.bannerTitle}>24/7 Support</Text>
+            <Text style={styles.bannerSub}>1800-36-ROUTE • support@36route.com</Text>
           </View>
         </View>
 
-        {/* FAQs Section */}
-        <Text style={[styles.sectionTitle, { color: themeColors.text }]}>
-          Frequently Asked Questions
-        </Text>
+        {/* FAQs */}
+        <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Frequently Asked</Text>
+        {FAQS.map((faq, i) => (
+          <TouchableOpacity
+            key={i}
+            style={[styles.faq, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}
+            onPress={() => setExpanded(expanded === i ? null : i)}
+          >
+            <View style={styles.faqRow}>
+              <Text style={[styles.faqQ, { color: themeColors.text }]}>{faq.q}</Text>
+              <Ionicons name={expanded === i ? 'chevron-up' : 'chevron-down'} size={18} color={themeColors.textMuted} />
+            </View>
+            {expanded === i && (
+              <Text style={[styles.faqA, { color: themeColors.textSecondary }]}>{faq.a}</Text>
+            )}
+          </TouchableOpacity>
+        ))}
 
-        {FAQS.map((faq, index) => {
-          const isExpanded = expandedIndex === index;
-          return (
-            <TouchableOpacity
-              key={index}
-              activeOpacity={0.8}
-              style={[
-                styles.faqCard,
-                {
-                  backgroundColor: themeColors.cardBackground,
-                  borderColor: themeColors.border,
-                },
-                Shadows.small,
-              ]}
-              onPress={() => setExpandedIndex(isExpanded ? null : index)}
-            >
-              <View style={styles.faqHeader}>
-                <Text style={[styles.faqQ, { color: themeColors.text }]}>{faq.q}</Text>
-                <Ionicons
-                  name={isExpanded ? 'chevron-up' : 'chevron-down'}
-                  size={18}
-                  color={themeColors.textMuted}
-                />
-              </View>
-              {isExpanded && (
-                <View style={[styles.faqBody, { borderTopColor: themeColors.border }]}>
-                  <Text style={[styles.faqA, { color: themeColors.textSecondary }]}>{faq.a}</Text>
-                </View>
-              )}
-            </TouchableOpacity>
-          );
-        })}
-
-        {/* Report Issue Form */}
-        <Text style={[styles.sectionTitle, { color: themeColors.text, marginTop: 14 }]}>
-          Report an Issue or Request Support
-        </Text>
-        <View
-          style={[
-            styles.card,
-            { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border },
-            Shadows.medium,
-          ]}
-        >
+        {/* Issue Form */}
+        <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Report an Issue</Text>
+        <View style={[styles.formCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}>
           <AppInput
-            label="Describe your feedback or issue"
-            placeholder="e.g. Cab arrived late, driver behavior, lost property..."
-            value={issueText}
-            onChangeText={setIssueText}
+            placeholder="Describe your issue..."
+            value={issue}
+            onChangeText={setIssue}
             multiline
-            numberOfLines={4}
-            style={{ height: 90, textAlignVertical: 'top' }}
           />
-
-          <AppButton title="Submit Support Ticket" onPress={handleSubmitIssue} size="md" />
+          <AppButton title="Submit Issue" onPress={handleSubmit} />
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -151,76 +97,36 @@ export default function HelpScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-  },
-  container: {
-    padding: 18,
-    paddingBottom: 40,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
+  safe: { flex: 1 },
+  container: { padding: 18, paddingBottom: 40 },
+  header: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16,
   },
   backBtn: {
-    marginRight: 12,
+    width: 40, height: 40, borderRadius: 20, borderWidth: 1,
+    justifyContent: 'center', alignItems: 'center',
   },
-  title: {
-    fontSize: Typography.fontSizes.xl,
-    fontWeight: Typography.weights.bold as any,
+  headerTitle: {
+    fontSize: Typography.fontSizes.lg, fontWeight: Typography.weights.bold as any,
   },
   banner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    borderRadius: 18,
-    borderWidth: 1,
-    marginBottom: 20,
+    flexDirection: 'row', alignItems: 'center', padding: 16,
+    borderRadius: BorderRadius.md, gap: 12, marginBottom: 20,
   },
-  bannerTitle: {
-    fontSize: Typography.fontSizes.md,
-    fontWeight: Typography.weights.bold as any,
-  },
-  bannerSub: {
-    fontSize: Typography.fontSizes.xs,
-    marginTop: 2,
-  },
+  bannerTitle: { color: '#FFF', fontSize: Typography.fontSizes.md, fontWeight: Typography.weights.bold as any },
+  bannerSub: { color: 'rgba(255,255,255,0.8)', fontSize: Typography.fontSizes.xs, marginTop: 2 },
   sectionTitle: {
-    fontSize: Typography.fontSizes.md,
-    fontWeight: Typography.weights.bold as any,
-    marginBottom: 10,
+    fontSize: Typography.fontSizes.md, fontWeight: Typography.weights.bold as any, marginBottom: 10,
   },
-  faqCard: {
-    borderRadius: 14,
-    padding: 14,
-    borderWidth: 1,
-    marginBottom: 10,
+  faq: {
+    borderRadius: BorderRadius.md, borderWidth: 1, padding: 14, marginBottom: 8,
   },
-  faqHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  faqRow: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
   },
-  faqQ: {
-    fontSize: Typography.fontSizes.sm,
-    fontWeight: Typography.weights.semibold as any,
-    flex: 1,
-    marginRight: 10,
-  },
-  faqBody: {
-    marginTop: 10,
-    paddingTop: 10,
-    borderTopWidth: 1,
-  },
-  faqA: {
-    fontSize: Typography.fontSizes.xs,
-    lineHeight: 18,
-  },
-  card: {
-    borderRadius: 18,
-    padding: 18,
-    borderWidth: 1,
-    marginTop: 6,
+  faqQ: { fontSize: Typography.fontSizes.md, fontWeight: Typography.weights.semibold as any, flex: 1, marginRight: 8 },
+  faqA: { fontSize: Typography.fontSizes.sm, marginTop: 10, lineHeight: 20 },
+  formCard: {
+    borderRadius: BorderRadius.md, borderWidth: 1, padding: 16,
   },
 });

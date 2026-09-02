@@ -21,6 +21,7 @@ function RootLayoutNav() {
         <Stack.Screen name="login" />
         <Stack.Screen name="book-ride" />
         <Stack.Screen name="ride-details" />
+        <Stack.Screen name="route-details" />
         <Stack.Screen name="sos" />
         <Stack.Screen name="help" />
         <Stack.Screen name="edit-profile" />

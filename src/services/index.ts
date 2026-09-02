@@ -1,9 +1,9 @@
 import { MOCK_EMPLOYEE, MOCK_RIDES, MOCK_NOTIFICATIONS, MOCK_ACTIVE_RIDE } from '../mock';
-import { Employee, Ride, NotificationItem, BookRideRequest, RideStatus } from '../types';
+import { Employee, Ride, NotificationItem, BookRideRequest } from '../types';
 
 export const authService = {
   login: async (identifier: string, passOrOtp: string): Promise<Employee> => {
-    await new Promise((res) => setTimeout(res, 800)); // Simulate network latency
+    await new Promise((res) => setTimeout(res, 800));
     if (!identifier || !passOrOtp) {
       throw new Error('Please provide valid credentials or OTP');
     }
@@ -41,19 +41,19 @@ export const rideService = {
       shiftType: req.shiftType,
       status: 'SCHEDULED',
       pickup: {
-        latitude: 12.9121,
-        longitude: 77.6446,
+        latitude: 18.5074,
+        longitude: 73.8077,
         address: req.pickupAddress,
         name: 'Pickup Location',
       },
       drop: {
-        latitude: 12.8399,
-        longitude: 77.677,
+        latitude: 18.5530,
+        longitude: 73.8700,
         address: req.dropAddress,
         name: 'Drop Location',
       },
       estimatedDistanceKm: 14.5,
-      estimatedDurationMins: 35,
+      estimatedDurationMins: 60,
       otp: `${Math.floor(1000 + Math.random() * 9000)}`,
     };
     MOCK_RIDES.unshift(newRide);
@@ -86,8 +86,8 @@ export const notificationService = {
 export const locationService = {
   getCurrentVehicleLocation: async () => {
     return {
-      latitude: 12.875,
-      longitude: 77.658,
+      latitude: 18.52,
+      longitude: 73.83,
       speedKmH: 42,
       heading: 140,
     };
