@@ -5,7 +5,7 @@ import {
   StyleSheet,
   ScrollView,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { AppSafeAreaView } from '@/components/ui/AppSafeAreaView';
 import { useApp } from '../../context/AppContext';
 import { Typography } from '../../constants/theme';
 import { NotificationCard, EmptyState, SectionHeader } from '../../components/ui/AppStates';
@@ -14,7 +14,7 @@ export default function NotificationsScreen() {
   const { notifications, unreadNotificationCount, markNotificationRead, markAllNotificationsRead, themeColors } = useApp();
 
   return (
-    <SafeAreaView edges={['top']} style={[styles.safe, { backgroundColor: themeColors.background }]}>
+    <AppSafeAreaView edges={['top']} style={[styles.safe, { backgroundColor: themeColors.background }]}>
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.header}>
           <Text style={[styles.headerTitle, { color: themeColors.text }]}>Notifications</Text>
@@ -37,7 +37,7 @@ export default function NotificationsScreen() {
           ))
         )}
       </ScrollView>
-    </SafeAreaView>
+    </AppSafeAreaView>
   );
 }
 

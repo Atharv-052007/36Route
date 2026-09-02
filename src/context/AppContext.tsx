@@ -34,8 +34,7 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const systemColorScheme = useColorScheme();
-  const [isDarkMode, setIsDarkMode] = useState<boolean>(systemColorScheme === 'dark');
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(true);
   const [employee, setEmployee] = useState<Employee | null>(MOCK_EMPLOYEE);
   const [rides, setRides] = useState<Ride[]>(MOCK_RIDES);

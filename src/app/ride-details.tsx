@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { AppSafeAreaView } from '@/components/ui/AppSafeAreaView';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useApp } from '@/context/AppContext';
@@ -25,11 +25,11 @@ export default function RideDetailsScreen() {
 
   if (!ride) {
     return (
-      <SafeAreaView style={[styles.safe, { backgroundColor: themeColors.background }]}>
+      <AppSafeAreaView style={[styles.safe, { backgroundColor: themeColors.background }]}>
         <Text style={{ textAlign: 'center', marginTop: 40, color: themeColors.textSecondary }}>
           Ride not found
         </Text>
-      </SafeAreaView>
+      </AppSafeAreaView>
     );
   }
 
@@ -48,7 +48,7 @@ export default function RideDetailsScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: themeColors.background }]}>
+    <AppSafeAreaView style={[styles.safe, { backgroundColor: themeColors.background }]}>
       <ScrollView contentContainerStyle={styles.container}>
         {/* Header */}
         <View style={styles.header}>
@@ -123,7 +123,7 @@ export default function RideDetailsScreen() {
           )}
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </AppSafeAreaView>
   );
 }
 

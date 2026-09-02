@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { AppSafeAreaView } from '@/components/ui/AppSafeAreaView';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useApp } from '@/context/AppContext';
@@ -47,7 +47,7 @@ export default function LoginScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: themeColors.primary }]}>
+    <AppSafeAreaView edges={['top']} style={[styles.safe, { backgroundColor: themeColors.primary }]}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.flex}
@@ -147,7 +147,7 @@ export default function LoginScreen() {
           />
         </View>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </AppSafeAreaView>
   );
 }
 

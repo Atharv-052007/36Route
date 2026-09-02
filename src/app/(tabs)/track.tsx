@@ -8,7 +8,7 @@ import {
   Linking,
   Alert,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { AppSafeAreaView } from '@/components/ui/AppSafeAreaView';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useApp } from '../../context/AppContext';
@@ -29,7 +29,7 @@ export default function TrackScreen() {
 
   if (!activeRide) {
     return (
-      <SafeAreaView edges={['top']} style={[styles.safe, { backgroundColor: themeColors.background }]}>
+      <AppSafeAreaView edges={['top']} style={[styles.safe, { backgroundColor: themeColors.background }]}>
         <View style={styles.header}>
           <Text style={[styles.headerTitle, { color: themeColors.text }]}>Live Tracking</Text>
         </View>
@@ -40,12 +40,12 @@ export default function TrackScreen() {
           onAction={() => router.push('/book-ride')}
           icon="navigate-outline"
         />
-      </SafeAreaView>
+      </AppSafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView edges={['top']} style={[styles.safe, { backgroundColor: themeColors.background }]}>
+    <AppSafeAreaView edges={['top']} style={[styles.safe, { backgroundColor: themeColors.background }]}>
       <ScrollView contentContainerStyle={styles.container}>
         {/* Header */}
         <View style={styles.header}>
@@ -161,7 +161,7 @@ export default function TrackScreen() {
           </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </AppSafeAreaView>
   );
 }
 

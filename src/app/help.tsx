@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { AppSafeAreaView } from '@/components/ui/AppSafeAreaView';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useApp } from '@/context/AppContext';
@@ -40,7 +40,7 @@ export default function HelpScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: themeColors.background }]}>
+    <AppSafeAreaView style={[styles.safe, { backgroundColor: themeColors.background }]}>
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity
@@ -92,7 +92,7 @@ export default function HelpScreen() {
           <AppButton title="Submit Issue" onPress={handleSubmit} />
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </AppSafeAreaView>
   );
 }
 

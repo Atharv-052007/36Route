@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { ActivityIndicator, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { AppSafeAreaView } from '@/components/ui/AppSafeAreaView';
 import { useRouter } from 'expo-router';
 import { useApp } from '@/context/AppContext';
 
@@ -16,9 +16,9 @@ export default function IndexScreen() {
   }, [isLoggedIn]);
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
+    <AppSafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
       <ActivityIndicator size="large" color={themeColors.primary} />
-    </SafeAreaView>
+    </AppSafeAreaView>
   );
 }
 
