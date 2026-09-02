@@ -4,11 +4,11 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  SafeAreaView,
   TouchableOpacity,
   Linking,
   Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useApp } from '../../context/AppContext';
@@ -29,7 +29,7 @@ export default function TrackScreen() {
 
   if (!activeRide) {
     return (
-      <SafeAreaView style={[styles.safe, { backgroundColor: themeColors.background }]}>
+      <SafeAreaView edges={['top']} style={[styles.safe, { backgroundColor: themeColors.background }]}>
         <View style={styles.header}>
           <Text style={[styles.headerTitle, { color: themeColors.text }]}>Live Tracking</Text>
         </View>
@@ -45,7 +45,7 @@ export default function TrackScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: themeColors.background }]}>
+    <SafeAreaView edges={['top']} style={[styles.safe, { backgroundColor: themeColors.background }]}>
       <ScrollView contentContainerStyle={styles.container}>
         {/* Header */}
         <View style={styles.header}>

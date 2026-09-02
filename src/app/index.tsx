@@ -1,11 +1,12 @@
 import React, { useEffect } from 'react';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { ActivityIndicator, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useApp } from '@/context/AppContext';
 
 export default function IndexScreen() {
   const router = useRouter();
-  const { isLoggedIn } = useApp();
+  const { isLoggedIn, themeColors } = useApp();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -15,12 +16,13 @@ export default function IndexScreen() {
   }, [isLoggedIn]);
 
   return (
-    <View style={styles.container}>
-      <ActivityIndicator size="large" color="#2563EB" />
-    </View>
+    <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
+      <ActivityIndicator size="large" color={themeColors.primary} />
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F8FAFC' },
+  container: { flex: 1, justifyContent: 'center', alignItems: 'center' },
 });
+
