@@ -5,128 +5,151 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  SafeAreaView,
+  Platform,
+  StatusBar,
   Alert,
 } from 'react-native';
-import { AppSafeAreaView } from '@/components/ui/AppSafeAreaView';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useApp } from '@/context/AppContext';
-import { Typography, BorderRadius } from '@/constants/theme';
-import { AppInput } from '@/components/ui/AppInput';
-import { AppButton } from '@/components/ui/AppButton';
+import { Colors, Typography, Spacing, BorderRadius, Shadows } from '@/constants/theme';
+import { Header } from '@/components/ui/Header';
 
-const FAQS = [
-  { q: 'How is my cab allocated?', a: 'Based on your pickup locality, shift timing and route availability, our system auto-assigns the optimal vehicle.' },
-  { q: 'How does boarding OTP work?', a: 'A 4-digit OTP is shown on your app. Share it with the driver to verify boarding. This ensures you board the right vehicle.' },
-  { q: 'Can I cancel my booking?', a: 'Yes, cancellations are permitted up to 2 hours before your scheduled pickup time.' },
-  { q: 'I left something in the cab', a: 'Contact Transport Control immediately at 1800-36-ROUTE. We will coordinate with the driver to retrieve your item.' },
+const PROTOCOLS = [
+  {
+    q: 'How should I handle a driver rejection or no-response?',
+    a: 'When a driver declines or does not respond within 3 minutes, 36Route auto-recommends the next ranked driver. Use the direct "Call" fallback button if high-priority shift departure is within 15 minutes.',
+  },
+  {
+    q: 'What is the SOP for an on-route vehicle breakdown?',
+    a: '1. Contact the driver to verify passenger safety.\n2. In the Trips tab, locate the ongoing trip and tap "Change Vehicle" or "Reassign".\n3. The system will dispatch the nearest available standby vehicle to the current GPS coordinates.',
+  },
+  {
+    q: 'How are passenger no-shows recorded?',
+    a: 'If an employee is not present at the pickup waypoint within the 3-minute grace window, the driver marks "No-show". This appears in the supervisor Overview under "Needs Attention" for roster audit.',
+  },
+  {
+    q: 'Who authorizes emergency route deviations?',
+    a: 'Supervisors have operational override authority. To modify stops on an active route, open the Trip Details screen, tap Route, and edit waypoint sequences.',
+  },
 ];
 
 export default function HelpScreen() {
   const router = useRouter();
-  const { themeColors } = useApp();
-  const [expanded, setExpanded] = useState<number | null>(null);
-  const [issue, setIssue] = useState('');
-  const [submitted, setSubmitted] = useState(false);
+  const { isDarkMode } = useApp();
+  const theme = isDarkMode ? Colors.dark : Colors.light;
 
-  const handleSubmit = () => {
-    if (!issue.trim()) return;
-    setTimeout(() => {
-      setSubmitted(true);
-      setIssue('');
-      Alert.alert('Ticket Submitted', 'Your issue has been logged. Ticket #36-TK-9021');
-      setTimeout(() => setSubmitted(false), 2000);
-    }, 500);
-  };
+  const [expanded, setExpanded] = useState<number | null>(0);
 
   return (
-    <AppSafeAreaView style={[styles.safe, { backgroundColor: themeColors.background }]}>
-      <ScrollView contentContainerStyle={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity
-            onPress={() => router.dismissTo('/(tabs)')}
-            style={[styles.backBtn, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}
-          >
-            <Ionicons name="arrow-back" size={20} color={themeColors.text} />
-          </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: themeColors.text }]}>Help & Support</Text>
-          <View style={{ width: 40 }} />
-        </View>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
+      <StatusBar
+        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+        backgroundColor={theme.cardBackground}
+      />
 
+      <Header title="Operations Protocols" subtitle="Standard Operating Procedures (SOP)" showBack />
+
+      <ScrollView contentContainerStyle={styles.container}>
         {/* Support Banner */}
-        <View style={[styles.banner, { backgroundColor: themeColors.secondary }]}>
-          <Ionicons name="headset" size={24} color="#FFF" />
+        <View style={[styles.banner, { backgroundColor: theme.primary }]}>
+          <Ionicons name="shield-checkmark" size={24} color="#FFF" />
           <View style={{ flex: 1 }}>
-            <Text style={styles.bannerTitle}>24/7 Support</Text>
-            <Text style={styles.bannerSub}>1800-36-ROUTE • support@36route.com</Text>
+            <Text style={styles.bannerTitle}>Central Operations Control</Text>
+            <Text style={styles.bannerSub}>24/7 Operations Desk • 1800-36-ROUTE</Text>
           </View>
         </View>
 
-        {/* FAQs */}
-        <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Frequently Asked</Text>
-        {FAQS.map((faq, i) => (
+        {/* FAQs / Protocols */}
+        <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>
+          DISPATCH & EMERGENCY PROTOCOLS
+        </Text>
+        {PROTOCOLS.map((item, i) => (
           <TouchableOpacity
             key={i}
-            style={[styles.faq, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}
+            activeOpacity={0.7}
+            style={[
+              styles.faq,
+              { backgroundColor: theme.cardBackground, borderColor: theme.border },
+            ]}
             onPress={() => setExpanded(expanded === i ? null : i)}
           >
             <View style={styles.faqRow}>
-              <Text style={[styles.faqQ, { color: themeColors.text }]}>{faq.q}</Text>
-              <Ionicons name={expanded === i ? 'chevron-up' : 'chevron-down'} size={18} color={themeColors.textMuted} />
+              <Text style={[styles.faqQ, { color: theme.text }]}>{item.q}</Text>
+              <Ionicons
+                name={expanded === i ? 'chevron-up' : 'chevron-down'}
+                size={18}
+                color={theme.textMuted}
+              />
             </View>
             {expanded === i && (
-              <Text style={[styles.faqA, { color: themeColors.textSecondary }]}>{faq.a}</Text>
+              <Text style={[styles.faqA, { color: theme.textSecondary }]}>
+                {item.a}
+              </Text>
             )}
           </TouchableOpacity>
         ))}
-
-        {/* Issue Form */}
-        <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Report an Issue</Text>
-        <View style={[styles.formCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}>
-          <AppInput
-            placeholder="Describe your issue..."
-            value={issue}
-            onChangeText={setIssue}
-            multiline
-          />
-          <AppButton title="Submit Issue" onPress={handleSubmit} />
-        </View>
       </ScrollView>
-    </AppSafeAreaView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1 },
-  container: { padding: 18, paddingBottom: 40 },
-  header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16,
+  safeArea: {
+    flex: 1,
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
-  backBtn: {
-    width: 40, height: 40, borderRadius: 20, borderWidth: 1,
-    justifyContent: 'center', alignItems: 'center',
-  },
-  headerTitle: {
-    fontSize: Typography.fontSizes.lg, fontWeight: Typography.weights.bold as any,
+  container: {
+    padding: Spacing.base,
+    paddingBottom: Spacing.xxl,
   },
   banner: {
-    flexDirection: 'row', alignItems: 'center', padding: 16,
-    borderRadius: BorderRadius.md, gap: 12, marginBottom: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Spacing.base,
+    borderRadius: BorderRadius.md,
+    gap: Spacing.md,
+    marginBottom: Spacing.lg,
+    ...Shadows.subtle,
   },
-  bannerTitle: { color: '#FFF', fontSize: Typography.fontSizes.md, fontWeight: Typography.weights.bold as any },
-  bannerSub: { color: 'rgba(255,255,255,0.8)', fontSize: Typography.fontSizes.xs, marginTop: 2 },
+  bannerTitle: {
+    color: '#FFF',
+    fontSize: Typography.fontSizes.base,
+    fontWeight: Typography.weights.bold,
+  },
+  bannerSub: {
+    color: 'rgba(255,255,255,0.8)',
+    fontSize: Typography.fontSizes.xs,
+    marginTop: 2,
+  },
   sectionTitle: {
-    fontSize: Typography.fontSizes.md, fontWeight: Typography.weights.bold as any, marginBottom: 10,
+    fontSize: Typography.fontSizes.xs,
+    fontWeight: Typography.weights.bold,
+    letterSpacing: 0.8,
+    marginBottom: Spacing.md,
   },
   faq: {
-    borderRadius: BorderRadius.md, borderWidth: 1, padding: 14, marginBottom: 8,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    padding: Spacing.base,
+    marginBottom: Spacing.sm,
+    ...Shadows.subtle,
   },
   faqRow: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
-  faqQ: { fontSize: Typography.fontSizes.md, fontWeight: Typography.weights.semibold as any, flex: 1, marginRight: 8 },
-  faqA: { fontSize: Typography.fontSizes.sm, marginTop: 10, lineHeight: 20 },
-  formCard: {
-    borderRadius: BorderRadius.md, borderWidth: 1, padding: 16,
+  faqQ: {
+    fontSize: Typography.fontSizes.sm + 1,
+    fontWeight: Typography.weights.semibold,
+    flex: 1,
+    marginRight: Spacing.sm,
+  },
+  faqA: {
+    fontSize: Typography.fontSizes.sm,
+    marginTop: Spacing.sm,
+    lineHeight: 20,
   },
 });

@@ -1,152 +1,177 @@
 import React from 'react';
 import {
-  View,
-  Text,
   StyleSheet,
+  Text,
+  View,
   ScrollView,
-  TouchableOpacity,
+  SafeAreaView,
+  Platform,
+  StatusBar,
 } from 'react-native';
-import { AppSafeAreaView } from '@/components/ui/AppSafeAreaView';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { Colors, Typography, Spacing, BorderRadius, Shadows } from '@/constants/theme';
 import { useApp } from '@/context/AppContext';
-import { Typography, BorderRadius, Shadows } from '@/constants/theme';
-import { StatusBadge } from '@/components/ui/AppStates';
+import { Header } from '@/components/ui/Header';
+import { RouteTimeline } from '@/components/ui/Timeline';
 
 export default function RouteDetailsScreen() {
-  const router = useRouter();
-  const { routes, themeColors } = useApp();
-  const route = routes[0];
+  const { routes, selectedRouteId, isDarkMode } = useApp();
+  const theme = isDarkMode ? Colors.dark : Colors.light;
 
-  if (!route) {
-    return (
-      <AppSafeAreaView style={[styles.safe, { backgroundColor: themeColors.background }]}>
-        <Text style={{ textAlign: 'center', marginTop: 40, color: themeColors.textSecondary }}>No route data</Text>
-      </AppSafeAreaView>
-    );
-  }
+  const route = routes.find((r) => r.id === selectedRouteId) || routes[0];
 
   return (
-    <AppSafeAreaView style={[styles.safe, { backgroundColor: themeColors.background }]}>
-      <ScrollView contentContainerStyle={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity
-            onPress={() => router.dismissTo('/(tabs)')}
-            style={[styles.backBtn, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}
-          >
-            <Ionicons name="arrow-back" size={20} color={themeColors.text} />
-          </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: themeColors.text }]}>{route.name}</Text>
-          <StatusBadge status={route.status} size="sm" />
-        </View>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
+      <StatusBar
+        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+        backgroundColor={theme.cardBackground}
+      />
 
-        {/* Route Info */}
-        <View style={[styles.infoCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.small]}>
-          <View style={styles.infoRow}>
-            <View style={styles.infoItem}>
-              <Ionicons name="map-outline" size={16} color={themeColors.textMuted} />
-              <Text style={[styles.infoLabel, { color: themeColors.textSecondary }]}>Distance</Text>
-              <Text style={[styles.infoValue, { color: themeColors.text }]}>{route.distance} km</Text>
+      <Header
+        title={route.name}
+        subtitle={`${route.stopsCount} stops • ${route.distanceKm} km`}
+        showBack
+      />
+
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Route Overview Card */}
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: theme.cardBackground, borderColor: theme.border },
+          ]}
+        >
+          <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>
+            ROUTE OVERVIEW
+          </Text>
+          <View style={styles.metricsRow}>
+            <View style={styles.metricCol}>
+              <Text style={[styles.metricVal, { color: theme.text }]}>
+                {route.stopsCount}
+              </Text>
+              <Text style={[styles.metricLabel, { color: theme.textSecondary }]}>
+                Stops
+              </Text>
             </View>
-            <View style={styles.infoItem}>
-              <Ionicons name="time-outline" size={16} color={themeColors.textMuted} />
-              <Text style={[styles.infoLabel, { color: themeColors.textSecondary }]}>Duration</Text>
-              <Text style={[styles.infoValue, { color: themeColors.text }]}>{route.estimatedTime} min</Text>
+            <View style={[styles.divider, { backgroundColor: theme.border }]} />
+            <View style={styles.metricCol}>
+              <Text style={[styles.metricVal, { color: theme.text }]}>
+                {route.distanceKm} km
+              </Text>
+              <Text style={[styles.metricLabel, { color: theme.textSecondary }]}>
+                Distance
+              </Text>
             </View>
-            <View style={styles.infoItem}>
-              <Ionicons name="people-outline" size={16} color={themeColors.textMuted} />
-              <Text style={[styles.infoLabel, { color: themeColors.textSecondary }]}>Seats</Text>
-              <Text style={[styles.infoValue, { color: themeColors.text }]}>{route.occupiedSeats}/{route.capacity}</Text>
+            <View style={[styles.divider, { backgroundColor: theme.border }]} />
+            <View style={styles.metricCol}>
+              <Text style={[styles.metricVal, { color: theme.text }]}>
+                {route.typicalPassengers}
+              </Text>
+              <Text style={[styles.metricLabel, { color: theme.textSecondary }]}>
+                Avg. Riders
+              </Text>
             </View>
           </View>
         </View>
 
-        {/* Stops Timeline */}
-        <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Stops</Text>
-        <View style={[styles.stopsCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.small]}>
-          {route.stops.map((stop, index) => (
-            <View key={stop.id} style={styles.stopRow}>
-              <View style={styles.stopLeft}>
-                <View style={[
-                  styles.stopDot,
-                  {
-                    backgroundColor: index === 0
-                      ? themeColors.accent
-                      : index === route.stops.length - 1
-                      ? themeColors.secondary
-                      : themeColors.textMuted,
-                  },
-                ]} />
-                {index < route.stops.length - 1 && (
-                  <View style={[styles.stopLine, { backgroundColor: themeColors.border }]} />
-                )}
-              </View>
-              <View style={styles.stopContent}>
-                <Text style={[styles.stopName, { color: themeColors.text }]}>{stop.name}</Text>
-                <Text style={[styles.stopAddress, { color: themeColors.textSecondary }]}>{stop.address}</Text>
-                <View style={styles.stopMeta}>
-                  <Text style={[styles.stopTime, { color: themeColors.textMuted }]}>{stop.expectedArrivalTime}</Text>
-                  <Text style={[styles.stopPassengers, { color: themeColors.textMuted }]}>
-                    {stop.passengerCount} passengers • {stop.type}
-                  </Text>
-                </View>
-              </View>
-            </View>
-          ))}
+        {/* STOP SEQUENCE Section */}
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: theme.cardBackground, borderColor: theme.border },
+          ]}
+        >
+          <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>
+            STOP SEQUENCE
+          </Text>
+          <RouteTimeline stops={route.stops} style={{ marginTop: Spacing.sm }} />
+        </View>
+
+        {/* SCHEDULED TRIPS ON THIS ROUTE */}
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: theme.cardBackground, borderColor: theme.border },
+          ]}
+        >
+          <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>
+            DAILY SCHEDULES
+          </Text>
+          <View style={styles.scheduleRow}>
+            <Text style={[styles.scheduleTime, { color: theme.text }]}>07:30</Text>
+            <Text style={[styles.scheduleDetail, { color: theme.textSecondary }]}>
+              Shift 1 Pickup • 12 booked
+            </Text>
+          </View>
+          <View style={[styles.scheduleRow, { borderTopWidth: 1, borderTopColor: theme.borderLight }]}>
+            <Text style={[styles.scheduleTime, { color: theme.text }]}>09:00</Text>
+            <Text style={[styles.scheduleDetail, { color: theme.textSecondary }]}>
+              Shift 2 Pickup • 11 booked
+            </Text>
+          </View>
         </View>
       </ScrollView>
-    </AppSafeAreaView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1 },
-  container: { padding: 18, paddingBottom: 40 },
-  header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16,
+  safeArea: {
+    flex: 1,
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
-  backBtn: {
-    width: 40, height: 40, borderRadius: 20, borderWidth: 1,
-    justifyContent: 'center', alignItems: 'center',
+  scrollContent: {
+    padding: Spacing.base,
+    paddingBottom: Spacing.xxl,
   },
-  headerTitle: {
-    fontSize: Typography.fontSizes.lg, fontWeight: Typography.weights.bold as any, flex: 1, marginLeft: 12,
+  card: {
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    marginBottom: Spacing.md,
+    ...Shadows.subtle,
   },
-  infoCard: {
-    borderRadius: BorderRadius.md, borderWidth: 1, padding: 16, marginBottom: 20,
-  },
-  infoRow: {
-    flexDirection: 'row', justifyContent: 'space-around',
-  },
-  infoItem: { alignItems: 'center', gap: 4 },
-  infoLabel: { fontSize: Typography.fontSizes.xs },
-  infoValue: { fontSize: Typography.fontSizes.lg, fontWeight: Typography.weights.bold as any },
   sectionTitle: {
-    fontSize: Typography.fontSizes.md, fontWeight: Typography.weights.bold as any, marginBottom: 10,
+    fontSize: Typography.fontSizes.xs,
+    fontWeight: Typography.weights.bold,
+    letterSpacing: 0.8,
+    marginBottom: Spacing.sm,
   },
-  stopsCard: {
-    borderRadius: BorderRadius.md, borderWidth: 1, padding: 16,
-  },
-  stopRow: {
+  metricsRow: {
     flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    paddingVertical: Spacing.xs,
   },
-  stopLeft: {
-    width: 24, alignItems: 'center',
+  metricCol: {
+    alignItems: 'center',
+    flex: 1,
   },
-  stopDot: {
-    width: 12, height: 12, borderRadius: 6,
+  metricVal: {
+    fontSize: Typography.fontSizes.xl,
+    fontWeight: Typography.weights.bold,
   },
-  stopLine: {
-    width: 2, flex: 1, marginVertical: 4, borderRadius: 1,
+  metricLabel: {
+    fontSize: Typography.fontSizes.xs,
+    marginTop: 2,
   },
-  stopContent: {
-    flex: 1, marginLeft: 12, paddingBottom: 20,
+  divider: {
+    width: 1,
+    height: 24,
   },
-  stopName: {
-    fontSize: Typography.fontSizes.md, fontWeight: Typography.weights.semibold as any, marginBottom: 2,
+  scheduleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: Spacing.sm,
   },
-  stopAddress: { fontSize: Typography.fontSizes.sm, marginBottom: 4 },
-  stopMeta: { flexDirection: 'row', gap: 12 },
-  stopTime: { fontSize: Typography.fontSizes.xs },
-  stopPassengers: { fontSize: Typography.fontSizes.xs },
+  scheduleTime: {
+    fontSize: Typography.fontSizes.base,
+    fontWeight: Typography.weights.bold,
+  },
+  scheduleDetail: {
+    fontSize: Typography.fontSizes.xs + 1,
+  },
 });

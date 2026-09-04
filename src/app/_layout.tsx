@@ -4,7 +4,6 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AppProvider, useApp } from '@/context/AppContext';
-import { BackToHome } from '@/components/BackToHome';
 import { Platform } from 'react-native';
 
 function RootLayoutNav() {
@@ -25,14 +24,19 @@ function RootLayoutNav() {
         <Stack.Screen name="index" />
         <Stack.Screen name="login" />
         <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="book-ride" />
-        <Stack.Screen name="ride-details" />
+        <Stack.Screen name="trip-details" />
+        <Stack.Screen name="create-trip" />
+        <Stack.Screen name="driver-profile" />
+        <Stack.Screen name="vehicles" />
+        <Stack.Screen name="vehicle-details" />
+        <Stack.Screen name="routes" />
         <Stack.Screen name="route-details" />
-        <Stack.Screen name="sos" />
+        <Stack.Screen name="dispatch" />
+        <Stack.Screen name="reports" />
+        <Stack.Screen name="notifications" />
+        <Stack.Screen name="settings" />
         <Stack.Screen name="help" />
-        <Stack.Screen name="edit-profile" />
       </Stack>
-      <BackToHome />
     </>
   );
 }

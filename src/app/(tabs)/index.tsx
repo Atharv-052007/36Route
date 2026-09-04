@@ -1,450 +1,579 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
-  View,
-  Text,
   StyleSheet,
+  Text,
+  View,
   ScrollView,
   TouchableOpacity,
-  RefreshControl,
+  SafeAreaView,
+  Platform,
+  StatusBar,
 } from 'react-native';
-import { AppSafeAreaView } from '@/components/ui/AppSafeAreaView';
-import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useApp } from '../../context/AppContext';
-import { Typography, BorderRadius, Shadows } from '../../constants/theme';
-import { RideCard, DriverCard } from '../../components/ui/RideCards';
-import { SectionHeader, EmptyState } from '../../components/ui/AppStates';
+import { Ionicons } from '@expo/vector-icons';
+import { Colors, Typography, Spacing, BorderRadius, Shadows } from '@/constants/theme';
+import { useApp } from '@/context/AppContext';
+import { StatCard } from '@/components/ui/StatCard';
+import { AlertCard } from '@/components/ui/AlertCard';
+import { Badge } from '@/components/ui/Badge';
 
-export default function HomeScreen() {
+export default function OverviewScreen() {
   const router = useRouter();
-  const { employee, activeRide, rides, refreshRides, themeColors, unreadNotificationCount } =
-    useApp();
-  const [refreshing, setRefreshing] = useState(false);
+  const {
+    user,
+    kpis,
+    alerts,
+    trips,
+    setSelectedTripId,
+    isDarkMode,
+  } = useApp();
+  const theme = isDarkMode ? Colors.dark : Colors.light;
 
-  const onRefresh = async () => {
-    setRefreshing(true);
-    await refreshRides();
-    setRefreshing(false);
+  const unresolvedAlerts = alerts.filter((a) => !a.resolved);
+
+  const nextUpTrips = trips
+    .filter((t) => t.status === 'Needs Attention' || t.status === 'Upcoming')
+    .slice(0, 3);
+
+  const handleAlertPress = (alert: any) => {
+    if (alert.tripId) {
+      setSelectedTripId(alert.tripId);
+      if (alert.type === 'driver_required') {
+        router.push('/dispatch');
+      } else {
+        router.push('/trip-details');
+      }
+    } else {
+      router.push('/(tabs)/people');
+    }
   };
 
-  const upcomingScheduled = rides.find((r) => r.status === 'SCHEDULED');
-
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Good Morning';
-    if (hour < 17) return 'Good Afternoon';
-    return 'Good Evening';
+  const handleTripCardPress = (trip: any) => {
+    setSelectedTripId(trip.id);
+    if (trip.status === 'Needs Attention' && !trip.driverId) {
+      router.push('/dispatch');
+    } else {
+      router.push('/trip-details');
+    }
   };
 
   return (
-    <AppSafeAreaView edges={['top']} style={[styles.safe, { backgroundColor: themeColors.background }]}>
-      <ScrollView
-        contentContainerStyle={styles.container}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+    <SafeAreaView
+      style={[
+        styles.safeArea,
+        { backgroundColor: theme.background },
+      ]}
+    >
+      <StatusBar
+        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+        backgroundColor={theme.cardBackground}
+      />
+
+      {/* Screen Header */}
+      <View
+        style={[
+          styles.headerBar,
+          {
+            backgroundColor: theme.cardBackground,
+            borderBottomColor: theme.border,
+          },
+        ]}
       >
-        {/* Header Bar */}
-        <View style={styles.headerBar}>
-          <View style={styles.userCol}>
-            <View style={[styles.avatar, { backgroundColor: themeColors.secondary }]}>
-              <Text style={styles.avatarText}>
-                {employee?.name?.charAt(0) || 'U'}
+        <View style={styles.headerLeft}>
+          <Text style={[styles.greeting, { color: theme.text }]}>
+            Good morning, {user?.name || 'Govind'}
+          </Text>
+          <Text style={[styles.dateText, { color: theme.textSecondary }]}>
+            Thursday, 4 September
+          </Text>
+        </View>
+
+        <View style={styles.headerRight}>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => router.push('/notifications')}
+            style={[styles.iconButton, { backgroundColor: theme.backgroundElement }]}
+          >
+            <Ionicons name="notifications-outline" size={20} color={theme.text} />
+            {unresolvedAlerts.length > 0 && (
+              <View
+                style={[
+                  styles.notificationBadge,
+                  { backgroundColor: theme.warning },
+                ]}
+              />
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => router.push('/(tabs)/more')}
+            style={[styles.avatarButton, { backgroundColor: theme.accent }]}
+          >
+            <Text style={styles.avatarText}>
+              {user?.name ? user.name.charAt(0).toUpperCase() : 'G'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* TODAY Section */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>
+            TODAY
+          </Text>
+          <View style={styles.metricsRow}>
+            <StatCard
+              label="Trips"
+              value={kpis.totalTripsToday}
+              onPress={() => router.push('/(tabs)/trips')}
+            />
+            <StatCard
+              label="Drivers"
+              value={kpis.totalDrivers}
+              onPress={() => router.push('/(tabs)/people')}
+            />
+            <StatCard
+              label="Vehicles"
+              value={kpis.totalVehicles}
+              onPress={() => router.push('/vehicles')}
+            />
+          </View>
+        </View>
+
+        {/* LIVE NOW Section */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>
+            LIVE NOW
+          </Text>
+          <View
+            style={[
+              styles.liveStatusContainer,
+              {
+                backgroundColor: theme.cardBackground,
+                borderColor: theme.border,
+              },
+            ]}
+          >
+            <View style={styles.liveCol}>
+              <Text style={[styles.liveValue, { color: theme.accent }]}>
+                {kpis.ongoingTrips}
+              </Text>
+              <Text style={[styles.liveLabel, { color: theme.textSecondary }]}>
+                Ongoing
               </Text>
             </View>
-            <View style={{ marginLeft: 12 }}>
-              <Text style={[styles.greeting, { color: themeColors.textSecondary }]}>
-                {getGreeting()} 👋
+            <View style={[styles.liveDivider, { backgroundColor: theme.border }]} />
+            <View style={styles.liveCol}>
+              <Text style={[styles.liveValue, { color: theme.upcoming }]}>
+                {kpis.upcomingTrips}
               </Text>
-              <Text style={[styles.userName, { color: themeColors.text }]}>{employee?.name}</Text>
+              <Text style={[styles.liveLabel, { color: theme.textSecondary }]}>
+                Upcoming
+              </Text>
+            </View>
+            <View style={[styles.liveDivider, { backgroundColor: theme.border }]} />
+            <View style={styles.liveCol}>
+              <Text style={[styles.liveValue, { color: theme.available }]}>
+                {kpis.completedTrips}
+              </Text>
+              <Text style={[styles.liveLabel, { color: theme.textSecondary }]}>
+                Completed
+              </Text>
             </View>
           </View>
+        </View>
 
-          <View style={styles.headerIcons}>
-            <TouchableOpacity
+        {/* NEEDS ATTENTION Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeaderRow}>
+            <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>
+              NEEDS ATTENTION
+            </Text>
+            {unresolvedAlerts.length > 0 && (
+              <Badge
+                status="Needs Attention"
+                label={`${unresolvedAlerts.length} Actionable`}
+                size="sm"
+              />
+            )}
+          </View>
+
+          {unresolvedAlerts.length === 0 ? (
+            <View
               style={[
-                styles.iconBtn,
-                { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border },
+                styles.emptyAttentionBox,
+                {
+                  backgroundColor: theme.cardBackground,
+                  borderColor: theme.border,
+                },
               ]}
-              onPress={() => router.push('/(tabs)/notifications')}
             >
-              <Ionicons name="notifications-outline" size={22} color={themeColors.text} />
-              {unreadNotificationCount > 0 && (
-                <View style={[styles.notifBadge, { backgroundColor: themeColors.danger }]}>
-                  <Text style={styles.notifBadgeText}>{unreadNotificationCount}</Text>
-                </View>
-              )}
+              <Ionicons name="checkmark-circle-outline" size={20} color={theme.available} />
+              <Text style={[styles.emptyAttentionText, { color: theme.textSecondary }]}>
+                All operations running smoothly. No urgent items.
+              </Text>
+            </View>
+          ) : (
+            unresolvedAlerts.map((alert) => (
+              <AlertCard
+                key={alert.id}
+                title={alert.title}
+                subtitle={alert.subtitle}
+                severity={alert.type === 'vehicle_unavailable' ? 'danger' : 'warning'}
+                onPress={() => handleAlertPress(alert)}
+              />
+            ))
+          )}
+        </View>
+
+        {/* QUICK ACTIONS Section */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>
+            QUICK ACTIONS
+          </Text>
+          <View style={styles.quickActionsRow}>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => router.push('/create-trip')}
+              style={[
+                styles.quickActionBtn,
+                {
+                  backgroundColor: theme.cardBackground,
+                  borderColor: theme.border,
+                },
+              ]}
+            >
+              <View
+                style={[
+                  styles.quickActionIconWrap,
+                  { backgroundColor: theme.accentLight },
+                ]}
+              >
+                <Ionicons name="add" size={18} color={theme.accent} />
+              </View>
+              <Text style={[styles.quickActionText, { color: theme.text }]}>
+                Create Trip
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => router.push('/(tabs)/people')}
               style={[
-                styles.sosHeaderBtn,
-                { backgroundColor: themeColors.dangerLight },
+                styles.quickActionBtn,
+                {
+                  backgroundColor: theme.cardBackground,
+                  borderColor: theme.border,
+                },
               ]}
-              onPress={() => router.push('/sos')}
             >
-              <Ionicons name="alert-circle" size={18} color={themeColors.danger} />
-              <Text style={[styles.sosHeaderText, { color: themeColors.danger }]}>SOS</Text>
+              <View
+                style={[
+                  styles.quickActionIconWrap,
+                  { backgroundColor: theme.availableLight },
+                ]}
+              >
+                <Ionicons name="person-add-outline" size={16} color={theme.available} />
+              </View>
+              <Text style={[styles.quickActionText, { color: theme.text }]}>
+                Add Driver
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => router.push('/vehicles')}
+              style={[
+                styles.quickActionBtn,
+                {
+                  backgroundColor: theme.cardBackground,
+                  borderColor: theme.border,
+                },
+              ]}
+            >
+              <View
+                style={[
+                  styles.quickActionIconWrap,
+                  { backgroundColor: theme.upcomingLight },
+                ]}
+              >
+                <Ionicons name="car-outline" size={16} color={theme.upcoming} />
+              </View>
+              <Text style={[styles.quickActionText, { color: theme.text }]}>
+                Add Vehicle
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* Today's Trip Card */}
-        {activeRide ? (
-          <View style={[styles.todayTripCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.small]}>
-            <View style={styles.tripCardHeader}>
-              <Text style={[styles.tripCardTitle, { color: themeColors.text }]}>Today's Trip</Text>
-              <View style={[styles.tripStatusPill, { backgroundColor: themeColors.onTripLight }]}>
-                <View style={[styles.tripStatusDot, { backgroundColor: themeColors.onTrip }]} />
-                <Text style={[styles.tripStatusText, { color: themeColors.onTrip }]}>In Transit</Text>
-              </View>
-            </View>
-
-            <View style={styles.tripRouteRow}>
-              <View style={[styles.tripRouteIcon, { backgroundColor: themeColors.secondaryLight }]}>
-                <Ionicons name="bus" size={20} color={themeColors.secondary} />
-              </View>
-              <View style={styles.tripRouteInfo}>
-                <Text style={[styles.tripRouteName, { color: themeColors.text }]}>
-                  {activeRide.route?.name || 'Route 36'}
-                </Text>
-                <Text style={[styles.tripRoutePoints, { color: themeColors.textSecondary }]}>
-                  {activeRide.pickup.name} → {activeRide.drop.name}
-                </Text>
-              </View>
-            </View>
-
-            <View style={styles.tripMetaRow}>
-              <View style={styles.tripMeta}>
-                <Ionicons name="time-outline" size={14} color={themeColors.textMuted} />
-                <Text style={[styles.tripMetaText, { color: themeColors.textSecondary }]}>{activeRide.time}</Text>
-              </View>
-              <View style={styles.tripMeta}>
-                <Ionicons name="car-sport-outline" size={14} color={themeColors.textMuted} />
-                <Text style={[styles.tripMetaText, { color: themeColors.textSecondary }]}>
-                  {activeRide.vehicle?.vehicleNumber}
-                </Text>
-              </View>
-              <View style={styles.tripMeta}>
-                <Ionicons name="time" size={14} color={themeColors.secondary} />
-                <Text style={[styles.tripMetaText, { color: themeColors.secondary, fontWeight: Typography.weights.semibold as any }]}>
-                  ETA: {activeRide.eta}
-                </Text>
-              </View>
-            </View>
-
-            <TouchableOpacity
-              style={[styles.trackBtn, { backgroundColor: themeColors.secondary }]}
-              onPress={() => router.push('/(tabs)/track')}
-              activeOpacity={0.7}
-            >
-              <Ionicons name="navigate" size={18} color="#FFFFFF" />
-              <Text style={styles.trackBtnText}>Track Vehicle</Text>
-            </TouchableOpacity>
-          </View>
-        ) : upcomingScheduled ? (
-          <View style={[styles.todayTripCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.small]}>
-            <View style={styles.tripCardHeader}>
-              <Text style={[styles.tripCardTitle, { color: themeColors.text }]}>Upcoming Trip</Text>
-              <View style={[styles.tripStatusPill, { backgroundColor: themeColors.secondaryLight }]}>
-                <View style={[styles.tripStatusDot, { backgroundColor: themeColors.secondary }]} />
-                <Text style={[styles.tripStatusText, { color: themeColors.secondary }]}>Scheduled</Text>
-              </View>
-            </View>
-
-            <View style={styles.tripRouteRow}>
-              <View style={[styles.tripRouteIcon, { backgroundColor: themeColors.secondaryLight }]}>
-                <Ionicons name="bus" size={20} color={themeColors.secondary} />
-              </View>
-              <View style={styles.tripRouteInfo}>
-                <Text style={[styles.tripRouteName, { color: themeColors.text }]}>
-                  {upcomingScheduled.route?.name || 'Route 36'}
-                </Text>
-                <Text style={[styles.tripRoutePoints, { color: themeColors.textSecondary }]}>
-                  {upcomingScheduled.pickup.name} → {upcomingScheduled.drop.name}
-                </Text>
-              </View>
-            </View>
-
-            <View style={styles.tripMetaRow}>
-              <View style={styles.tripMeta}>
-                <Ionicons name="time-outline" size={14} color={themeColors.textMuted} />
-                <Text style={[styles.tripMetaText, { color: themeColors.textSecondary }]}>{upcomingScheduled.time}</Text>
-              </View>
-              <View style={styles.tripMeta}>
-                <Ionicons name="calendar-outline" size={14} color={themeColors.textMuted} />
-                <Text style={[styles.tripMetaText, { color: themeColors.textSecondary }]}>{upcomingScheduled.date}</Text>
-              </View>
-            </View>
-          </View>
-        ) : (
-          <View style={[styles.noTripCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}>
-            <View style={[styles.noTripIcon, { backgroundColor: themeColors.secondaryLight }]}>
-              <Ionicons name="bus-outline" size={32} color={themeColors.secondary} />
-            </View>
-            <Text style={[styles.noTripTitle, { color: themeColors.text }]}>No Trip Today</Text>
-            <Text style={[styles.noTripDesc, { color: themeColors.textSecondary }]}>
-              Book a ride for your next shift
+        {/* NEXT UP Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeaderRow}>
+            <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>
+              NEXT UP
             </Text>
             <TouchableOpacity
-              style={[styles.bookBtn, { backgroundColor: themeColors.secondary }]}
-              onPress={() => router.push('/book-ride')}
-              activeOpacity={0.7}
+              onPress={() => router.push('/(tabs)/trips')}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-              <Text style={styles.bookBtnText}>Book a Ride</Text>
+              <Text style={[styles.viewAllText, { color: theme.accent }]}>
+                View all
+              </Text>
             </TouchableOpacity>
           </View>
-        )}
 
-        {/* Quick Actions */}
-        <View style={{ marginTop: 8 }}>
-          <SectionHeader title="Quick Actions" />
-          <View style={styles.quickGrid}>
-            <TouchableOpacity
-              style={[styles.gridCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}
-              onPress={() => router.push('/book-ride')}
-              activeOpacity={0.7}
-            >
-              <View style={[styles.gridIconCircle, { backgroundColor: themeColors.secondaryLight }]}>
-                <Ionicons name="add-circle-outline" size={24} color={themeColors.secondary} />
-              </View>
-              <Text style={[styles.gridTitle, { color: themeColors.text }]}>Book Ride</Text>
-              <Text style={[styles.gridSub, { color: themeColors.textSecondary }]}>Request shift cab</Text>
-            </TouchableOpacity>
+          {nextUpTrips.map((trip) => {
+            const needsDriver = trip.status === 'Needs Attention' && !trip.driverId;
 
-            <TouchableOpacity
-              style={[styles.gridCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}
-              onPress={() => router.push('/(tabs)/track')}
-              activeOpacity={0.7}
-            >
-              <View style={[styles.gridIconCircle, { backgroundColor: themeColors.accentLight }]}>
-                <Ionicons name="map-outline" size={24} color={themeColors.accent} />
-              </View>
-              <Text style={[styles.gridTitle, { color: themeColors.text }]}>Track Live</Text>
-              <Text style={[styles.gridSub, { color: themeColors.textSecondary }]}>Realtime GPS</Text>
-            </TouchableOpacity>
+            return (
+              <TouchableOpacity
+                key={trip.id}
+                activeOpacity={0.7}
+                onPress={() => handleTripCardPress(trip)}
+                style={[
+                  styles.tripCard,
+                  {
+                    backgroundColor: theme.cardBackground,
+                    borderColor: needsDriver ? theme.warningBorder : theme.border,
+                  },
+                ]}
+              >
+                <View style={styles.tripCardTop}>
+                  <Text style={[styles.tripTime, { color: theme.text }]}>
+                    {trip.scheduledTime}
+                  </Text>
+                  <Badge
+                    status={needsDriver ? 'Driver required' : trip.status}
+                    size="sm"
+                  />
+                </View>
 
-            <TouchableOpacity
-              style={[styles.gridCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}
-              onPress={() => router.push('/(tabs)/rides')}
-              activeOpacity={0.7}
-            >
-              <View style={[styles.gridIconCircle, { backgroundColor: themeColors.warningLight }]}>
-                <Ionicons name="time-outline" size={24} color={themeColors.warning} />
-              </View>
-              <Text style={[styles.gridTitle, { color: themeColors.text }]}>My Trips</Text>
-              <Text style={[styles.gridSub, { color: themeColors.textSecondary }]}>All bookings</Text>
-            </TouchableOpacity>
+                <Text style={[styles.tripRoute, { color: theme.text }]}>
+                  {trip.routeSummary}
+                </Text>
 
-            <TouchableOpacity
-              style={[styles.gridCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}
-              onPress={() => router.push('/help')}
-              activeOpacity={0.7}
-            >
-              <View style={[styles.gridIconCircle, { backgroundColor: themeColors.dangerLight }]}>
-                <Ionicons name="help-buoy-outline" size={24} color={themeColors.danger} />
-              </View>
-              <Text style={[styles.gridTitle, { color: themeColors.text }]}>Help</Text>
-              <Text style={[styles.gridSub, { color: themeColors.textSecondary }]}>Support & FAQs</Text>
-            </TouchableOpacity>
-          </View>
+                <View style={styles.tripMetaRow}>
+                  <Text style={[styles.tripPassengerText, { color: theme.textSecondary }]}>
+                    {trip.passengerCount} passengers
+                  </Text>
+                  <Text style={[styles.tripMetaDot, { color: theme.textMuted }]}>
+                    •
+                  </Text>
+                  <Text
+                    style={[
+                      styles.tripDriverText,
+                      {
+                        color: needsDriver ? theme.warning : theme.textSecondary,
+                        fontWeight: needsDriver ? '600' : '400',
+                      },
+                    ]}
+                  >
+                    {needsDriver
+                      ? 'Driver required'
+                      : `${trip.driverName} • ${trip.vehicleModel}`}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            );
+          })}
         </View>
       </ScrollView>
-    </AppSafeAreaView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1 },
-  container: { padding: 18, paddingBottom: 40 },
+  safeArea: {
+    flex: 1,
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+  },
   headerBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 16,
+    paddingHorizontal: Spacing.base,
+    paddingVertical: Spacing.md,
+    borderBottomWidth: 1,
   },
-  userCol: { flexDirection: 'row', alignItems: 'center' },
-  avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
+  headerLeft: {
+    flex: 1,
+  },
+  greeting: {
+    fontSize: Typography.fontSizes.xl,
+    fontWeight: Typography.weights.bold,
+    letterSpacing: -0.3,
+  },
+  dateText: {
+    fontSize: Typography.fontSizes.sm,
+    fontWeight: Typography.weights.medium,
+    marginTop: 2,
+  },
+  headerRight: {
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  iconButton: {
+    width: 38,
+    height: 38,
+    borderRadius: BorderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  notificationBadge: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 8,
+    height: 8,
+    borderRadius: BorderRadius.full,
+  },
+  avatarButton: {
+    width: 38,
+    height: 38,
+    borderRadius: BorderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   avatarText: {
     color: '#FFFFFF',
-    fontSize: Typography.fontSizes.lg,
-    fontWeight: Typography.weights.bold as any,
+    fontWeight: Typography.weights.bold,
+    fontSize: Typography.fontSizes.sm,
   },
-  greeting: { fontSize: Typography.fontSizes.xs },
-  userName: { fontSize: Typography.fontSizes.lg, fontWeight: Typography.weights.bold as any },
-  headerIcons: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  iconBtn: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    borderWidth: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
+  scrollContent: {
+    paddingHorizontal: Spacing.base,
+    paddingTop: Spacing.base,
+    paddingBottom: Spacing.xxl,
   },
-  notifBadge: {
-    position: 'absolute',
-    top: -2,
-    right: -2,
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    justifyContent: 'center',
-    alignItems: 'center',
+  section: {
+    marginBottom: Spacing.lg,
   },
-  notifBadgeText: { color: '#FFF', fontSize: 10, fontWeight: '700' },
-  sosHeaderBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: BorderRadius.full,
-  },
-  sosHeaderText: {
-    fontSize: Typography.fontSizes.xs,
-    fontWeight: Typography.weights.bold as any,
-    marginLeft: 4,
-  },
-  // Today's Trip Card
-  todayTripCard: {
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    padding: 16,
-    marginBottom: 16,
-  },
-  tripCardHeader: {
+  sectionHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 14,
+    marginBottom: Spacing.sm,
   },
-  tripCardTitle: {
-    fontSize: Typography.fontSizes.lg,
-    fontWeight: Typography.weights.bold as any,
-  },
-  tripStatusPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: BorderRadius.full,
-    gap: 6,
-  },
-  tripStatusDot: { width: 6, height: 6, borderRadius: 3 },
-  tripStatusText: {
+  sectionTitle: {
     fontSize: Typography.fontSizes.xs,
-    fontWeight: Typography.weights.semibold as any,
+    fontWeight: Typography.weights.bold,
+    letterSpacing: 0.8,
+    marginBottom: Spacing.xs + 2,
   },
-  tripRouteRow: {
+  viewAllText: {
+    fontSize: Typography.fontSizes.sm,
+    fontWeight: Typography.weights.semibold,
+  },
+  metricsRow: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  liveStatusContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
-  },
-  tripRouteIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  tripRouteInfo: { flex: 1 },
-  tripRouteName: {
-    fontSize: Typography.fontSizes.md,
-    fontWeight: Typography.weights.semibold as any,
-    marginBottom: 2,
-  },
-  tripRoutePoints: { fontSize: Typography.fontSizes.sm },
-  tripMetaRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 16,
-    marginBottom: 14,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
-  },
-  tripMeta: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  tripMetaText: { fontSize: Typography.fontSizes.sm },
-  trackBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    borderRadius: BorderRadius.md,
-    gap: 8,
-  },
-  trackBtnText: {
-    color: '#FFFFFF',
-    fontSize: Typography.fontSizes.md,
-    fontWeight: Typography.weights.semibold as any,
-  },
-  // No trip card
-  noTripCard: {
+    justifyContent: 'space-around',
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.sm,
     borderRadius: BorderRadius.md,
     borderWidth: 1,
-    padding: 24,
-    alignItems: 'center',
-    marginBottom: 16,
+    ...Shadows.subtle,
   },
-  noTripIcon: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+  liveCol: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  liveValue: {
+    fontSize: Typography.fontSizes.xxl,
+    fontWeight: Typography.weights.bold,
+    letterSpacing: -0.5,
+  },
+  liveLabel: {
+    fontSize: Typography.fontSizes.xs,
+    fontWeight: Typography.weights.medium,
+    marginTop: 2,
+  },
+  liveDivider: {
+    width: 1,
+    height: 28,
+  },
+  emptyAttentionBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+  },
+  emptyAttentionText: {
+    fontSize: Typography.fontSizes.sm,
+    flex: 1,
+  },
+  quickActionsRow: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  quickActionBtn: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.xs,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    ...Shadows.subtle,
+  },
+  quickActionIconWrap: {
+    width: 32,
+    height: 32,
+    borderRadius: BorderRadius.sm,
+    alignItems: 'center',
     justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 6,
   },
-  noTripTitle: {
-    fontSize: Typography.fontSizes.lg,
-    fontWeight: Typography.weights.semibold as any,
+  quickActionText: {
+    fontSize: Typography.fontSizes.xs + 1,
+    fontWeight: Typography.weights.semibold,
+    textAlign: 'center',
+  },
+  tripCard: {
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    marginBottom: Spacing.sm,
+    ...Shadows.subtle,
+  },
+  tripCardTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 4,
   },
-  noTripDesc: {
-    fontSize: Typography.fontSizes.sm,
-    marginBottom: 16,
+  tripTime: {
+    fontSize: Typography.fontSizes.base,
+    fontWeight: Typography.weights.bold,
   },
-  bookBtn: {
-    paddingHorizontal: 24,
-    paddingVertical: 10,
-    borderRadius: BorderRadius.md,
+  tripRoute: {
+    fontSize: Typography.fontSizes.base,
+    fontWeight: Typography.weights.semibold,
+    marginBottom: 6,
   },
-  bookBtnText: {
-    color: '#FFFFFF',
-    fontSize: Typography.fontSizes.md,
-    fontWeight: Typography.weights.semibold as any,
-  },
-  // Quick Grid
-  quickGrid: {
+  tripMetaRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  gridCard: {
-    width: '48%',
-    padding: 16,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    marginBottom: 12,
-  },
-  gridIconCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12,
+    flexWrap: 'wrap',
   },
-  gridTitle: {
-    fontSize: Typography.fontSizes.md,
-    fontWeight: Typography.weights.semibold as any,
+  tripPassengerText: {
+    fontSize: Typography.fontSizes.xs + 1,
   },
-  gridSub: {
+  tripMetaDot: {
+    marginHorizontal: 6,
     fontSize: Typography.fontSizes.xs,
-    marginTop: 2,
+  },
+  tripDriverText: {
+    fontSize: Typography.fontSizes.xs + 1,
   },
 });
