@@ -13,7 +13,13 @@ import { useRouter } from 'expo-router';
 import { useApp } from '@/context/AppContext';
 import { Typography, BorderRadius } from '@/constants/theme';
 import { AppInput } from '@/components/ui/AppInput';
-import { AppButton } from '@/components/ui/AppButton';
+import { AnimatedAppButton } from '@/components/ui/AnimatedAppButton';
+import Animated, {
+  FadeInUp,
+  FadeInDown,
+  SlideInRight,
+  FadeIn,
+} from 'react-native-reanimated';
 
 export default function EditProfileScreen() {
   const router = useRouter();
@@ -37,8 +43,8 @@ export default function EditProfileScreen() {
 
   return (
     <AppSafeAreaView style={[styles.safe, { backgroundColor: themeColors.background }]}>
-      <ScrollView contentContainerStyle={styles.container}>
-        <View style={styles.header}>
+      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+        <Animated.View entering={FadeInDown.duration(400)} style={styles.header}>
           <TouchableOpacity
             onPress={() => router.dismissTo('/(tabs)')}
             style={[styles.backBtn, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}
@@ -47,25 +53,31 @@ export default function EditProfileScreen() {
           </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: themeColors.text }]}>Edit Profile</Text>
           <View style={{ width: 40 }} />
-        </View>
+        </Animated.View>
 
         {/* Personal Info */}
-        <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Personal & Work Info</Text>
-        <View style={[styles.formCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}>
-          <AppInput label="Full Name" value={name} onChangeText={setName} leftIcon={<Ionicons name="person-outline" size={18} color={themeColors.textMuted} />} />
-          <AppInput label="Phone" value={phone} onChangeText={setPhone} keyboardType="phone-pad" leftIcon={<Ionicons name="call-outline" size={18} color={themeColors.textMuted} />} />
-          <AppInput label="Default Pickup" value={pickup} onChangeText={setPickup} leftIcon={<Ionicons name="location-outline" size={18} color={themeColors.accent} />} />
-          <AppInput label="Default Drop" value={drop} onChangeText={setDrop} leftIcon={<Ionicons name="location" size={18} color={themeColors.secondary} />} />
-        </View>
+        <Animated.View entering={FadeInUp.delay(150).duration(400)}>
+          <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Personal & Work Info</Text>
+          <View style={[styles.formCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}>
+            <AppInput label="Full Name" value={name} onChangeText={setName} leftIcon={<Ionicons name="person-outline" size={18} color={themeColors.textMuted} />} />
+            <AppInput label="Phone" value={phone} onChangeText={setPhone} keyboardType="phone-pad" leftIcon={<Ionicons name="call-outline" size={18} color={themeColors.textMuted} />} />
+            <AppInput label="Default Pickup" value={pickup} onChangeText={setPickup} leftIcon={<Ionicons name="location-outline" size={18} color={themeColors.accent} />} />
+            <AppInput label="Default Drop" value={drop} onChangeText={setDrop} leftIcon={<Ionicons name="location" size={18} color={themeColors.secondary} />} />
+          </View>
+        </Animated.View>
 
         {/* Emergency Contact */}
-        <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Emergency Contact</Text>
-        <View style={[styles.formCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}>
-          <AppInput label="Contact Name" value={emergencyName} onChangeText={setEmergencyName} leftIcon={<Ionicons name="person-outline" size={18} color={themeColors.danger} />} />
-          <AppInput label="Contact Phone" value={emergencyPhone} onChangeText={setEmergencyPhone} keyboardType="phone-pad" leftIcon={<Ionicons name="call-outline" size={18} color={themeColors.danger} />} />
-        </View>
+        <Animated.View entering={SlideInRight.delay(300).duration(400).springify()}>
+          <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Emergency Contact</Text>
+          <View style={[styles.formCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}>
+            <AppInput label="Contact Name" value={emergencyName} onChangeText={setEmergencyName} leftIcon={<Ionicons name="person-outline" size={18} color={themeColors.danger} />} />
+            <AppInput label="Contact Phone" value={emergencyPhone} onChangeText={setEmergencyPhone} keyboardType="phone-pad" leftIcon={<Ionicons name="call-outline" size={18} color={themeColors.danger} />} />
+          </View>
+        </Animated.View>
 
-        <AppButton title="Save Changes" onPress={handleSave} loading={loading} size="lg" />
+        <Animated.View entering={FadeIn.delay(450).duration(400)}>
+          <AnimatedAppButton title="Save Changes" onPress={handleSave} loading={loading} size="lg" />
+        </Animated.View>
       </ScrollView>
     </AppSafeAreaView>
   );

@@ -1,8 +1,15 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useApp } from '../../context/AppContext';
 import { BorderRadius, Typography, Shadows } from '../../constants/theme';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated';
 
 interface MapViewAbstractionProps {
   eta?: string;
@@ -14,14 +21,40 @@ export const MapViewAbstraction: React.FC<MapViewAbstractionProps> = ({
   onRefresh,
 }) => {
   const { themeColors } = useApp();
-  const isDark = themeColors.background === '#000000';
+  const isDark = themeColors.background === '#20251F';
+  const pulseScale = useSharedValue(1);
+  const pulseOpacity = useSharedValue(0.3);
+
+  useEffect(() => {
+    pulseScale.value = withRepeat(
+      withSequence(
+        withTiming(1.8, { duration: 1200 }),
+        withTiming(1, { duration: 1200 })
+      ),
+      -1,
+      false
+    );
+    pulseOpacity.value = withRepeat(
+      withSequence(
+        withTiming(0, { duration: 1200 }),
+        withTiming(0.3, { duration: 1200 })
+      ),
+      -1,
+      false
+    );
+  }, []);
+
+  const pulseAnimStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: pulseScale.value }],
+    opacity: pulseOpacity.value,
+  }));
 
   return (
     <View
       style={[
         styles.container,
         {
-          backgroundColor: isDark ? '#0F172A' : '#E2E8F0',
+          backgroundColor: isDark ? '#2A3029' : '#EDF0EB',
           borderRadius: BorderRadius.lg,
         },
       ]}
@@ -55,9 +88,18 @@ export const MapViewAbstraction: React.FC<MapViewAbstractionProps> = ({
         <Text style={[styles.pinLabelText, { color: themeColors.accent }]}>Pickup</Text>
       </View>
 
-      {/* Vehicle marker */}
-      <View style={[styles.vehicleMarker, { backgroundColor: themeColors.secondary }]}>
-        <Ionicons name="car-sport" size={18} color="#FFFFFF" />
+      {/* Vehicle marker with pulse animation */}
+      <View style={[styles.vehicleWrap, { top: '48%', left: '48%' }]}>
+        <Animated.View
+          style={[
+            styles.vehiclePulse,
+            { backgroundColor: themeColors.secondary },
+            pulseAnimStyle,
+          ]}
+        />
+        <View style={[styles.vehicleMarker, { backgroundColor: themeColors.secondary }]}>
+          <Ionicons name="car-sport" size={18} color="#FFFFFF" />
+        </View>
       </View>
 
       {/* Drop pin */}
@@ -148,10 +190,20 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSizes.xs,
     fontWeight: Typography.weights.semibold as any,
   },
-  vehicleMarker: {
+  vehicleWrap: {
     position: 'absolute',
-    top: '48%',
-    left: '48%',
+    width: 36,
+    height: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  vehiclePulse: {
+    position: 'absolute',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+  },
+  vehicleMarker: {
     width: 36,
     height: 36,
     borderRadius: 18,

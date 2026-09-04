@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -14,12 +14,68 @@ import { useApp } from '../../context/AppContext';
 import { Typography, BorderRadius, Shadows } from '../../constants/theme';
 import { RideCard, DriverCard } from '../../components/ui/RideCards';
 import { SectionHeader, EmptyState } from '../../components/ui/AppStates';
+import Animated, {
+  FadeInUp,
+  FadeInDown,
+  FadeIn,
+  SlideInRight,
+  Layout,
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withRepeat,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated';
+
+const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
+
+function AnimatedGridCard({ children, delay, onPress, style }: {
+  children: React.ReactNode;
+  delay: number;
+  onPress: () => void;
+  style?: any;
+}) {
+  const scale = useSharedValue(1);
+  const animStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  return (
+    <Animated.View entering={FadeInUp.delay(delay).duration(400).springify()} style={[style, animStyle]}>
+      <TouchableOpacity
+        onPress={onPress}
+        activeOpacity={0.7}
+        onPressIn={() => { scale.value = withSpring(0.96, { damping: 15, stiffness: 400 }); }}
+        onPressOut={() => { scale.value = withSpring(1, { damping: 15, stiffness: 400 }); }}
+      >
+        {children}
+      </TouchableOpacity>
+    </Animated.View>
+  );
+}
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { employee, activeRide, rides, refreshRides, themeColors, unreadNotificationCount } =
+  const { employee, activeRide, rides, refreshRides, themeColors, unreadNotificationCount, isDarkMode, toggleDarkMode } =
     useApp();
   const [refreshing, setRefreshing] = useState(false);
+  const headerGlow = useSharedValue(0);
+
+  useEffect(() => {
+    headerGlow.value = withRepeat(
+      withSequence(
+        withTiming(0.3, { duration: 2000 }),
+        withTiming(0, { duration: 2000 })
+      ),
+      -1,
+      false
+    );
+  }, []);
+
+  const glowStyle = useAnimatedStyle(() => ({
+    opacity: headerGlow.value,
+  }));
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -41,15 +97,19 @@ export default function HomeScreen() {
       <ScrollView
         contentContainerStyle={styles.container}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        showsVerticalScrollIndicator={false}
       >
-        {/* Header Bar */}
-        <View style={styles.headerBar}>
+        {/* Header Bar with Animation */}
+        <Animated.View entering={FadeInDown.duration(500)} style={styles.headerBar}>
           <View style={styles.userCol}>
-            <View style={[styles.avatar, { backgroundColor: themeColors.secondary }]}>
-              <Text style={styles.avatarText}>
-                {employee?.name?.charAt(0) || 'U'}
-              </Text>
-            </View>
+            <Animated.View style={styles.avatarWrap}>
+              <View style={[styles.avatar, { backgroundColor: themeColors.secondary }]}>
+                <Text style={styles.avatarText}>
+                  {employee?.name?.charAt(0) || 'U'}
+                </Text>
+              </View>
+              <Animated.View style={[styles.avatarGlow, { backgroundColor: themeColors.secondary }, glowStyle]} />
+            </Animated.View>
             <View style={{ marginLeft: 12 }}>
               <Text style={[styles.greeting, { color: themeColors.textSecondary }]}>
                 {getGreeting()} 👋
@@ -59,6 +119,17 @@ export default function HomeScreen() {
           </View>
 
           <View style={styles.headerIcons}>
+            <TouchableOpacity
+              style={[
+                styles.iconBtn,
+                { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border },
+              ]}
+              onPress={toggleDarkMode}
+              activeOpacity={0.7}
+            >
+              <Ionicons name={isDarkMode ? 'sunny-outline' : 'moon-outline'} size={22} color={themeColors.text} />
+            </TouchableOpacity>
+
             <TouchableOpacity
               style={[
                 styles.iconBtn,
@@ -85,11 +156,11 @@ export default function HomeScreen() {
               <Text style={[styles.sosHeaderText, { color: themeColors.danger }]}>SOS</Text>
             </TouchableOpacity>
           </View>
-        </View>
+        </Animated.View>
 
         {/* Today's Trip Card */}
         {activeRide ? (
-          <View style={[styles.todayTripCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.small]}>
+          <Animated.View entering={SlideInRight.delay(200).duration(500).springify()} style={[styles.todayTripCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.small]}>
             <View style={styles.tripCardHeader}>
               <Text style={[styles.tripCardTitle, { color: themeColors.text }]}>Today's Trip</Text>
               <View style={[styles.tripStatusPill, { backgroundColor: themeColors.onTripLight }]}>
@@ -139,9 +210,9 @@ export default function HomeScreen() {
               <Ionicons name="navigate" size={18} color="#FFFFFF" />
               <Text style={styles.trackBtnText}>Track Vehicle</Text>
             </TouchableOpacity>
-          </View>
+          </Animated.View>
         ) : upcomingScheduled ? (
-          <View style={[styles.todayTripCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.small]}>
+          <Animated.View entering={SlideInRight.delay(200).duration(500).springify()} style={[styles.todayTripCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.small]}>
             <View style={styles.tripCardHeader}>
               <Text style={[styles.tripCardTitle, { color: themeColors.text }]}>Upcoming Trip</Text>
               <View style={[styles.tripStatusPill, { backgroundColor: themeColors.secondaryLight }]}>
@@ -174,9 +245,9 @@ export default function HomeScreen() {
                 <Text style={[styles.tripMetaText, { color: themeColors.textSecondary }]}>{upcomingScheduled.date}</Text>
               </View>
             </View>
-          </View>
+          </Animated.View>
         ) : (
-          <View style={[styles.noTripCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}>
+          <Animated.View entering={FadeInUp.delay(200).duration(500).springify()} style={[styles.noTripCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}>
             <View style={[styles.noTripIcon, { backgroundColor: themeColors.secondaryLight }]}>
               <Ionicons name="bus-outline" size={32} color={themeColors.secondary} />
             </View>
@@ -191,60 +262,46 @@ export default function HomeScreen() {
             >
               <Text style={styles.bookBtnText}>Book a Ride</Text>
             </TouchableOpacity>
-          </View>
+          </Animated.View>
         )}
 
-        {/* Quick Actions */}
+        {/* Quick Actions with Staggered Animation */}
         <View style={{ marginTop: 8 }}>
-          <SectionHeader title="Quick Actions" />
+          <Animated.View entering={FadeIn.delay(400).duration(400)}>
+            <SectionHeader title="Quick Actions" />
+          </Animated.View>
           <View style={styles.quickGrid}>
-            <TouchableOpacity
-              style={[styles.gridCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}
-              onPress={() => router.push('/book-ride')}
-              activeOpacity={0.7}
-            >
+            <AnimatedGridCard delay={500} onPress={() => router.push('/book-ride')} style={[styles.gridCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}>
               <View style={[styles.gridIconCircle, { backgroundColor: themeColors.secondaryLight }]}>
                 <Ionicons name="add-circle-outline" size={24} color={themeColors.secondary} />
               </View>
               <Text style={[styles.gridTitle, { color: themeColors.text }]}>Book Ride</Text>
               <Text style={[styles.gridSub, { color: themeColors.textSecondary }]}>Request shift cab</Text>
-            </TouchableOpacity>
+            </AnimatedGridCard>
 
-            <TouchableOpacity
-              style={[styles.gridCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}
-              onPress={() => router.push('/(tabs)/track')}
-              activeOpacity={0.7}
-            >
+            <AnimatedGridCard delay={600} onPress={() => router.push('/(tabs)/track')} style={[styles.gridCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}>
               <View style={[styles.gridIconCircle, { backgroundColor: themeColors.accentLight }]}>
                 <Ionicons name="map-outline" size={24} color={themeColors.accent} />
               </View>
               <Text style={[styles.gridTitle, { color: themeColors.text }]}>Track Live</Text>
               <Text style={[styles.gridSub, { color: themeColors.textSecondary }]}>Realtime GPS</Text>
-            </TouchableOpacity>
+            </AnimatedGridCard>
 
-            <TouchableOpacity
-              style={[styles.gridCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}
-              onPress={() => router.push('/(tabs)/rides')}
-              activeOpacity={0.7}
-            >
+            <AnimatedGridCard delay={700} onPress={() => router.push('/(tabs)/rides')} style={[styles.gridCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}>
               <View style={[styles.gridIconCircle, { backgroundColor: themeColors.warningLight }]}>
                 <Ionicons name="time-outline" size={24} color={themeColors.warning} />
               </View>
               <Text style={[styles.gridTitle, { color: themeColors.text }]}>My Trips</Text>
               <Text style={[styles.gridSub, { color: themeColors.textSecondary }]}>All bookings</Text>
-            </TouchableOpacity>
+            </AnimatedGridCard>
 
-            <TouchableOpacity
-              style={[styles.gridCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}
-              onPress={() => router.push('/help')}
-              activeOpacity={0.7}
-            >
+            <AnimatedGridCard delay={800} onPress={() => router.push('/help')} style={[styles.gridCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}>
               <View style={[styles.gridIconCircle, { backgroundColor: themeColors.dangerLight }]}>
                 <Ionicons name="help-buoy-outline" size={24} color={themeColors.danger} />
               </View>
               <Text style={[styles.gridTitle, { color: themeColors.text }]}>Help</Text>
               <Text style={[styles.gridSub, { color: themeColors.textSecondary }]}>Support & FAQs</Text>
-            </TouchableOpacity>
+            </AnimatedGridCard>
           </View>
         </View>
       </ScrollView>
@@ -262,12 +319,21 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   userCol: { flexDirection: 'row', alignItems: 'center' },
+  avatarWrap: { position: 'relative' },
   avatar: {
     width: 48,
     height: 48,
     borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  avatarGlow: {
+    position: 'absolute',
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    top: 0,
+    left: 0,
   },
   avatarText: {
     color: '#FFFFFF',
@@ -366,7 +432,7 @@ const styles = StyleSheet.create({
     marginBottom: 14,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
+    borderTopColor: '#E5E8E3',
   },
   tripMeta: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   tripMetaText: { fontSize: Typography.fontSizes.sm },

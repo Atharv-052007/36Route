@@ -13,6 +13,15 @@ import { useRouter } from 'expo-router';
 import { useApp } from '../../context/AppContext';
 import { Typography, BorderRadius, Shadows } from '../../constants/theme';
 import { ConfirmationModal } from '../../components/ui/AppStates';
+import Animated, {
+  FadeInUp,
+  FadeInDown,
+  FadeIn,
+  SlideInRight,
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+} from 'react-native-reanimated';
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -24,23 +33,25 @@ export default function ProfileScreen() {
     router.replace('/login');
   };
 
-  const MenuItem = ({ icon, label, color, onPress }: { icon: string; label: string; color?: string; onPress: () => void }) => (
-    <TouchableOpacity
-      style={[styles.menuItem, { borderBottomColor: themeColors.borderLight }]}
-      onPress={onPress}
-      activeOpacity={0.7}
-    >
-      <Ionicons name={icon as any} size={20} color={color || themeColors.textSecondary} />
-      <Text style={[styles.menuLabel, { color: color || themeColors.text }]}>{label}</Text>
-      <Ionicons name="chevron-forward" size={16} color={themeColors.textMuted} />
-    </TouchableOpacity>
+  const MenuItem = ({ icon, label, color, onPress, index }: { icon: string; label: string; color?: string; onPress: () => void; index: number }) => (
+    <Animated.View entering={SlideInRight.delay(400 + index * 80).duration(300).springify()}>
+      <TouchableOpacity
+        style={[styles.menuItem, { borderBottomColor: themeColors.borderLight }]}
+        onPress={onPress}
+        activeOpacity={0.7}
+      >
+        <Ionicons name={icon as any} size={20} color={color || themeColors.textSecondary} />
+        <Text style={[styles.menuLabel, { color: color || themeColors.text }]}>{label}</Text>
+        <Ionicons name="chevron-forward" size={16} color={themeColors.textMuted} />
+      </TouchableOpacity>
+    </Animated.View>
   );
 
   return (
     <AppSafeAreaView edges={['top']} style={[styles.safe, { backgroundColor: themeColors.background }]}>
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
         {/* Profile Card */}
-        <View style={[styles.profileCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.small]}>
+        <Animated.View entering={FadeInUp.duration(500).springify()} style={[styles.profileCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.small]}>
           <View style={[styles.avatar, { backgroundColor: themeColors.secondary }]}>
             <Text style={styles.avatarText}>{employee?.name?.charAt(0) || 'U'}</Text>
           </View>
@@ -59,40 +70,57 @@ export default function ProfileScreen() {
             <Ionicons name="call-outline" size={14} color={themeColors.textMuted} />
             <Text style={[styles.contactText, { color: themeColors.textSecondary }]}>{employee?.phone}</Text>
           </View>
-        </View>
+        </Animated.View>
 
         {/* Preferences */}
-        <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Preferences</Text>
-        <View style={[styles.menuCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}>
-          <View style={[styles.menuItem, { borderBottomColor: themeColors.borderLight }]}>
-            <Ionicons name="moon-outline" size={20} color={themeColors.textSecondary} />
-            <Text style={[styles.menuLabel, { color: themeColors.text }]}>Dark Mode</Text>
-            <Switch
-              value={isDarkMode}
-              onValueChange={toggleDarkMode}
-              trackColor={{ false: themeColors.border, true: themeColors.secondaryLight }}
-              thumbColor={isDarkMode ? themeColors.secondary : themeColors.textMuted}
-            />
+        <Animated.View entering={FadeInUp.delay(150).duration(400)}>
+          <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Preferences</Text>
+          <View style={[styles.menuCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}>
+            <View style={[styles.menuItem, { borderBottomColor: themeColors.borderLight }]}>
+              <Ionicons name="moon-outline" size={20} color={themeColors.textSecondary} />
+              <Text style={[styles.menuLabel, { color: themeColors.text }]}>Dark Mode</Text>
+              <Switch
+                value={isDarkMode}
+                onValueChange={toggleDarkMode}
+                trackColor={{ false: themeColors.border, true: themeColors.secondaryLight }}
+                thumbColor={isDarkMode ? themeColors.secondary : themeColors.textMuted}
+              />
+            </View>
           </View>
-        </View>
+        </Animated.View>
+
+        {/* Mode Selection */}
+        <Animated.View entering={FadeInUp.delay(200).duration(400)}>
+          <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Mode</Text>
+          <View style={[styles.menuCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}>
+            <MenuItem icon="car-outline" label="Driver Mode" onPress={() => router.push('/(driver)' as any)} index={0} />
+            <MenuItem icon="shield-checkmark-outline" label="Admin Mode" onPress={() => router.push('/(admin)' as any)} index={1} />
+            <MenuItem icon="person-outline" label="User Mode" color={themeColors.secondary} onPress={() => {}} index={2} />
+            <MenuItem icon="flash-outline" label="Super Admin Mode" color={themeColors.danger} onPress={() => {}} index={3} />
+          </View>
+        </Animated.View>
 
         {/* Account & Support */}
-        <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Account & Support</Text>
-        <View style={[styles.menuCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}>
-          <MenuItem icon="person-outline" label="Edit Profile" onPress={() => router.push('/edit-profile')} />
-          <MenuItem icon="help-buoy-outline" label="Help & Support" onPress={() => router.push('/help')} />
-          <MenuItem icon="alert-circle-outline" label="Emergency SOS Contacts" color={themeColors.danger} onPress={() => router.push('/sos')} />
-        </View>
+        <Animated.View entering={FadeInUp.delay(300).duration(400)}>
+          <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Account & Support</Text>
+          <View style={[styles.menuCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}>
+            <MenuItem icon="person-outline" label="Edit Profile" onPress={() => router.push('/edit-profile')} index={0} />
+            <MenuItem icon="help-buoy-outline" label="Help & Support" onPress={() => router.push('/help')} index={1} />
+            <MenuItem icon="alert-circle-outline" label="Emergency SOS Contacts" color={themeColors.danger} onPress={() => router.push('/sos')} index={2} />
+          </View>
+        </Animated.View>
 
         {/* Sign Out */}
-        <TouchableOpacity
-          style={[styles.signOutBtn, { backgroundColor: themeColors.dangerLight }]}
-          onPress={() => setShowLogout(true)}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="log-out-outline" size={20} color={themeColors.danger} />
-          <Text style={[styles.signOutText, { color: themeColors.danger }]}>Sign Out</Text>
-        </TouchableOpacity>
+        <Animated.View entering={FadeInUp.delay(500).duration(400)}>
+          <TouchableOpacity
+            style={[styles.signOutBtn, { backgroundColor: themeColors.dangerLight }]}
+            onPress={() => setShowLogout(true)}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="log-out-outline" size={20} color={themeColors.danger} />
+            <Text style={[styles.signOutText, { color: themeColors.danger }]}>Sign Out</Text>
+          </TouchableOpacity>
+        </Animated.View>
 
         <Text style={[styles.version, { color: themeColors.textMuted }]}>36Route v1.0.0</Text>
       </ScrollView>

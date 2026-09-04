@@ -16,7 +16,17 @@ export type RouteType = 'OFFICE_HOME' | 'HOME_OFFICE' | 'COLLEGE_HOME' | 'HOME_C
 
 export type RouteStatus = 'ACTIVE' | 'INACTIVE' | 'MAINTENANCE';
 
-export type TripStatus = 'SCHEDULED' | 'IN_PROGRESS' | 'DELAYED' | 'COMPLETED' | 'CANCELLED';
+export type TripStatus =
+  | 'SCHEDULED'
+  | 'IN_PROGRESS'
+  | 'DELAYED'
+  | 'COMPLETED'
+  | 'CANCELLED'
+  | 'Upcoming'
+  | 'Assigned'
+  | 'Ongoing'
+  | 'Needs Attention'
+  | 'Completed';
 
 export type BookingStatus = 'BOOKED' | 'CONFIRMED' | 'BOARDING' | 'ON_TRIP' | 'COMPLETED' | 'CANCELLED';
 
@@ -266,4 +276,201 @@ export interface BookRideRequest {
   dropAddress: string;
   routeId?: string;
   notes?: string;
+}
+
+// ─── 36Route Supervisor Operational Statuses ─────────────────────────────
+export type OperationalStatus =
+  | 'Available'
+  | 'On Trip'
+  | 'Upcoming'
+  | 'Assigned'
+  | 'Ongoing'
+  | 'Completed'
+  | 'Cancelled'
+  | 'Needs Attention'
+  | 'Maintenance'
+  | 'Unavailable';
+
+export type SupervisorDriverStatus = 'Available' | 'On Trip' | 'Unavailable';
+export type SupervisorVehicleStatus = 'Available' | 'On Trip' | 'Maintenance';
+export type PassengerStatus = 'Boarded' | 'Waiting' | 'No-show';
+
+export type DriverResponseState =
+  | 'Pending'
+  | 'Accepted'
+  | 'Declined'
+  | 'No response'
+  | 'Busy'
+  | 'Vehicle unavailable';
+
+// ─── Supervisor User ──────────────────────────────────────────────────
+export interface SupervisorUser {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  hub: string;
+  phone: string;
+  avatarUrl?: string;
+}
+
+// ─── Supervisor Passenger ─────────────────────────────────────────────
+export interface SupervisorPassenger {
+  id: string;
+  name: string;
+  phone: string;
+  pickupPoint: string;
+  dropPoint: string;
+  status: PassengerStatus;
+  seatNumber?: number;
+  department?: string;
+}
+
+// ─── Supervisor Driver ────────────────────────────────────────────────
+export interface SupervisorDriver {
+  id: string;
+  name: string;
+  phone: string;
+  email: string;
+  status: 'Available' | 'On Trip' | 'Unavailable';
+  assignedVehicleModel: string;
+  assignedVehiclePlate: string;
+  currentTripId?: string;
+  currentTripRoute?: string;
+  nextTripTime?: string;
+  todayTrips: number;
+  completedTrips: number;
+  upcomingTrips: number;
+  onTimePerformance: number;
+  acceptanceRate: number;
+  rating: number;
+}
+
+// ─── Supervisor Vehicle ───────────────────────────────────────────────
+export interface SupervisorVehicle {
+  id: string;
+  model: string;
+  plateNumber: string;
+  status: 'Available' | 'On Trip' | 'Maintenance';
+  capacity: number;
+  currentDriverId?: string;
+  currentDriverName?: string;
+  todayTrips: number;
+  todayDistanceKm: number;
+  documents: {
+    insurance: boolean;
+    permit: boolean;
+    fitness: boolean;
+  };
+  nextServiceKm: number;
+}
+
+// ─── Route Stop ───────────────────────────────────────────────────────
+export interface RouteStop {
+  id: string;
+  name: string;
+  sequence: number;
+  time?: string;
+  isOrigin?: boolean;
+  isDestination?: boolean;
+  pickupCount?: number;
+  dropCount?: number;
+}
+
+// ─── Supervisor Route ─────────────────────────────────────────────────
+export interface SupervisorRoute {
+  id: string;
+  name: string;
+  stopsCount: number;
+  distanceKm: number;
+  typicalPassengers: number;
+  estimatedMinutes: number;
+  stops: RouteStop[];
+  startingPoint?: string;
+  destination?: string;
+  distance?: number;
+  capacity?: number;
+  occupiedSeats?: number;
+}
+
+// ─── Chronological Trip Event ─────────────────────────────────────────
+export interface TripTimelineEvent {
+  id: string;
+  time: string;
+  title: string;
+  detail?: string;
+  type: 'info' | 'success' | 'warning' | 'error';
+}
+
+// ─── Supervisor Trip ──────────────────────────────────────────────────
+export interface SupervisorTrip {
+  id: string;
+  tripNumber: string;
+  scheduledTime: string;
+  routeOrigin: string;
+  routeDestination: string;
+  routeSummary: string;
+  routeId: string;
+  passengerCount: number;
+  maxCapacity: number;
+  status: TripStatus;
+  driverId?: string;
+  driverName?: string;
+  driverPhone?: string;
+  driverStatus?: string;
+  vehicleId?: string;
+  vehicleModel?: string;
+  vehiclePlate?: string;
+  attentionReason?: string;
+  stops: RouteStop[];
+  passengers: SupervisorPassenger[];
+  events: TripTimelineEvent[];
+}
+
+// ─── Dispatch Recommendation ──────────────────────────────────────────
+export interface DriverRecommendation {
+  driverId: string;
+  driverName: string;
+  phone: string;
+  vehicleModel: string;
+  vehiclePlate: string;
+  matchScore: number;
+  reasons: string[];
+  currentWorkload: string;
+  distanceToPickup: string;
+  rating: number;
+}
+
+// ─── Operational Alert ────────────────────────────────────────────────
+export interface OperationalAlert {
+  id: string;
+  type: 'driver_required' | 'vehicle_unavailable' | 'passenger_noshow' | 'delayed';
+  title: string;
+  subtitle: string;
+  time: string;
+  tripId?: string;
+  resolved: boolean;
+  actionRoute?: string;
+}
+
+// ─── Operational KPIs ─────────────────────────────────────────────────
+export interface OperationalKPIs {
+  totalTripsToday: number;
+  totalDrivers: number;
+  totalVehicles: number;
+  ongoingTrips: number;
+  upcomingTrips: number;
+  completedTrips: number;
+  needsAttentionTrips: number;
+  driversAvailable: number;
+  driversOnTrip: number;
+  driversUnavailable: number;
+  vehiclesAvailable: number;
+  vehiclesOnTrip: number;
+  vehiclesMaintenance: number;
+  completionRate: number;
+  averageOccupancy: number;
+  vehicleUtilization: number;
+  onTimePerformance: number;
+  averageCostPerKm: number;
 }

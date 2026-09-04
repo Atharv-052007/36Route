@@ -14,7 +14,14 @@ import { useApp } from '@/context/AppContext';
 import { Typography, BorderRadius, Shadows } from '@/constants/theme';
 import { RideCard, DriverCard, LocationCard } from '@/components/ui/RideCards';
 import { StatusBadge } from '@/components/ui/AppStates';
-import { AppButton } from '@/components/ui/AppButton';
+import { AnimatedAppButton } from '@/components/ui/AnimatedAppButton';
+import Animated, {
+  FadeInUp,
+  FadeInDown,
+  FadeIn,
+  SlideInRight,
+  Layout,
+} from 'react-native-reanimated';
 
 export default function RideDetailsScreen() {
   const router = useRouter();
@@ -49,9 +56,9 @@ export default function RideDetailsScreen() {
 
   return (
     <AppSafeAreaView style={[styles.safe, { backgroundColor: themeColors.background }]}>
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
         {/* Header */}
-        <View style={styles.header}>
+        <Animated.View entering={FadeInDown.duration(400)} style={styles.header}>
           <TouchableOpacity
             onPress={() => router.dismissTo('/(tabs)')}
             style={[styles.backBtn, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}
@@ -60,10 +67,10 @@ export default function RideDetailsScreen() {
           </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: themeColors.text }]}>Ride Details</Text>
           <View style={{ width: 40 }} />
-        </View>
+        </Animated.View>
 
         {/* Status & Info */}
-        <View style={[styles.infoCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.small]}>
+        <Animated.View entering={SlideInRight.delay(150).duration(400).springify()} style={[styles.infoCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.small]}>
           <View style={styles.infoHeader}>
             <Text style={[styles.bookingId, { color: themeColors.text }]}>{ride.bookingId}</Text>
             <StatusBadge status={ride.status} />
@@ -73,16 +80,16 @@ export default function RideDetailsScreen() {
           </Text>
 
           {ride.otp && (
-            <View style={[styles.otpBox, { backgroundColor: themeColors.backgroundElement }]}>
+            <Animated.View entering={FadeIn.delay(250).duration(400)} style={[styles.otpBox, { backgroundColor: themeColors.backgroundElement }]}>
               <Ionicons name="key" size={16} color={themeColors.secondary} />
               <Text style={[styles.otpLabel, { color: themeColors.textSecondary }]}>OTP</Text>
               <Text style={[styles.otpValue, { color: themeColors.text }]}>{ride.otp}</Text>
-            </View>
+            </Animated.View>
           )}
 
           <LocationCard pickup={ride.pickup} drop={ride.drop} />
 
-          <View style={styles.metrics}>
+          <Animated.View entering={FadeInUp.delay(300).duration(400)} style={styles.metrics}>
             <View style={[styles.metric, { backgroundColor: themeColors.backgroundElement }]}>
               <Text style={[styles.metricValue, { color: themeColors.text }]}>{ride.estimatedDistanceKm}</Text>
               <Text style={[styles.metricLabel, { color: themeColors.textSecondary }]}>km</Text>
@@ -97,31 +104,33 @@ export default function RideDetailsScreen() {
                 <Text style={[styles.metricLabel, { color: themeColors.textSecondary }]}>co-pass</Text>
               </View>
             )}
-          </View>
-        </View>
+          </Animated.View>
+        </Animated.View>
 
         {ride.driver && (
-          <DriverCard driver={ride.driver} vehicle={ride.vehicle} />
+          <Animated.View entering={FadeInUp.delay(350).duration(400)}>
+            <DriverCard driver={ride.driver} vehicle={ride.vehicle} />
+          </Animated.View>
         )}
 
         {/* Actions */}
-        <View style={styles.actions}>
+        <Animated.View entering={FadeInUp.delay(450).duration(400)} style={styles.actions}>
           {ride.status === 'IN_TRANSIT' && (
-            <AppButton
+            <AnimatedAppButton
               title="Track Live Vehicle"
               onPress={() => router.push('/(tabs)/track')}
               icon={<Ionicons name="navigate" size={18} color="#FFF" />}
             />
           )}
           {(ride.status === 'SCHEDULED' || ride.status === 'BOARDING') && (
-            <AppButton
+            <AnimatedAppButton
               title="Cancel Ride"
               onPress={handleCancel}
               variant="danger"
               icon={<Ionicons name="close-circle" size={18} color="#FFF" />}
             />
           )}
-        </View>
+        </Animated.View>
       </ScrollView>
     </AppSafeAreaView>
   );

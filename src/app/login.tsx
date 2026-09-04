@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,10 +11,22 @@ import {
 import { AppSafeAreaView } from '@/components/ui/AppSafeAreaView';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { Image as ExpoImage } from 'expo-image';
 import { useApp } from '@/context/AppContext';
 import { Typography, BorderRadius, Shadows } from '@/constants/theme';
 import { AppInput } from '@/components/ui/AppInput';
-import { AppButton } from '@/components/ui/AppButton';
+import { AnimatedAppButton } from '@/components/ui/AnimatedAppButton';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withTiming,
+  withRepeat,
+  withSequence,
+  FadeInDown,
+  FadeInUp,
+  SlideInRight,
+} from 'react-native-reanimated';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -24,6 +36,43 @@ export default function LoginScreen() {
   const [code, setCode] = useState('123456');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const logoScale = useSharedValue(0);
+  const logoRotate = useSharedValue(0);
+  const glowOpacity = useSharedValue(0);
+
+  useEffect(() => {
+    logoScale.value = withSpring(1, { damping: 12, stiffness: 100 });
+    logoRotate.value = withRepeat(
+      withSequence(
+        withTiming(3, { duration: 4000 }),
+        withTiming(-3, { duration: 4000 }),
+        withTiming(0, { duration: 2000 })
+      ),
+      -1,
+      false
+    );
+    glowOpacity.value = withRepeat(
+      withSequence(
+        withTiming(0.6, { duration: 2000 }),
+        withTiming(0.2, { duration: 2000 })
+      ),
+      -1,
+      false
+    );
+  }, []);
+
+  const logoAnimStyle = useAnimatedStyle(() => ({
+    transform: [
+      { scale: logoScale.value },
+      { rotate: `${logoRotate.value}deg` },
+    ],
+  }));
+
+  const glowAnimStyle = useAnimatedStyle(() => ({
+    opacity: glowOpacity.value,
+    transform: [{ scale: 1 + glowOpacity.value * 0.3 }],
+  }));
 
   const handleLogin = async () => {
     if (!identifier.trim()) {
@@ -62,7 +111,7 @@ export default function LoginScreen() {
   };
 
   return (
-    <AppSafeAreaView edges={['top']} style={[styles.safe, { backgroundColor: themeColors.primary }]}>
+    <AppSafeAreaView edges={['top']} style={[styles.safe, { backgroundColor: themeColors.secondary }]}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.flex}
@@ -73,17 +122,29 @@ export default function LoginScreen() {
           showsVerticalScrollIndicator={false}
           bounces={false}
         >
-          {/* Header Branding */}
+          {/* Header Branding with Animated Logo */}
           <View style={styles.header}>
-            <View style={[styles.logoCircle, { backgroundColor: 'rgba(255,255,255,0.18)' }]}>
-              <Ionicons name="bus" size={32} color="#FFFFFF" />
-            </View>
-            <Text style={styles.brand}>36Route</Text>
-            <Text style={styles.tagline}>Corporate Commute & Transit Portal</Text>
+            {/* Animated Glow */}
+            <Animated.View style={[styles.logoGlow, glowAnimStyle]} />
+
+            {/* Animated Logo Circle */}
+            <Animated.View style={[styles.logoCircle, logoAnimStyle, { backgroundColor: 'rgba(255,255,255,0.18)' }]}>
+              <ExpoImage source={require('@/assets/images/logo.png')} style={styles.logoImage} />
+            </Animated.View>
+
+            <Animated.View entering={FadeInDown.delay(200).duration(600)}>
+              <Text style={styles.brand}>36Route</Text>
+            </Animated.View>
+            <Animated.View entering={FadeInDown.delay(400).duration(600)}>
+              <Text style={styles.tagline}>Corporate Commute & Transit Portal</Text>
+            </Animated.View>
           </View>
 
-          {/* Login Card */}
-          <View style={[styles.card, { backgroundColor: themeColors.cardBackground }, Shadows.medium]}>
+          {/* Login Card with Slide-in */}
+          <Animated.View
+            entering={SlideInRight.delay(300).duration(500).springify()}
+            style={[styles.card, { backgroundColor: themeColors.cardBackground }, Shadows.medium]}
+          >
             <Text style={[styles.cardTitle, { color: themeColors.text }]}>Welcome Back</Text>
             <Text style={[styles.cardSubtitle, { color: themeColors.textSecondary }]}>
               Sign in to manage and track your employee commute
@@ -146,10 +207,10 @@ export default function LoginScreen() {
             </View>
 
             {error ? (
-              <View style={[styles.errorBanner, { backgroundColor: themeColors.dangerLight }]}>
+              <Animated.View entering={FadeInDown.duration(300)} style={[styles.errorBanner, { backgroundColor: themeColors.dangerLight }]}>
                 <Ionicons name="alert-circle" size={16} color={themeColors.danger} />
                 <Text style={[styles.errorText, { color: themeColors.danger }]}>{error}</Text>
-              </View>
+              </Animated.View>
             ) : null}
 
             <AppInput
@@ -183,7 +244,7 @@ export default function LoginScreen() {
               </TouchableOpacity>
             </View>
 
-            <AppButton
+            <AnimatedAppButton
               title="Sign In"
               onPress={handleLogin}
               loading={loading}
@@ -201,7 +262,7 @@ export default function LoginScreen() {
                 One-Tap Quick Demo Login
               </Text>
             </TouchableOpacity>
-          </View>
+          </Animated.View>
         </ScrollView>
       </KeyboardAvoidingView>
     </AppSafeAreaView>
@@ -219,14 +280,28 @@ const styles = StyleSheet.create({
     paddingTop: 36,
     paddingBottom: 28,
     paddingHorizontal: 20,
+    position: 'relative',
+  },
+  logoGlow: {
+    position: 'absolute',
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    top: 36,
   },
   logoCircle: {
-    width: 68,
-    height: 68,
-    borderRadius: 34,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 12,
+  },
+  logoImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
   },
   brand: {
     color: '#FFFFFF',

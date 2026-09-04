@@ -1,10 +1,18 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useApp } from '../../context/AppContext';
 import { Typography, BorderRadius, Shadows } from '../../constants/theme';
 import { Ride, Driver, Vehicle, LocationCoordinate } from '../../types';
 import { StatusBadge } from './AppStates';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withRepeat,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated';
 
 // ─── Driver Card ─────────────────────────────────────────────────
 
@@ -34,11 +42,16 @@ export const DriverCard: React.FC<DriverCardProps> = ({ driver, vehicle, onCall 
           style={styles.driverAvatar}
         />
         <View style={styles.driverInfo}>
-          <Text style={[styles.driverName, { color: themeColors.text }]}>{driver.name}</Text>
+          <View style={styles.driverNameRow}>
+            <Text style={[styles.driverName, { color: themeColors.text }]}>{driver.name}</Text>
+            {driver.verificationStatus === 'VERIFIED' && (
+              <Ionicons name="checkmark-circle" size={14} color={themeColors.accent} />
+            )}
+          </View>
           <View style={styles.driverMeta}>
             {driver.rating && (
               <View style={styles.ratingBadge}>
-                <Ionicons name="star" size={12} color="#F59E0B" />
+                <Ionicons name="star" size={12} color="#D99A2B" />
                 <Text style={[styles.ratingText, { color: themeColors.text }]}>{driver.rating}</Text>
               </View>
             )}
@@ -140,9 +153,32 @@ export const RideCard: React.FC<RideCardProps> = ({
   onCancel,
 }) => {
   const { themeColors } = useApp();
+  const scale = useSharedValue(1);
+  const statusPulse = useSharedValue(1);
+
+  useEffect(() => {
+    if (ride.status === 'IN_TRANSIT' || ride.status === 'BOARDING') {
+      statusPulse.value = withRepeat(
+        withSequence(
+          withTiming(1.15, { duration: 800 }),
+          withTiming(1, { duration: 800 })
+        ),
+        -1,
+        false
+      );
+    }
+  }, [ride.status]);
+
+  const cardAnimStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const statusAnimStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: statusPulse.value }],
+  }));
 
   return (
-    <View
+    <Animated.View
       style={[
         styles.rideCard,
         {
@@ -150,11 +186,18 @@ export const RideCard: React.FC<RideCardProps> = ({
           borderColor: themeColors.border,
         },
         Shadows.small,
+        cardAnimStyle,
       ]}
     >
       <View style={styles.rideHeader}>
         <View style={styles.rideHeaderLeft}>
-          <StatusBadge status={ride.status} size="sm" />
+          {(ride.status === 'IN_TRANSIT' || ride.status === 'BOARDING') ? (
+            <Animated.View style={statusAnimStyle}>
+              <StatusBadge status={ride.status} size="sm" />
+            </Animated.View>
+          ) : (
+            <StatusBadge status={ride.status} size="sm" />
+          )}
           <Text style={[styles.rideDate, { color: themeColors.textSecondary }]}>
             {ride.date} • {ride.time}
           </Text>
@@ -239,7 +282,7 @@ export const RideCard: React.FC<RideCardProps> = ({
           </TouchableOpacity>
         )}
       </View>
-    </View>
+    </Animated.View>
   );
 };
 
@@ -263,6 +306,11 @@ const styles = StyleSheet.create({
   driverInfo: {
     flex: 1,
     marginLeft: 12,
+  },
+  driverNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   driverName: {
     fontSize: Typography.fontSizes.md,
@@ -417,7 +465,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
+    borderTopColor: '#E5E8E3',
   },
   metric: {
     flexDirection: 'row',

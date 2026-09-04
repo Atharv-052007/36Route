@@ -19,6 +19,8 @@ const HOME_SEGMENTS: string[][] = [
   [],
   ['(tabs)'],
   ['(tabs)', 'index'],
+  ['(driver)'],
+  ['(driver)', 'index'],
 ];
 
 const HIDDEN_SEGMENTS: string[][] = [['login']];
@@ -79,8 +81,8 @@ function EdgeSwipeZone({ onSwipe, progress, style, icon }: EdgeSwipeZoneProps) {
 /**
  * Global "Back to Home" overlay.
  * - Android hardware back -> Home dashboard.
- * - Swipe from left/right/bottom edges -> Home dashboard.
- * - Floating Home button on every non-Home page for one-tap return.
+ * - Swipe from left/right edges -> Home dashboard.
+ * - Floating Home button on every non-Home passenger page for one-tap return.
  */
 export function BackToHome() {
   const { themeColors } = useApp();
@@ -88,8 +90,10 @@ export function BackToHome() {
   const segments = useSegments();
   const progress = useSharedValue(0);
 
+  const isDriver = (segments as readonly string[]).includes('(driver)');
+  const isAdmin = (segments as readonly string[]).includes('(admin)');
+  const inTabs = (segments as readonly string[]).includes('(tabs)') || isDriver || isAdmin;
   const onHome = !isHome(segments) && !isHidden(segments);
-  const inTabs = (segments as readonly string[]).includes('(tabs)');
 
   const animateHome = useCallback(() => {
     progress.value = withSpring(0, { damping: 16, stiffness: 200, mass: 0.6 });
@@ -106,11 +110,11 @@ export function BackToHome() {
   }, [progress]);
 
   const themed = useMemo(
-    () => [styles.edgeLeft, styles.edgeRight, styles.edgeBottom],
+    () => [styles.edgeLeft, styles.edgeRight],
     []
   );
 
-  if (!onHome) return null;
+  if (!onHome || isDriver || inTabs) return null;
 
   return (
     <View style={styles.overlay} pointerEvents="box-none">
@@ -128,15 +132,6 @@ export function BackToHome() {
         style={themed[1]}
         icon="chevron-back"
       />
-      {/* Bottom edge swipe -> Home (hidden on tab pages to not cover the tab bar) */}
-      {!inTabs && (
-        <EdgeSwipeZone
-          onSwipe={animateHome}
-          progress={progress}
-          style={themed[2]}
-          icon="chevron-up"
-        />
-      )}
 
       {/* Floating Home button */}
       <Animated.View
@@ -150,7 +145,7 @@ export function BackToHome() {
           onPress={animateHome}
           style={[
             styles.homeBtn,
-            { backgroundColor: themeColors.primary, ...Shadows.medium },
+            { backgroundColor: themeColors.secondary, ...Shadows.medium },
           ]}
           android_ripple={{ color: 'rgba(255,255,255,0.2)' }}
           hitSlop={8}

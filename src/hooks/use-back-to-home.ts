@@ -6,6 +6,8 @@ const HOME_SEGMENTS: string[][] = [
   [],
   ['(tabs)'],
   ['(tabs)', 'index'],
+  ['(driver)'],
+  ['(driver)', 'index'],
 ];
 
 // Screens where the back action should behave natively (e.g. exit app),
@@ -42,6 +44,15 @@ export function useBackToHome() {
     const now = Date.now();
     if (now - lastHandledRef.current < 400) return true; // debounce gestures
     lastHandledRef.current = now;
+
+    const isDriver = (segments as readonly string[]).includes('(driver)');
+    if (isDriver) {
+      if (segments.length > 1 && (segments[1] as string) !== 'index') {
+        router.dismissTo('/(driver)' as any);
+        return true;
+      }
+      return false;
+    }
 
     router.dismissTo('/(tabs)');
     return true;

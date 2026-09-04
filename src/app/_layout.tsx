@@ -25,6 +25,17 @@ function RootLayoutNav() {
         <Stack.Screen name="index" />
         <Stack.Screen name="login" />
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="(driver)" />
+        <Stack.Screen name="(admin)" />
+        <Stack.Screen name="dispatch" />
+        <Stack.Screen name="trip-details" />
+        <Stack.Screen name="driver-profile" />
+        <Stack.Screen name="create-trip" />
+        <Stack.Screen name="reports" />
+        <Stack.Screen name="settings" />
+        <Stack.Screen name="vehicles" />
+        <Stack.Screen name="vehicle-details" />
+        <Stack.Screen name="routes" />
         <Stack.Screen name="book-ride" />
         <Stack.Screen name="ride-details" />
         <Stack.Screen name="route-details" />
