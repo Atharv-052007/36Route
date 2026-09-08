@@ -12,12 +12,6 @@ import { useRouter } from 'expo-router';
 import { useApp } from '@/context/AppContext';
 import { Typography, BorderRadius, Shadows } from '@/constants/theme';
 import { StatusBadge } from '@/components/ui/AppStates';
-import Animated, {
-  FadeInUp,
-  FadeInDown,
-  FadeIn,
-  SlideInRight,
-} from 'react-native-reanimated';
 
 export default function RouteDetailsScreen() {
   const router = useRouter();
@@ -35,7 +29,7 @@ export default function RouteDetailsScreen() {
   return (
     <AppSafeAreaView style={[styles.safe, { backgroundColor: themeColors.background }]}>
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        <Animated.View entering={FadeInDown.duration(400)} style={styles.header}>
+        <View style={styles.header}>
           <TouchableOpacity
             onPress={() => router.dismissTo('/(tabs)')}
             style={[styles.backBtn, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}
@@ -44,34 +38,34 @@ export default function RouteDetailsScreen() {
           </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: themeColors.text }]}>{route.name}</Text>
           <StatusBadge status={route.status} size="sm" />
-        </Animated.View>
+        </View>
 
         {/* Route Info */}
-        <Animated.View entering={SlideInRight.delay(150).duration(400).springify()} style={[styles.infoCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.small]}>
+        <View style={[styles.infoCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.small]}>
           <View style={styles.infoRow}>
-            <Animated.View entering={FadeIn.delay(200).duration(400)} style={styles.infoItem}>
+            <View style={styles.infoItem}>
               <Ionicons name="map-outline" size={16} color={themeColors.textMuted} />
               <Text style={[styles.infoLabel, { color: themeColors.textSecondary }]}>Distance</Text>
               <Text style={[styles.infoValue, { color: themeColors.text }]}>{route.distance} km</Text>
-            </Animated.View>
-            <Animated.View entering={FadeIn.delay(280).duration(400)} style={styles.infoItem}>
+            </View>
+            <View style={styles.infoItem}>
               <Ionicons name="time-outline" size={16} color={themeColors.textMuted} />
               <Text style={[styles.infoLabel, { color: themeColors.textSecondary }]}>Duration</Text>
               <Text style={[styles.infoValue, { color: themeColors.text }]}>{route.estimatedTime} min</Text>
-            </Animated.View>
-            <Animated.View entering={FadeIn.delay(360).duration(400)} style={styles.infoItem}>
+            </View>
+            <View style={styles.infoItem}>
               <Ionicons name="people-outline" size={16} color={themeColors.textMuted} />
               <Text style={[styles.infoLabel, { color: themeColors.textSecondary }]}>Seats</Text>
               <Text style={[styles.infoValue, { color: themeColors.text }]}>{route.occupiedSeats}/{route.capacity}</Text>
-            </Animated.View>
+            </View>
           </View>
-        </Animated.View>
+        </View>
 
         {/* Stops Timeline */}
         <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Stops</Text>
-        <Animated.View entering={FadeInUp.delay(300).duration(400)} style={[styles.stopsCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.small]}>
+        <View style={[styles.stopsCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.small]}>
           {route.stops.map((stop: any, index: number) => (
-            <Animated.View key={stop.id} entering={FadeInUp.delay(350 + index * 80).duration(400)} style={styles.stopRow}>
+            <View key={stop.id} style={styles.stopRow}>
               <View style={styles.stopLeft}>
                 <View style={[
                   styles.stopDot,
@@ -97,9 +91,9 @@ export default function RouteDetailsScreen() {
                   </Text>
                 </View>
               </View>
-            </Animated.View>
+            </View>
           ))}
-        </Animated.View>
+        </View>
       </ScrollView>
     </AppSafeAreaView>
   );

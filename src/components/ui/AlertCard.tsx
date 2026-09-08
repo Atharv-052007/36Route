@@ -41,7 +41,7 @@ export const AlertCard: React.FC<AlertCardProps> = ({
       ]}
     >
       <View style={styles.leftRow}>
-        <View style={[styles.iconContainer, { backgroundColor: isDarkMode ? 'rgba(0,0,0,0.2)' : '#FFFFFF' }]}>
+        <View style={[styles.iconContainer, { backgroundColor: theme.backgroundElement }]}>
           <Ionicons
             name={isDanger ? 'alert-circle' : 'warning-outline'}
             size={18}

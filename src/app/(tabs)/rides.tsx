@@ -14,12 +14,6 @@ import { useApp } from '../../context/AppContext';
 import { Typography, BorderRadius } from '../../constants/theme';
 import { RideCard } from '../../components/ui/RideCards';
 import { ConfirmationModal, EmptyState } from '../../components/ui/AppStates';
-import Animated, {
-  FadeInUp,
-  FadeInDown,
-  FadeIn,
-  Layout,
-} from 'react-native-reanimated';
 
 export default function RidesScreen() {
   const router = useRouter();
@@ -49,7 +43,7 @@ export default function RidesScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}
-        <Animated.View entering={FadeInDown.duration(400)} style={styles.header}>
+        <View style={styles.header}>
           <Text style={[styles.headerTitle, { color: themeColors.text }]}>My Rides</Text>
           <TouchableOpacity
             style={[styles.addBtn, { backgroundColor: themeColors.secondary }]}
@@ -58,10 +52,10 @@ export default function RidesScreen() {
             <Ionicons name="add" size={18} color="#FFF" />
             <Text style={styles.addBtnText}>Book</Text>
           </TouchableOpacity>
-        </Animated.View>
+        </View>
 
         {/* Tabs */}
-        <Animated.View entering={FadeIn.delay(100).duration(400)} style={[styles.tabs, { backgroundColor: themeColors.backgroundElement }]}>
+        <View style={[styles.tabs, { backgroundColor: themeColors.backgroundElement }]}>
           {(['upcoming', 'history'] as const).map((tab) => (
             <TouchableOpacity
               key={tab}
@@ -73,11 +67,11 @@ export default function RidesScreen() {
               </Text>
             </TouchableOpacity>
           ))}
-        </Animated.View>
+        </View>
 
         {/* History Filters */}
         {activeTab === 'history' && (
-          <Animated.View entering={FadeInDown.duration(300)} style={styles.filters}>
+          <View style={styles.filters}>
             {(['ALL', 'COMPLETED', 'CANCELLED'] as const).map((f) => (
               <TouchableOpacity
                 key={f}
@@ -95,25 +89,23 @@ export default function RidesScreen() {
                 </Text>
               </TouchableOpacity>
             ))}
-          </Animated.View>
+          </View>
         )}
 
         {/* Ride List */}
         {displayRides.length === 0 ? (
-          <Animated.View entering={FadeIn.duration(400)}>
+          <View>
             <EmptyState
               title={activeTab === 'upcoming' ? 'No Upcoming Rides' : 'No History'}
               description={activeTab === 'upcoming' ? 'Book a ride for your next shift' : 'Your completed rides will appear here'}
               actionTitle={activeTab === 'upcoming' ? 'Book a Ride' : undefined}
               onAction={activeTab === 'upcoming' ? () => router.push('/book-ride') : undefined}
             />
-          </Animated.View>
+          </View>
         ) : (
           displayRides.map((ride, index) => (
-            <Animated.View
+            <View
               key={ride.id}
-              entering={FadeInUp.delay(index * 100).duration(400).springify()}
-              layout={Layout.springify()}
             >
               <RideCard
                 ride={ride}
@@ -121,7 +113,7 @@ export default function RidesScreen() {
                 onViewDetails={() => router.push({ pathname: '/ride-details', params: { id: ride.id } })}
                 onCancel={() => setCancelId(ride.id)}
               />
-            </Animated.View>
+            </View>
           ))
         )}
       </ScrollView>

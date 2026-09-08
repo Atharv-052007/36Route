@@ -13,15 +13,6 @@ import { useRouter } from 'expo-router';
 import { useApp } from '../../context/AppContext';
 import { Typography, BorderRadius, Shadows } from '../../constants/theme';
 import { ConfirmationModal } from '../../components/ui/AppStates';
-import Animated, {
-  FadeInUp,
-  FadeInDown,
-  FadeIn,
-  SlideInRight,
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-} from 'react-native-reanimated';
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -34,7 +25,7 @@ export default function ProfileScreen() {
   };
 
   const MenuItem = ({ icon, label, color, onPress, index }: { icon: string; label: string; color?: string; onPress: () => void; index: number }) => (
-    <Animated.View entering={SlideInRight.delay(400 + index * 80).duration(300).springify()}>
+    <View>
       <TouchableOpacity
         style={[styles.menuItem, { borderBottomColor: themeColors.borderLight }]}
         onPress={onPress}
@@ -44,14 +35,14 @@ export default function ProfileScreen() {
         <Text style={[styles.menuLabel, { color: color || themeColors.text }]}>{label}</Text>
         <Ionicons name="chevron-forward" size={16} color={themeColors.textMuted} />
       </TouchableOpacity>
-    </Animated.View>
+    </View>
   );
 
   return (
     <AppSafeAreaView edges={['top']} style={[styles.safe, { backgroundColor: themeColors.background }]}>
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
         {/* Profile Card */}
-        <Animated.View entering={FadeInUp.duration(500).springify()} style={[styles.profileCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.small]}>
+        <View style={[styles.profileCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.small]}>
           <View style={[styles.avatar, { backgroundColor: themeColors.secondary }]}>
             <Text style={styles.avatarText}>{employee?.name?.charAt(0) || 'U'}</Text>
           </View>
@@ -70,10 +61,10 @@ export default function ProfileScreen() {
             <Ionicons name="call-outline" size={14} color={themeColors.textMuted} />
             <Text style={[styles.contactText, { color: themeColors.textSecondary }]}>{employee?.phone}</Text>
           </View>
-        </Animated.View>
+        </View>
 
         {/* Preferences */}
-        <Animated.View entering={FadeInUp.delay(150).duration(400)}>
+        <View>
           <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Preferences</Text>
           <View style={[styles.menuCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}>
             <View style={[styles.menuItem, { borderBottomColor: themeColors.borderLight }]}>
@@ -87,10 +78,10 @@ export default function ProfileScreen() {
               />
             </View>
           </View>
-        </Animated.View>
+        </View>
 
         {/* Mode Selection */}
-        <Animated.View entering={FadeInUp.delay(200).duration(400)}>
+        <View>
           <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Mode</Text>
           <View style={[styles.menuCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}>
             <MenuItem icon="car-outline" label="Driver Mode" onPress={() => router.push('/(driver)' as any)} index={0} />
@@ -98,20 +89,20 @@ export default function ProfileScreen() {
             <MenuItem icon="person-outline" label="User Mode" color={themeColors.secondary} onPress={() => {}} index={2} />
             <MenuItem icon="flash-outline" label="Super Admin Mode" color={themeColors.danger} onPress={() => {}} index={3} />
           </View>
-        </Animated.View>
+        </View>
 
         {/* Account & Support */}
-        <Animated.View entering={FadeInUp.delay(300).duration(400)}>
+        <View>
           <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Account & Support</Text>
           <View style={[styles.menuCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}>
             <MenuItem icon="person-outline" label="Edit Profile" onPress={() => router.push('/edit-profile')} index={0} />
             <MenuItem icon="help-buoy-outline" label="Help & Support" onPress={() => router.push('/help')} index={1} />
             <MenuItem icon="alert-circle-outline" label="Emergency SOS Contacts" color={themeColors.danger} onPress={() => router.push('/sos')} index={2} />
           </View>
-        </Animated.View>
+        </View>
 
         {/* Sign Out */}
-        <Animated.View entering={FadeInUp.delay(500).duration(400)}>
+        <View>
           <TouchableOpacity
             style={[styles.signOutBtn, { backgroundColor: themeColors.dangerLight }]}
             onPress={() => setShowLogout(true)}
@@ -120,7 +111,7 @@ export default function ProfileScreen() {
             <Ionicons name="log-out-outline" size={20} color={themeColors.danger} />
             <Text style={[styles.signOutText, { color: themeColors.danger }]}>Sign Out</Text>
           </TouchableOpacity>
-        </Animated.View>
+        </View>
 
         <Text style={[styles.version, { color: themeColors.textMuted }]}>36Route v1.0.0</Text>
       </ScrollView>

@@ -12,7 +12,6 @@ import { useRouter } from 'expo-router';
 import { useApp } from '../../context/AppContext';
 import { Typography, BorderRadius } from '../../constants/theme';
 import { EmptyState } from '../../components/ui/AppStates';
-import Animated, { FadeIn, FadeInUp, FadeInDown } from 'react-native-reanimated';
 
 type TripTab = 'upcoming' | 'today' | 'completed';
 
@@ -42,11 +41,11 @@ export default function DriverTripsScreen() {
   return (
     <AppSafeAreaView edges={['top']} style={[styles.safe, { backgroundColor: themeColors.background }]}>
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        <Animated.View entering={FadeInDown.duration(400)} style={styles.header}>
+        <View style={styles.header}>
           <Text style={[styles.headerTitle, { color: themeColors.text }]}>My Trips</Text>
-        </Animated.View>
+        </View>
 
-        <Animated.View entering={FadeIn.delay(100).duration(400)} style={[styles.tabs, { backgroundColor: themeColors.backgroundElement }]}>
+        <View style={[styles.tabs, { backgroundColor: themeColors.backgroundElement }]}>
           {([
             { key: 'upcoming', label: 'Upcoming', count: upcoming.length },
             { key: 'today', label: 'Today', count: today.length },
@@ -65,17 +64,16 @@ export default function DriverTripsScreen() {
               </Text>
             </TouchableOpacity>
           ))}
-        </Animated.View>
+        </View>
 
         {display.length === 0 ? (
-          <Animated.View entering={FadeIn.duration(400)}>
+          <View>
             <EmptyState title={titles[activeTab]} description={descs[activeTab]} icon="calendar-outline" />
-          </Animated.View>
+          </View>
         ) : (
           display.map((ride, index) => (
-            <Animated.View
+            <View
               key={ride.id}
-              entering={FadeInUp.delay(index * 100).duration(400).springify()}
             >
               <TouchableOpacity
                 onPress={() => router.push('/(driver)/active-trip')}
@@ -105,7 +103,7 @@ export default function DriverTripsScreen() {
                   </Text>
                 </View>
               </TouchableOpacity>
-            </Animated.View>
+            </View>
           ))
         )}
       </ScrollView>

@@ -2,14 +2,6 @@ import React, { useCallback, useMemo } from 'react';
 import { View, Pressable, StyleSheet, Platform, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  withSpring,
-  SharedValue,
-  runOnJS,
-} from 'react-native-reanimated';
 import { useSegments } from 'expo-router';
 import { useApp } from '@/context/AppContext';
 import { useBackToHome } from '@/hooks/use-back-to-home';
@@ -41,39 +33,28 @@ function isHidden(segments: string[]): boolean {
 
 interface EdgeSwipeZoneProps {
   onSwipe: () => void;
-  progress: SharedValue<number>;
   style: any;
   icon: string;
 }
 
-function EdgeSwipeZone({ onSwipe, progress, style, icon }: EdgeSwipeZoneProps) {
-  const zoneStyle = useAnimatedStyle(
-    () => ({ opacity: progress.value }),
-    [progress]
-  );
-
+function EdgeSwipeZone({ onSwipe, style, icon }: EdgeSwipeZoneProps) {
   const gesture = Gesture.Pan()
     .minDistance(40)
     .activeOffsetX([-25, 25])
-    .onStart(() => {
-      progress.value = withTiming(1, { duration: 80 });
-    })
     .onEnd((e) => {
       const isSwipe =
         Math.abs(e.translationX) > 60 || Math.abs(e.velocityX) > 500;
       if (isSwipe) {
-        runOnJS(onSwipe)();
-      } else {
-        progress.value = withSpring(0, { damping: 16, stiffness: 200, mass: 0.6 });
+        onSwipe();
       }
     })
     .onFinalize(() => {});
 
   return (
     <GestureDetector gesture={gesture}>
-      <Animated.View style={[style, zoneStyle]}>
+      <View style={style}>
         <Ionicons name={icon as any} size={22} color="rgba(255,255,255,0.9)" />
-      </Animated.View>
+      </View>
     </GestureDetector>
   );
 }
@@ -88,7 +69,6 @@ export function BackToHome() {
   const { themeColors } = useApp();
   const goHome = useBackToHome();
   const segments = useSegments();
-  const progress = useSharedValue(0);
 
   const isDriver = (segments as readonly string[]).includes('(driver)');
   const isAdmin = (segments as readonly string[]).includes('(admin)');
@@ -96,22 +76,15 @@ export function BackToHome() {
   const onHome = !isHome(segments) && !isHidden(segments);
 
   const animateHome = useCallback(() => {
-    progress.value = withSpring(0, { damping: 16, stiffness: 200, mass: 0.6 });
     goHome();
-  }, [goHome, progress]);
-
-  const buttonStyle = useAnimatedStyle(() => {
-    const s =
-      1 + progress.value * 0.12;
-    const r = `${progress.value * -180}deg`;
-    return {
-      transform: [{ scale: s }, { rotate: r }],
-    };
-  }, [progress]);
+  }, [goHome]);
 
   const themed = useMemo(
-    () => [styles.edgeLeft, styles.edgeRight],
-    []
+    () => [
+      [styles.edgeLeft, { backgroundColor: themeColors.secondary }],
+      [styles.edgeRight, { backgroundColor: themeColors.secondary }],
+    ],
+    [themeColors.secondary]
   );
 
   if (!onHome || isDriver || inTabs) return null;
@@ -121,23 +94,20 @@ export function BackToHome() {
       {/* Left edge swipe -> Home */}
       <EdgeSwipeZone
         onSwipe={animateHome}
-        progress={progress}
         style={themed[0]}
         icon="chevron-forward"
       />
       {/* Right edge swipe -> Home */}
       <EdgeSwipeZone
         onSwipe={animateHome}
-        progress={progress}
         style={themed[1]}
         icon="chevron-back"
       />
 
       {/* Floating Home button */}
-      <Animated.View
+      <View
         style={[
           styles.homeBtnContainer,
-          buttonStyle,
           Platform.OS === 'android' ? { bottom: 72 } : { bottom: 24 },
         ]}
       >
@@ -150,10 +120,10 @@ export function BackToHome() {
           android_ripple={{ color: 'rgba(255,255,255,0.2)' }}
           hitSlop={8}
         >
-          <Ionicons name="home" size={20} color="#FFFFFF" />
-          <Text style={styles.homeBtnLabel}>Home</Text>
+          <Ionicons name="home" size={20} color={themeColors.textInverse} />
+          <Text style={[styles.homeBtnLabel, { color: themeColors.textInverse }]}>Home</Text>
         </Pressable>
-      </Animated.View>
+      </View>
     </View>
   );
 }
@@ -171,9 +141,9 @@ const styles = StyleSheet.create({
     bottom: '20%',
     width: 38,
     borderRadius: 6,
-    backgroundColor: 'rgba(37, 99, 235, 0.75)',
     justifyContent: 'center',
     alignItems: 'center',
+    opacity: 0,
   },
   edgeRight: {
     position: 'absolute',
@@ -182,9 +152,9 @@ const styles = StyleSheet.create({
     bottom: '20%',
     width: 38,
     borderRadius: 6,
-    backgroundColor: 'rgba(37, 99, 235, 0.75)',
     justifyContent: 'center',
     alignItems: 'center',
+    opacity: 0,
   },
   edgeBottom: {
     position: 'absolute',
@@ -194,7 +164,6 @@ const styles = StyleSheet.create({
     height: 42,
     borderTopLeftRadius: 10,
     borderTopRightRadius: 10,
-    backgroundColor: 'rgba(37, 99, 235, 0.75)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -212,7 +181,6 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   homeBtnLabel: {
-    color: '#FFFFFF',
     fontSize: Typography.fontSizes.sm,
     fontWeight: Typography.weights.semibold as any,
   },

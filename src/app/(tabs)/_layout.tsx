@@ -1,15 +1,10 @@
-import React, { useEffect } from 'react';
-import { Platform, ColorValue } from 'react-native';
+import React from 'react';
+import { ColorValue } from 'react-native';
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useApp } from '@/context/AppContext';
 import { Typography } from '@/constants/theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-} from 'react-native-reanimated';
 
 const TAB_ICONS: Record<string, { focused: string; unfocused: string }> = {
   index: { focused: 'home', unfocused: 'home-outline' },
@@ -31,28 +26,13 @@ function AnimatedTabIcon({
   name,
   color,
   size,
-  focused,
 }: {
   name: string;
   color: ColorValue;
   size: number;
   focused: boolean;
 }) {
-  const scale = useSharedValue(focused ? 1.12 : 1);
-
-  useEffect(() => {
-    scale.value = withSpring(focused ? 1.12 : 1, { damping: 14, stiffness: 300 });
-  }, [focused]);
-
-  const animStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
-  return (
-    <Animated.View style={animStyle} pointerEvents="none">
-      <Ionicons name={name as any} size={size} color={color} />
-    </Animated.View>
-  );
+  return <Ionicons name={name as any} size={size} color={color} />;
 }
 
 export default function TabLayout() {

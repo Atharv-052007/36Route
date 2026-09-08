@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -13,83 +13,12 @@ import { useRouter } from 'expo-router';
 import { useApp } from '@/context/AppContext';
 import { Typography, BorderRadius, Shadows } from '@/constants/theme';
 import { ConfirmationModal } from '@/components/ui/AppStates';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withTiming,
-  withRepeat,
-  withSequence,
-  FadeInUp,
-  FadeIn,
-  SlideInRight,
-} from 'react-native-reanimated';
 
 export default function SOSScreen() {
   const router = useRouter();
   const { employee, activeRide, themeColors } = useApp();
   const [confirmVisible, setConfirmVisible] = useState(false);
   const [sosActive, setSosActive] = useState(false);
-
-  const pulseScale = useSharedValue(1);
-  const pulseOpacity = useSharedValue(0.4);
-  const innerPulseScale = useSharedValue(1);
-
-  useEffect(() => {
-    if (!sosActive) {
-      pulseScale.value = withRepeat(
-        withSequence(
-          withTiming(1.8, { duration: 1200 }),
-          withTiming(1, { duration: 1200 })
-        ),
-        -1,
-        false
-      );
-      pulseOpacity.value = withRepeat(
-        withSequence(
-          withTiming(0, { duration: 1200 }),
-          withTiming(0.4, { duration: 1200 })
-        ),
-        -1,
-        false
-      );
-      innerPulseScale.value = withRepeat(
-        withSequence(
-          withTiming(1.08, { duration: 800 }),
-          withTiming(1, { duration: 800 })
-        ),
-        -1,
-        false
-      );
-    } else {
-      pulseScale.value = withRepeat(
-        withSequence(
-          withTiming(2, { duration: 600 }),
-          withTiming(1, { duration: 600 })
-        ),
-        -1,
-        false
-      );
-      pulseOpacity.value = withRepeat(
-        withSequence(
-          withTiming(0, { duration: 600 }),
-          withTiming(0.6, { duration: 600 })
-        ),
-        -1,
-        false
-      );
-      innerPulseScale.value = withSpring(1.05);
-    }
-  }, [sosActive]);
-
-  const pulseAnimStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: pulseScale.value }],
-    opacity: pulseOpacity.value,
-  }));
-
-  const innerAnimStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: innerPulseScale.value }],
-  }));
 
   const triggerSOS = () => {
     setSosActive(true);
@@ -101,7 +30,7 @@ export default function SOSScreen() {
     <AppSafeAreaView style={[styles.safe, { backgroundColor: themeColors.background }]}>
       <ScrollView contentContainerStyle={styles.container}>
         {/* Header */}
-        <Animated.View entering={FadeIn.duration(400)} style={styles.header}>
+        <View style={styles.header}>
           <TouchableOpacity
             onPress={() => router.dismissTo('/(tabs)')}
             style={[styles.backBtn, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}
@@ -110,45 +39,44 @@ export default function SOSScreen() {
           </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: themeColors.text }]}>Emergency SOS</Text>
           <View style={{ width: 40 }} />
-        </Animated.View>
+        </View>
 
-        {/* SOS Button with Pulse Animation */}
-        <Animated.View entering={FadeInUp.delay(200).duration(600)} style={styles.sosContainer}>
-          {/* Outer Pulse Ring */}
+        {/* SOS Button */}
+        <View style={styles.sosContainer}>
+          {/* Static halo ring */}
           <View style={styles.sosOuter}>
-            <Animated.View
+            <View
               style={[
                 styles.pulseRing,
-                { backgroundColor: sosActive ? '#D9534F' : '#D9534F' },
-                pulseAnimStyle,
+                { backgroundColor: themeColors.danger, opacity: 0.3 },
               ]}
             />
           </View>
 
           {/* Main SOS Button */}
-          <Animated.View style={innerAnimStyle}>
+          <View>
             <TouchableOpacity
               onPress={() => sosActive ? null : setConfirmVisible(true)}
               style={[styles.sosBtn, sosActive && styles.sosBtnActive]}
               activeOpacity={0.8}
             >
-              <Ionicons name="alert" size={48} color="#FFF" />
+              <Ionicons name="alert" size={48} color={themeColors.textInverse} />
               <Text style={styles.sosBtnText}>{sosActive ? 'SOS ACTIVE' : 'SOS'}</Text>
             </TouchableOpacity>
-          </Animated.View>
+          </View>
 
           {sosActive && (
-            <Animated.View entering={FadeInUp.duration(400)}>
+            <View>
               <Text style={[styles.sosStatus, { color: themeColors.danger }]}>
                 Emergency broadcast active. Help is on the way.
               </Text>
-            </Animated.View>
+            </View>
           )}
-        </Animated.View>
+        </View>
 
         {/* Live Trip Info */}
         {activeRide && (
-          <Animated.View entering={SlideInRight.delay(300).duration(400).springify()} style={[styles.tripInfo, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.small]}>
+          <View style={[styles.tripInfo, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.small]}>
             <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Live Trip Info</Text>
             <View style={styles.tripRow}>
               <Ionicons name="car-sport" size={16} color={themeColors.textMuted} />
@@ -168,11 +96,11 @@ export default function SOSScreen() {
                 {activeRide.pickup.name}
               </Text>
             </View>
-          </Animated.View>
+          </View>
         )}
 
         {/* Emergency Contacts */}
-        <Animated.View entering={SlideInRight.delay(400).duration(400).springify()} style={[styles.contactsCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.small]}>
+        <View style={[styles.contactsCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.small]}>
           <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Emergency Contacts</Text>
 
           <TouchableOpacity
@@ -202,17 +130,17 @@ export default function SOSScreen() {
             </View>
             <Ionicons name="call" size={20} color={themeColors.accent} />
           </TouchableOpacity>
-        </Animated.View>
+        </View>
 
         {sosActive && (
-          <Animated.View entering={FadeInUp.duration(400)}>
+          <View>
             <TouchableOpacity
               style={[styles.cancelBtn, { backgroundColor: themeColors.backgroundElement }]}
               onPress={() => setSosActive(false)}
             >
               <Text style={[styles.cancelText, { color: themeColors.textSecondary }]}>Cancel Emergency</Text>
             </TouchableOpacity>
-          </Animated.View>
+          </View>
         )}
       </ScrollView>
 

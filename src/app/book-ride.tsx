@@ -15,13 +15,6 @@ import { Typography, BorderRadius, Shadows } from '@/constants/theme';
 import { AppInput } from '@/components/ui/AppInput';
 import { AnimatedAppButton } from '@/components/ui/AnimatedAppButton';
 import { ShiftType } from '@/types';
-import Animated, {
-  FadeInUp,
-  FadeInDown,
-  FadeIn,
-  SlideInRight,
-  Layout,
-} from 'react-native-reanimated';
 
 export default function BookRideScreen() {
   const router = useRouter();
@@ -90,7 +83,7 @@ export default function BookRideScreen() {
     <AppSafeAreaView style={[styles.safe, { backgroundColor: themeColors.background }]}>
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
         {/* Header */}
-        <Animated.View entering={FadeInDown.duration(400)} style={styles.header}>
+        <View style={styles.header}>
           <TouchableOpacity
             onPress={() => router.dismissTo('/(tabs)')}
             style={[styles.backBtn, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}
@@ -99,10 +92,10 @@ export default function BookRideScreen() {
           </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: themeColors.text }]}>Book a Ride</Text>
           <View style={{ width: 40 }} />
-        </Animated.View>
+        </View>
 
         {/* Shift Toggle */}
-        <Animated.View entering={FadeIn.delay(150).duration(400)} style={[styles.shiftToggle, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}>
+        <View style={[styles.shiftToggle, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}>
           <TouchableOpacity
             onPress={() => shiftType !== 'PICKUP' && toggleShift()}
             style={[
@@ -147,10 +140,10 @@ export default function BookRideScreen() {
               Evening Drop
             </Text>
           </TouchableOpacity>
-        </Animated.View>
+        </View>
 
         {/* Form */}
-        <Animated.View entering={SlideInRight.delay(250).duration(500).springify()} style={[styles.formCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.small]}>
+        <View style={[styles.formCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.small]}>
           <AppInput
             label="Date"
             value={date}
@@ -193,7 +186,7 @@ export default function BookRideScreen() {
               <Text style={[styles.routeLabel, { color: themeColors.textSecondary }]}>Available Routes</Text>
               <View style={styles.routeList}>
                 {routes.map((route, index) => (
-                  <Animated.View key={route.id} entering={FadeInUp.delay(350 + index * 80).duration(400)}>
+                  <View key={route.id}>
                     <TouchableOpacity
                       onPress={() => setSelectedRoute(route.id)}
                       style={[
@@ -220,20 +213,20 @@ export default function BookRideScreen() {
                         {route.occupiedSeats}/{route.capacity}
                       </Text>
                     </TouchableOpacity>
-                  </Animated.View>
+                  </View>
                 ))}
               </View>
             </View>
           )}
-        </Animated.View>
+        </View>
 
         {/* Policy */}
-        <Animated.View entering={FadeIn.delay(500).duration(400)} style={[styles.policyCard, { backgroundColor: themeColors.backgroundElement }]}>
+        <View style={[styles.policyCard, { backgroundColor: themeColors.backgroundElement }]}>
           <Ionicons name="information-circle-outline" size={16} color={themeColors.textMuted} />
           <Text style={[styles.policyText, { color: themeColors.textSecondary }]}>
             Cancellations permitted up to 2 hours before scheduled time.
           </Text>
-        </Animated.View>
+        </View>
 
         <AnimatedAppButton
           title="Confirm Booking"

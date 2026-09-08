@@ -13,7 +13,6 @@ import { useApp } from '../../context/AppContext';
 import { Typography, BorderRadius, Shadows } from '../../constants/theme';
 import { StatusBadge, EmptyState } from '../../components/ui/AppStates';
 import { LocationCard } from '../../components/ui/RideCards';
-import Animated, { FadeInUp, FadeInDown } from 'react-native-reanimated';
 
 export default function DriverActiveTripScreen() {
   const router = useRouter();
@@ -23,9 +22,9 @@ export default function DriverActiveTripScreen() {
     return (
       <AppSafeAreaView edges={['top']} style={[styles.safe, { backgroundColor: themeColors.background }]}>
         <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-          <Animated.View entering={FadeInDown.duration(400)} style={styles.header}>
+          <View style={styles.header}>
             <Text style={[styles.headerTitle, { color: themeColors.text }]}>Active Trip</Text>
-          </Animated.View>
+          </View>
           <EmptyState
             title="No Active Trip"
             description="Start a trip from your dashboard when a route is assigned."
@@ -41,13 +40,13 @@ export default function DriverActiveTripScreen() {
   return (
     <AppSafeAreaView edges={['top']} style={[styles.safe, { backgroundColor: themeColors.background }]}>
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        <Animated.View entering={FadeInDown.duration(400)} style={styles.header}>
+        <View style={styles.header}>
           <Text style={[styles.headerTitle, { color: themeColors.text }]}>Active Trip</Text>
           <StatusBadge status={activeRide.status} size="md" />
-        </Animated.View>
+        </View>
 
         {/* Trip Summary */}
-        <Animated.View entering={FadeInUp.duration(400).springify()} style={[styles.summaryCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.small]}>
+        <View style={[styles.summaryCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.small]}>
           <View style={styles.routeRow}>
             <View style={[styles.routeIcon, { backgroundColor: themeColors.secondaryLight }]}>
               <Ionicons name="bus" size={22} color={themeColors.secondary} />
@@ -75,18 +74,18 @@ export default function DriverActiveTripScreen() {
               </Text>
             </View>
           </View>
-        </Animated.View>
+        </View>
 
         {/* Route */}
-        <Animated.View entering={FadeInUp.delay(150).duration(400)}>
+        <View>
           <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Route</Text>
           <View style={[styles.card, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}>
             <LocationCard pickup={activeRide.pickup} drop={activeRide.drop} />
           </View>
-        </Animated.View>
+        </View>
 
         {/* Stops */}
-        <Animated.View entering={FadeInUp.delay(250).duration(400)}>
+        <View>
           <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Stops</Text>
           <View style={[styles.card, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}>
             {activeRide.route?.stops && activeRide.route.stops.length > 0 ? (
@@ -105,10 +104,10 @@ export default function DriverActiveTripScreen() {
               <Text style={[styles.emptyStops, { color: themeColors.textMuted }]}>No stops available for this trip.</Text>
             )}
           </View>
-        </Animated.View>
+        </View>
 
         {/* Navigation */}
-        <Animated.View entering={FadeInUp.delay(350).duration(400)}>
+        <View>
           <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Navigation</Text>
           <View style={[styles.navCard, { backgroundColor: themeColors.secondary }, Shadows.medium]}>
             <View style={styles.navRow}>
@@ -120,10 +119,10 @@ export default function DriverActiveTripScreen() {
               <Ionicons name="chevron-forward" size={20} color="#FFF" />
             </View>
           </View>
-        </Animated.View>
+        </View>
 
         {/* Actions */}
-        <Animated.View entering={FadeInUp.delay(450).duration(400)} style={styles.actionRow}>
+        <View style={styles.actionRow}>
           <TouchableOpacity style={[styles.actionBtn, { backgroundColor: themeColors.accentLight }]}>
             <Ionicons name="play-circle-outline" size={18} color={themeColors.accent} />
             <Text style={[styles.actionText, { color: themeColors.accent }]}>Start Trip</Text>
@@ -134,7 +133,7 @@ export default function DriverActiveTripScreen() {
             <Ionicons name="checkmark-done-outline" size={18} color={themeColors.danger} />
             <Text style={[styles.actionText, { color: themeColors.danger }]}>End Trip</Text>
           </TouchableOpacity>
-        </Animated.View>
+        </View>
       </ScrollView>
     </AppSafeAreaView>
   );

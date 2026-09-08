@@ -11,7 +11,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useApp } from '../../context/AppContext';
 import { Typography, BorderRadius } from '../../constants/theme';
 import { EmptyState } from '../../components/ui/AppStates';
-import Animated, { FadeInUp, FadeInDown, FadeIn } from 'react-native-reanimated';
 
 type BoardingTab = 'all' | 'boarded' | 'no-show';
 
@@ -41,11 +40,11 @@ export default function DriverPassengersScreen() {
   return (
     <AppSafeAreaView edges={['top']} style={[styles.safe, { backgroundColor: themeColors.background }]}>
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        <Animated.View entering={FadeInDown.duration(400)} style={styles.header}>
+        <View style={styles.header}>
           <Text style={[styles.headerTitle, { color: themeColors.text }]}>Passengers</Text>
-        </Animated.View>
+        </View>
 
-        <Animated.View entering={FadeIn.delay(100).duration(400)} style={[styles.tabs, { backgroundColor: themeColors.backgroundElement }]}>
+        <View style={[styles.tabs, { backgroundColor: themeColors.backgroundElement }]}>
           {(['all', 'boarded', 'no-show'] as BoardingTab[]).map((tab) => (
             <TouchableOpacity
               key={tab}
@@ -57,15 +56,15 @@ export default function DriverPassengersScreen() {
               </Text>
             </TouchableOpacity>
           ))}
-        </Animated.View>
+        </View>
 
         {display.length === 0 ? (
-          <Animated.View entering={FadeIn.duration(400)}>
+          <View>
             <EmptyState title="No Passengers" description="No passengers in this category." icon="people-outline" />
-          </Animated.View>
+          </View>
         ) : (
           display.map((p, index) => (
-            <Animated.View key={p.id} entering={FadeInUp.delay(index * 80).duration(400).springify()}>
+            <View key={p.id}>
               <TouchableOpacity
                 onPress={() => toggleBoarded(p.id)}
                 style={[styles.passCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, p.boarded && { borderColor: themeColors.accent }]}
@@ -89,7 +88,7 @@ export default function DriverPassengersScreen() {
                   </Text>
                 </View>
               </TouchableOpacity>
-            </Animated.View>
+            </View>
           ))
         )}
       </ScrollView>

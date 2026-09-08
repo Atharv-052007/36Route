@@ -13,11 +13,6 @@ import { useRouter } from 'expo-router';
 import { useApp } from '../../context/AppContext';
 import { Typography, BorderRadius, Shadows } from '../../constants/theme';
 import { SectionHeader, StatusBadge } from '../../components/ui/AppStates';
-import Animated, {
-  FadeInUp,
-  FadeInDown,
-  SlideInRight,
-} from 'react-native-reanimated';
 
 export default function DriverDashboardScreen() {
   const router = useRouter();
@@ -46,7 +41,7 @@ export default function DriverDashboardScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}
-        <Animated.View entering={FadeInDown.duration(400)} style={styles.headerBar}>
+        <View style={styles.headerBar}>
           <View style={styles.headerLeft}>
             <View style={[styles.avatar, { backgroundColor: themeColors.secondary }]}>
               <Text style={styles.avatarText}>{employee?.name?.charAt(0) || 'D'}</Text>
@@ -65,10 +60,10 @@ export default function DriverDashboardScreen() {
             <Ionicons name="alert-circle" size={18} color={themeColors.danger} />
             <Text style={[styles.sosText, { color: themeColors.danger }]}>SOS</Text>
           </TouchableOpacity>
-        </Animated.View>
+        </View>
 
         {/* Active Trip Card */}
-        <Animated.View entering={SlideInRight.delay(150).duration(500).springify()} style={[styles.statusCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.small]}>
+        <View style={[styles.statusCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.small]}>
           <View style={styles.statusCardHeader}>
             <Text style={[styles.statusCardTitle, { color: themeColors.text }]}>Current Trip</Text>
             {activeRide ? (
@@ -139,10 +134,10 @@ export default function DriverDashboardScreen() {
               <Text style={[styles.actionBtnTextAlt, { color: themeColors.textSecondary }]}>My Trips</Text>
             </TouchableOpacity>
           </View>
-        </Animated.View>
+        </View>
 
         {/* Stats */}
-        <Animated.View entering={FadeInUp.delay(300).duration(400)}>
+        <View>
           <SectionHeader title="Today's Overview" />
           <View style={styles.statsRow}>
             <View style={[styles.statCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}>
@@ -167,10 +162,10 @@ export default function DriverDashboardScreen() {
               <Text style={[styles.statLabel, { color: themeColors.textSecondary }]}>On-Time</Text>
             </View>
           </View>
-        </Animated.View>
+        </View>
 
         {/* Assigned Routes + Passengers */}
-        <Animated.View entering={FadeInUp.delay(450).duration(400)}>
+        <View>
           <SectionHeader title="Manage" />
           <View style={styles.manageGrid}>
             <TouchableOpacity
@@ -196,14 +191,14 @@ export default function DriverDashboardScreen() {
               <Text style={[styles.manageSub, { color: themeColors.textSecondary }]}>Manage boarding</Text>
             </TouchableOpacity>
           </View>
-        </Animated.View>
+        </View>
 
         {/* Assigned Routes List */}
         {routes.length > 0 && (
-          <Animated.View entering={FadeInUp.delay(600).duration(400)}>
+          <View>
             <SectionHeader title="Assigned Routes" action="See all" onAction={() => router.push('/(driver)/routes')} />
             {routes.slice(0, 2).map((r, i) => (
-              <Animated.View key={r.id} entering={FadeInUp.delay(650 + i * 80).duration(400)}>
+              <View key={r.id}>
                 <TouchableOpacity
                   onPress={() => router.push('/(driver)/routes')}
                   style={[styles.routeCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}
@@ -222,9 +217,9 @@ export default function DriverDashboardScreen() {
                     {r.occupiedSeats}/{r.capacity}
                   </Text>
                 </TouchableOpacity>
-              </Animated.View>
+              </View>
             ))}
-          </Animated.View>
+          </View>
         )}
       </ScrollView>
     </AppSafeAreaView>

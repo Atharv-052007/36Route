@@ -12,7 +12,6 @@ import { useRouter } from 'expo-router';
 import { useApp } from '../../context/AppContext';
 import { Typography, BorderRadius, Shadows } from '../../constants/theme';
 import { StatusBadge } from '../../components/ui/AppStates';
-import Animated, { FadeInUp, FadeInDown, SlideInRight } from 'react-native-reanimated';
 
 const INSPECTIONS = [
   { label: 'Engine Oil', ok: true },
@@ -34,12 +33,12 @@ export default function DriverVehicleScreen() {
   return (
     <AppSafeAreaView edges={['top']} style={[styles.safe, { backgroundColor: themeColors.background }]}>
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        <Animated.View entering={FadeInDown.duration(400)} style={styles.header}>
+        <View style={styles.header}>
           <Text style={[styles.headerTitle, { color: themeColors.text }]}>Vehicle</Text>
-        </Animated.View>
+        </View>
 
         {/* Vehicle Details */}
-        <Animated.View entering={FadeInUp.duration(400).springify()} style={[styles.card, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.small]}>
+        <View style={[styles.card, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.small]}>
           <View style={[styles.vehicleHero, { backgroundColor: themeColors.secondaryLight }]}>
             <Ionicons name="bus" size={40} color={themeColors.secondary} />
           </View>
@@ -73,10 +72,10 @@ export default function DriverVehicleScreen() {
               <Text style={[styles.detailValue, { color: themeColors.text }]}>{vehicle?.fitnessCertificate || '—'}</Text>
             </View>
           </View>
-        </Animated.View>
+        </View>
 
         {/* Vehicle Inspection */}
-        <Animated.View entering={FadeInUp.delay(150).duration(400)}>
+        <View>
           <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Pre-Trip Inspection</Text>
           <View style={[styles.card, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}>
             {INSPECTIONS.map((item, index) => (
@@ -89,10 +88,10 @@ export default function DriverVehicleScreen() {
               </View>
             ))}
           </View>
-        </Animated.View>
+        </View>
 
         {/* Maintenance Issues */}
-        <Animated.View entering={FadeInUp.delay(250).duration(400)}>
+        <View>
           <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Maintenance Issues</Text>
           {ISSUES.length === 0 ? (
             <View style={[styles.card, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}>
@@ -100,7 +99,7 @@ export default function DriverVehicleScreen() {
             </View>
           ) : (
             ISSUES.map((issue) => (
-              <Animated.View key={issue.label} entering={SlideInRight.duration(300)}>
+              <View key={issue.label}>
                 <View style={[styles.issueRow, { backgroundColor: themeColors.warningLight, borderColor: themeColors.warning }]}>
                   <Ionicons name={issue.icon as any} size={20} color={themeColors.warning} />
                   <View style={{ flex: 1 }}>
@@ -113,18 +112,18 @@ export default function DriverVehicleScreen() {
                     <Ionicons name="create-outline" size={18} color={themeColors.warning} />
                   </TouchableOpacity>
                 </View>
-              </Animated.View>
+              </View>
             ))
           )}
-        </Animated.View>
+        </View>
 
         {/* Report Button */}
-        <Animated.View entering={FadeInUp.delay(350).duration(400)}>
+        <View>
           <TouchableOpacity style={[styles.reportBtn, { backgroundColor: themeColors.secondary }]}>
             <Ionicons name="add-circle-outline" size={18} color="#FFF" />
             <Text style={styles.reportText}>Report Issue</Text>
           </TouchableOpacity>
-        </Animated.View>
+        </View>
       </ScrollView>
     </AppSafeAreaView>
   );

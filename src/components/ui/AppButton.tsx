@@ -44,10 +44,10 @@ export const AppButton: React.FC<AppButtonProps> = ({
   const getTextColor = () => {
     if (disabled) return themeColors.textMuted;
     switch (variant) {
-      case 'primary': return '#FFFFFF';
+      case 'primary': return themeColors.textInverse;
       case 'secondary': return themeColors.secondary;
       case 'outline': return themeColors.secondary;
-      case 'danger': return '#FFFFFF';
+      case 'danger': return themeColors.textInverse;
       case 'ghost': return themeColors.textSecondary;
     }
   };

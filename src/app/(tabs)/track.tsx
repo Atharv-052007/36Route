@@ -16,43 +16,11 @@ import { Typography, BorderRadius, Shadows } from '../../constants/theme';
 import { MapViewAbstraction } from '../../components/ui/MapViewAbstraction';
 import { DriverCard } from '../../components/ui/RideCards';
 import { StatusBadge, EmptyState } from '../../components/ui/AppStates';
-import Animated, {
-  FadeInUp,
-  FadeInDown,
-  FadeIn,
-  SlideInRight,
-  useSharedValue,
-  useAnimatedStyle,
-  withRepeat,
-  withSequence,
-  withTiming,
-} from 'react-native-reanimated';
 
 export default function TrackScreen() {
   const router = useRouter();
   const { activeRide, themeColors } = useApp();
   const [refreshing, setRefreshing] = useState(false);
-
-  const etaPulse = useSharedValue(1);
-  const headerOpacity = useSharedValue(0);
-
-  useEffect(() => {
-    headerOpacity.value = withTiming(1, { duration: 400 });
-    if (activeRide) {
-      etaPulse.value = withRepeat(
-        withSequence(
-          withTiming(1.05, { duration: 1000 }),
-          withTiming(1, { duration: 1000 })
-        ),
-        -1,
-        false
-      );
-    }
-  }, [activeRide]);
-
-  const etaPulseStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: etaPulse.value }],
-  }));
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -80,20 +48,20 @@ export default function TrackScreen() {
     <AppSafeAreaView edges={['top']} style={[styles.safe, { backgroundColor: themeColors.background }]}>
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
         {/* Header */}
-        <Animated.View entering={FadeInDown.duration(400)} style={styles.header}>
+        <View style={styles.header}>
           <Text style={[styles.headerTitle, { color: themeColors.text }]}>Live Tracking</Text>
           <StatusBadge status={activeRide.status} size="sm" />
-        </Animated.View>
+        </View>
 
         {/* Map with Animation */}
-        <Animated.View entering={FadeIn.duration(500)}>
+        <View>
           <MapViewAbstraction eta={activeRide.eta} onRefresh={onRefresh} />
-        </Animated.View>
+        </View>
 
         {/* Trip Summary Sheet */}
-        <Animated.View entering={SlideInRight.delay(200).duration(500).springify()} style={[styles.sheet, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.medium]}>
+        <View style={[styles.sheet, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.medium]}>
           {/* ETA Bar with Pulse */}
-          <Animated.View style={etaPulseStyle}>
+          <View>
             <View style={[styles.etaBar, { backgroundColor: themeColors.secondaryLight }]}>
               <Ionicons name="time" size={18} color={themeColors.secondary} />
               <Text style={[styles.etaText, { color: themeColors.secondary }]}>
@@ -103,11 +71,11 @@ export default function TrackScreen() {
                 {activeRide.estimatedDistanceKm} km remaining
               </Text>
             </View>
-          </Animated.View>
+          </View>
 
           {/* OTP Verification */}
           {activeRide.otp && (
-            <Animated.View entering={FadeInUp.delay(300).duration(400)} style={[styles.otpCard, { backgroundColor: themeColors.backgroundElement }]}>
+            <View style={[styles.otpCard, { backgroundColor: themeColors.backgroundElement }]}>
               <Ionicons name="key" size={16} color={themeColors.secondary} />
               <View style={{ flex: 1 }}>
                 <Text style={[styles.otpLabel, { color: themeColors.textSecondary }]}>
@@ -117,11 +85,11 @@ export default function TrackScreen() {
                   {activeRide.otp}
                 </Text>
               </View>
-            </Animated.View>
+            </View>
           )}
 
           {/* Route Info */}
-          <Animated.View entering={FadeIn.delay(350).duration(400)} style={styles.routeInfo}>
+          <View style={styles.routeInfo}>
             <View style={styles.routePoint}>
               <View style={[styles.routeDot, { backgroundColor: themeColors.accent }]} />
               <View>
@@ -137,11 +105,11 @@ export default function TrackScreen() {
                 <Text style={[styles.routeName, { color: themeColors.text }]}>{activeRide.drop.name}</Text>
               </View>
             </View>
-          </Animated.View>
+          </View>
 
           {/* Driver Card */}
           {activeRide.driver && (
-            <Animated.View entering={FadeInUp.delay(400).duration(400)}>
+            <View>
               <DriverCard
                 driver={activeRide.driver}
                 vehicle={activeRide.vehicle}
@@ -156,11 +124,11 @@ export default function TrackScreen() {
                   );
                 }}
               />
-            </Animated.View>
+            </View>
           )}
 
           {/* Action Buttons */}
-          <Animated.View entering={FadeInUp.delay(500).duration(400)} style={styles.actions}>
+          <View style={styles.actions}>
             <TouchableOpacity
               style={[styles.actionBtn, { backgroundColor: themeColors.secondary }]}
               onPress={() => {
@@ -196,8 +164,8 @@ export default function TrackScreen() {
               <Ionicons name="alert-circle" size={18} color={themeColors.danger} />
               <Text style={[styles.actionBtnText, { color: themeColors.danger }]}>SOS</Text>
             </TouchableOpacity>
-          </Animated.View>
-        </Animated.View>
+          </View>
+        </View>
       </ScrollView>
     </AppSafeAreaView>
   );

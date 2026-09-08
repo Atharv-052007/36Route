@@ -12,7 +12,6 @@ import { useRouter } from 'expo-router';
 import { useApp } from '../../context/AppContext';
 import { Typography, BorderRadius } from '../../constants/theme';
 import { EmptyState, StatusBadge } from '../../components/ui/AppStates';
-import Animated, { FadeInUp, FadeInDown, FadeIn } from 'react-native-reanimated';
 
 export default function DriverRoutesScreen() {
   const router = useRouter();
@@ -21,17 +20,17 @@ export default function DriverRoutesScreen() {
   return (
     <AppSafeAreaView edges={['top']} style={[styles.safe, { backgroundColor: themeColors.background }]}>
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        <Animated.View entering={FadeInDown.duration(400)} style={styles.header}>
+        <View style={styles.header}>
           <Text style={[styles.headerTitle, { color: themeColors.text }]}>Assigned Routes</Text>
-        </Animated.View>
+        </View>
 
         {routes.length === 0 ? (
-          <Animated.View entering={FadeIn.duration(400)}>
+          <View>
             <EmptyState title="No Routes Assigned" description="Assigned routes will appear here." icon="map-outline" />
-          </Animated.View>
+          </View>
         ) : (
           routes.map((route, index) => (
-            <Animated.View key={route.id} entering={FadeInUp.delay(index * 100).duration(400).springify()}>
+            <View key={route.id}>
               <TouchableOpacity
                 onPress={() => router.push('/route-details')}
                 style={[styles.routeCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}
@@ -59,7 +58,7 @@ export default function DriverRoutesScreen() {
                 </View>
                 <StatusBadge status={route.status} size="sm" />
               </TouchableOpacity>
-            </Animated.View>
+            </View>
           ))
         )}
       </ScrollView>

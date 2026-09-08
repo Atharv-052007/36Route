@@ -1,15 +1,8 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useApp } from '../../context/AppContext';
 import { BorderRadius, Typography, Shadows } from '../../constants/theme';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withRepeat,
-  withSequence,
-  withTiming,
-} from 'react-native-reanimated';
 
 interface MapViewAbstractionProps {
   eta?: string;
@@ -20,41 +13,15 @@ export const MapViewAbstraction: React.FC<MapViewAbstractionProps> = ({
   eta,
   onRefresh,
 }) => {
-  const { themeColors } = useApp();
-  const isDark = themeColors.background === '#20251F';
-  const pulseScale = useSharedValue(1);
-  const pulseOpacity = useSharedValue(0.3);
-
-  useEffect(() => {
-    pulseScale.value = withRepeat(
-      withSequence(
-        withTiming(1.8, { duration: 1200 }),
-        withTiming(1, { duration: 1200 })
-      ),
-      -1,
-      false
-    );
-    pulseOpacity.value = withRepeat(
-      withSequence(
-        withTiming(0, { duration: 1200 }),
-        withTiming(0.3, { duration: 1200 })
-      ),
-      -1,
-      false
-    );
-  }, []);
-
-  const pulseAnimStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: pulseScale.value }],
-    opacity: pulseOpacity.value,
-  }));
+  const { themeColors, isDarkMode } = useApp();
+  const isDark = isDarkMode;
 
   return (
     <View
       style={[
         styles.container,
         {
-          backgroundColor: isDark ? '#2A3029' : '#EDF0EB',
+          backgroundColor: isDark ? themeColors.cardBackground : themeColors.backgroundElement,
           borderRadius: BorderRadius.lg,
         },
       ]}
@@ -82,29 +49,23 @@ export const MapViewAbstraction: React.FC<MapViewAbstractionProps> = ({
 
       {/* Pickup pin */}
       <View style={[styles.pin, { top: '25%', left: '20%', backgroundColor: themeColors.accent }]}>
-        <Ionicons name="location" size={16} color="#FFFFFF" />
+        <Ionicons name="location" size={16} color={themeColors.textInverse} />
       </View>
       <View style={[styles.pinLabel, { top: '19%', left: '14%', backgroundColor: themeColors.accentLight }]}>
         <Text style={[styles.pinLabelText, { color: themeColors.accent }]}>Pickup</Text>
       </View>
 
-      {/* Vehicle marker with pulse animation */}
+      {/* Vehicle marker with static halo */}
       <View style={[styles.vehicleWrap, { top: '48%', left: '48%' }]}>
-        <Animated.View
-          style={[
-            styles.vehiclePulse,
-            { backgroundColor: themeColors.secondary },
-            pulseAnimStyle,
-          ]}
-        />
+        <View style={[styles.vehiclePulse, { backgroundColor: themeColors.secondary, opacity: 0.3 }]} />
         <View style={[styles.vehicleMarker, { backgroundColor: themeColors.secondary }]}>
-          <Ionicons name="car-sport" size={18} color="#FFFFFF" />
+          <Ionicons name="car-sport" size={18} color={themeColors.textInverse} />
         </View>
       </View>
 
       {/* Drop pin */}
       <View style={[styles.pin, { top: '70%', left: '75%', backgroundColor: themeColors.secondary }]}>
-        <Ionicons name="flag" size={14} color="#FFFFFF" />
+        <Ionicons name="flag" size={14} color={themeColors.textInverse} />
       </View>
       <View style={[styles.pinLabel, { top: '64%', left: '68%', backgroundColor: themeColors.secondaryLight }]}>
         <Text style={[styles.pinLabelText, { color: themeColors.secondary }]}>Drop</Text>

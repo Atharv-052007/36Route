@@ -5,6 +5,7 @@ import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-c
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AppProvider, useApp } from '@/context/AppContext';
 import { BackToHome } from '@/components/BackToHome';
+import { AstryxProvider } from '@/components/AstryxProvider';
 import { Platform } from 'react-native';
 
 function RootLayoutNav() {
@@ -19,7 +20,6 @@ function RootLayoutNav() {
           headerShown: false,
           gestureEnabled: Platform.OS !== 'ios' ? true : false,
           contentStyle: { backgroundColor: themeColors.background },
-          animation: 'fade_from_bottom',
         }}
       >
         <Stack.Screen name="index" />
@@ -53,7 +53,9 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider initialMetrics={initialWindowMetrics}>
         <AppProvider>
-          <RootLayoutNav />
+          <AstryxProvider>
+            <RootLayoutNav />
+          </AstryxProvider>
         </AppProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

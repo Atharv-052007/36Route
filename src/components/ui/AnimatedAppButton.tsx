@@ -1,19 +1,10 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Pressable, Text, ActivityIndicator, ViewStyle, TextStyle } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withTiming,
-  withRepeat,
-  withSequence,
-  interpolate,
-  useDerivedValue,
-} from 'react-native-reanimated';
 import { useApp } from '../../context/AppContext';
 import { BorderRadius, Typography } from '../../constants/theme';
 
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+// Static button — same API as before, but without press scale/opacity motion.
+// The app intentionally ships without animation effects.
 
 interface AnimatedAppButtonProps {
   title: string;
@@ -41,23 +32,6 @@ export const AnimatedAppButton: React.FC<AnimatedAppButtonProps> = ({
   fullWidth = true,
 }) => {
   const { themeColors } = useApp();
-  const scale = useSharedValue(1);
-  const opacity = useSharedValue(1);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-    opacity: opacity.value,
-  }));
-
-  const handlePressIn = () => {
-    scale.value = withSpring(0.96, { damping: 15, stiffness: 400 });
-    opacity.value = withTiming(0.85, { duration: 100 });
-  };
-
-  const handlePressOut = () => {
-    scale.value = withSpring(1, { damping: 15, stiffness: 400 });
-    opacity.value = withTiming(1, { duration: 150 });
-  };
 
   const getBgColor = () => {
     if (disabled) return themeColors.border;
@@ -73,10 +47,10 @@ export const AnimatedAppButton: React.FC<AnimatedAppButtonProps> = ({
   const getTextColor = () => {
     if (disabled) return themeColors.textMuted;
     switch (variant) {
-      case 'primary': return '#FFFFFF';
+      case 'primary': return themeColors.textInverse;
       case 'secondary': return themeColors.secondary;
       case 'outline': return themeColors.secondary;
-      case 'danger': return '#FFFFFF';
+      case 'danger': return themeColors.textInverse;
       case 'ghost': return themeColors.textSecondary;
     }
   };
@@ -98,12 +72,10 @@ export const AnimatedAppButton: React.FC<AnimatedAppButtonProps> = ({
   };
 
   return (
-    <AnimatedPressable
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
+    <Pressable
       onPress={onPress}
       disabled={disabled || loading}
-      style={[
+      style={({ pressed }) => [
         {
           backgroundColor: getBgColor(),
           borderRadius: BorderRadius.md,
@@ -116,7 +88,6 @@ export const AnimatedAppButton: React.FC<AnimatedAppButtonProps> = ({
         },
         fullWidth && { width: '100%' },
         getPadding(),
-        animatedStyle,
         style,
       ]}
     >
@@ -126,17 +97,20 @@ export const AnimatedAppButton: React.FC<AnimatedAppButtonProps> = ({
         <>
           {icon}
           <Text
-            style={{
-              color: getTextColor(),
-              fontSize: getFontSize(),
-              fontWeight: Typography.weights.semibold as any,
-              marginLeft: icon ? 8 : 0,
-            }}
+            style={[
+              {
+                color: getTextColor(),
+                fontSize: getFontSize(),
+                fontWeight: Typography.weights.semibold as any,
+                marginLeft: icon ? 8 : 0,
+              },
+              textStyle,
+            ]}
           >
             {title}
           </Text>
         </>
       )}
-    </AnimatedPressable>
+    </Pressable>
   );
 };

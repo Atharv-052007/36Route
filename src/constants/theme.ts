@@ -1,42 +1,43 @@
 export const Colors = {
   light: {
-    // Primary - Soft Lime (headers, navbar, sidebar, active nav, buttons)
-    primary: '#A8C63A',
-    primaryLight: 'rgba(168, 198, 58, 0.14)',
-    primaryHover: '#94AF2F',
+    // Primary - Neutral accent (neutral.light[15]); was Soft Lime. Tracks
+    // Astryx neutral --color-accent so native matches the web theme.
+    primary: '#262626',
+    primaryLight: 'rgba(38, 38, 38, 0.08)',
+    primaryHover: '#111111',
 
-    // Secondary - Live/Active Muted Green (route lines, links, accents, live)
-    secondary: '#5F9F63',
-    secondaryLight: 'rgba(95, 159, 99, 0.14)',
+    // Secondary - Neutral text-secondary (neutral.light[35])
+    secondary: '#525252',
+    secondaryLight: 'rgba(82, 82, 82, 0.10)',
 
-    // Success - Green (active, completed, available, safe)
-    accent: '#5F9F63',
-    accentLight: 'rgba(95, 159, 99, 0.14)',
+    // Success - status green (neutral theme keeps standard status hues)
+    accent: '#198100',
+    accentLight: 'rgba(25, 129, 0, 0.10)',
 
     // Warning - Soft Amber (delayed, warning, pending)
     warning: '#D99A2B',
     warningLight: 'rgba(217, 154, 43, 0.16)',
 
     // Danger - Soft Red (SOS, emergency, cancel, critical alerts ONLY)
-    danger: '#D9534F',
-    dangerLight: 'rgba(217, 83, 79, 0.12)',
+    danger: '#C9303A',
+    dangerLight: 'rgba(201, 48, 58, 0.10)',
 
-    // Background & Surface
-    background: '#F7F8F6',
+    // Background & Surface - neutral ramp (95 body, 100 cards)
+    background: '#F1F1F1',
     cardBackground: '#FFFFFF',
     surfaceElevated: '#FFFFFF',
-    backgroundElement: '#EDF0EB',
-    backgroundSelected: 'rgba(168, 198, 58, 0.10)',
+    backgroundElement: '#E2E2E2',
+    backgroundSelected: 'rgba(0, 0, 0, 0.05)',
 
-    // Text
-    text: '#20251F',
-    textSecondary: '#697169',
-    textMuted: '#9AA29B',
+    // Text - neutral ramp (5 / 35 / 65)
+    text: '#111111',
+    textSecondary: '#525252',
+    textMuted: '#9E9E9E',
     textInverse: '#FFFFFF',
 
     // Border
-    border: '#E5E8E3',
-    borderLight: '#EDF0EB',
+    border: '#D4D4D4',
+    borderLight: '#E2E2E2',
 
     // Misc
     shadowColor: '#20251F',
@@ -70,43 +71,43 @@ export const Colors = {
     sosRed: '#D9534F',
   },
   dark: {
-    // Primary - Soft Lime (slightly brighter for dark mode)
-    primary: '#C3D65A',
-    primaryLight: 'rgba(195, 214, 90, 0.16)',
-    primaryHover: '#A8C63A',
+    // Primary - Neutral accent for dark (neutral.dark[95]); was lime.
+    primary: '#F1F1F1',
+    primaryLight: 'rgba(241, 241, 241, 0.12)',
+    primaryHover: '#FFFFFF',
 
-    // Secondary - Muted Green (brighter for dark mode)
-    secondary: '#7CB581',
-    secondaryLight: 'rgba(124, 181, 129, 0.16)',
+    // Secondary - neutral.dark[65]
+    secondary: '#9E9E9E',
+    secondaryLight: 'rgba(158, 158, 158, 0.14)',
 
     // Success
-    accent: '#7CB581',
-    accentLight: 'rgba(124, 181, 129, 0.16)',
+    accent: '#64AF4C',
+    accentLight: 'rgba(100, 175, 76, 0.14)',
 
     // Warning
     warning: '#E0A941',
     warningLight: 'rgba(224, 169, 65, 0.16)',
 
     // Danger
-    danger: '#DF6360',
-    dangerLight: 'rgba(223, 99, 96, 0.14)',
+    danger: '#FF705D',
+    dangerLight: 'rgba(255, 112, 93, 0.14)',
 
-    // Background & Surface - Dark Charcoal
-    background: '#20251F',
-    cardBackground: '#2A3029',
-    surfaceElevated: '#323A32',
-    backgroundElement: '#2A3029',
-    backgroundSelected: 'rgba(195, 214, 90, 0.12)',
+    // Background & Surface - neutral dark ramp (10 body, 15/20 surfaces)
+    background: '#1B1B1B',
+    cardBackground: '#262626',
+    surfaceElevated: '#303030',
+    backgroundElement: '#262626',
+    backgroundSelected: 'rgba(255, 255, 255, 0.08)',
 
-    // Text
-    text: '#F2F4F1',
-    textSecondary: '#B7BFB8',
-    textMuted: '#7C857E',
-    textInverse: '#20251F',
+    // Text - neutral dark ramp (100 / 75 / 55)
+    text: '#FAFAFA',
+    textSecondary: '#B9B9B9',
+    textMuted: '#848484',
+    textInverse: '#111111',
 
     // Border
-    border: '#3A423A',
-    borderLight: '#2A3029',
+    border: '#3B3B3B',
+    borderLight: '#262626',
 
     // Misc
     shadowColor: '#000000',

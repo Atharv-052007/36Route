@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -16,17 +16,6 @@ import { useApp } from '@/context/AppContext';
 import { Typography, BorderRadius, Shadows } from '@/constants/theme';
 import { AppInput } from '@/components/ui/AppInput';
 import { AnimatedAppButton } from '@/components/ui/AnimatedAppButton';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withTiming,
-  withRepeat,
-  withSequence,
-  FadeInDown,
-  FadeInUp,
-  SlideInRight,
-} from 'react-native-reanimated';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -36,43 +25,6 @@ export default function LoginScreen() {
   const [code, setCode] = useState('123456');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-
-  const logoScale = useSharedValue(0);
-  const logoRotate = useSharedValue(0);
-  const glowOpacity = useSharedValue(0);
-
-  useEffect(() => {
-    logoScale.value = withSpring(1, { damping: 12, stiffness: 100 });
-    logoRotate.value = withRepeat(
-      withSequence(
-        withTiming(3, { duration: 4000 }),
-        withTiming(-3, { duration: 4000 }),
-        withTiming(0, { duration: 2000 })
-      ),
-      -1,
-      false
-    );
-    glowOpacity.value = withRepeat(
-      withSequence(
-        withTiming(0.6, { duration: 2000 }),
-        withTiming(0.2, { duration: 2000 })
-      ),
-      -1,
-      false
-    );
-  }, []);
-
-  const logoAnimStyle = useAnimatedStyle(() => ({
-    transform: [
-      { scale: logoScale.value },
-      { rotate: `${logoRotate.value}deg` },
-    ],
-  }));
-
-  const glowAnimStyle = useAnimatedStyle(() => ({
-    opacity: glowOpacity.value,
-    transform: [{ scale: 1 + glowOpacity.value * 0.3 }],
-  }));
 
   const handleLogin = async () => {
     if (!identifier.trim()) {
@@ -125,24 +77,23 @@ export default function LoginScreen() {
           {/* Header Branding with Animated Logo */}
           <View style={styles.header}>
             {/* Animated Glow */}
-            <Animated.View style={[styles.logoGlow, glowAnimStyle]} />
+            <View style={styles.logoGlow} />
 
             {/* Animated Logo Circle */}
-            <Animated.View style={[styles.logoCircle, logoAnimStyle, { backgroundColor: 'rgba(255,255,255,0.18)' }]}>
+            <View style={[styles.logoCircle, { backgroundColor: 'rgba(255,255,255,0.18)' }]}>
               <ExpoImage source={require('@/assets/images/logo.png')} style={styles.logoImage} />
-            </Animated.View>
+            </View>
 
-            <Animated.View entering={FadeInDown.delay(200).duration(600)}>
+            <View>
               <Text style={styles.brand}>36Route</Text>
-            </Animated.View>
-            <Animated.View entering={FadeInDown.delay(400).duration(600)}>
+            </View>
+            <View>
               <Text style={styles.tagline}>Corporate Commute & Transit Portal</Text>
-            </Animated.View>
+            </View>
           </View>
 
           {/* Login Card with Slide-in */}
-          <Animated.View
-            entering={SlideInRight.delay(300).duration(500).springify()}
+          <View
             style={[styles.card, { backgroundColor: themeColors.cardBackground }, Shadows.medium]}
           >
             <Text style={[styles.cardTitle, { color: themeColors.text }]}>Welcome Back</Text>
@@ -207,10 +158,10 @@ export default function LoginScreen() {
             </View>
 
             {error ? (
-              <Animated.View entering={FadeInDown.duration(300)} style={[styles.errorBanner, { backgroundColor: themeColors.dangerLight }]}>
+              <View style={[styles.errorBanner, { backgroundColor: themeColors.dangerLight }]}>
                 <Ionicons name="alert-circle" size={16} color={themeColors.danger} />
                 <Text style={[styles.errorText, { color: themeColors.danger }]}>{error}</Text>
-              </Animated.View>
+              </View>
             ) : null}
 
             <AppInput
@@ -262,7 +213,7 @@ export default function LoginScreen() {
                 One-Tap Quick Demo Login
               </Text>
             </TouchableOpacity>
-          </Animated.View>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </AppSafeAreaView>

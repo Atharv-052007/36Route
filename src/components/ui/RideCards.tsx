@@ -5,14 +5,6 @@ import { useApp } from '../../context/AppContext';
 import { Typography, BorderRadius, Shadows } from '../../constants/theme';
 import { Ride, Driver, Vehicle, LocationCoordinate } from '../../types';
 import { StatusBadge } from './AppStates';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withRepeat,
-  withSequence,
-  withTiming,
-} from 'react-native-reanimated';
 
 // ─── Driver Card ─────────────────────────────────────────────────
 
@@ -153,32 +145,9 @@ export const RideCard: React.FC<RideCardProps> = ({
   onCancel,
 }) => {
   const { themeColors } = useApp();
-  const scale = useSharedValue(1);
-  const statusPulse = useSharedValue(1);
-
-  useEffect(() => {
-    if (ride.status === 'IN_TRANSIT' || ride.status === 'BOARDING') {
-      statusPulse.value = withRepeat(
-        withSequence(
-          withTiming(1.15, { duration: 800 }),
-          withTiming(1, { duration: 800 })
-        ),
-        -1,
-        false
-      );
-    }
-  }, [ride.status]);
-
-  const cardAnimStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
-  const statusAnimStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: statusPulse.value }],
-  }));
 
   return (
-    <Animated.View
+    <View
       style={[
         styles.rideCard,
         {
@@ -186,18 +155,11 @@ export const RideCard: React.FC<RideCardProps> = ({
           borderColor: themeColors.border,
         },
         Shadows.small,
-        cardAnimStyle,
       ]}
     >
       <View style={styles.rideHeader}>
         <View style={styles.rideHeaderLeft}>
-          {(ride.status === 'IN_TRANSIT' || ride.status === 'BOARDING') ? (
-            <Animated.View style={statusAnimStyle}>
-              <StatusBadge status={ride.status} size="sm" />
-            </Animated.View>
-          ) : (
-            <StatusBadge status={ride.status} size="sm" />
-          )}
+          <StatusBadge status={ride.status} size="sm" />
           <Text style={[styles.rideDate, { color: themeColors.textSecondary }]}>
             {ride.date} • {ride.time}
           </Text>
@@ -282,7 +244,7 @@ export const RideCard: React.FC<RideCardProps> = ({
           </TouchableOpacity>
         )}
       </View>
-    </Animated.View>
+    </View>
   );
 };
 

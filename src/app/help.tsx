@@ -14,12 +14,6 @@ import { useApp } from '@/context/AppContext';
 import { Typography, BorderRadius } from '@/constants/theme';
 import { AppInput } from '@/components/ui/AppInput';
 import { AnimatedAppButton } from '@/components/ui/AnimatedAppButton';
-import Animated, {
-  FadeInUp,
-  FadeInDown,
-  FadeIn,
-  Layout,
-} from 'react-native-reanimated';
 
 const FAQS = [
   { q: 'How is my cab allocated?', a: 'Based on your pickup locality, shift timing and route availability, our system auto-assigns the optimal vehicle.' },
@@ -48,7 +42,7 @@ export default function HelpScreen() {
   return (
     <AppSafeAreaView style={[styles.safe, { backgroundColor: themeColors.background }]}>
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        <Animated.View entering={FadeInDown.duration(400)} style={styles.header}>
+        <View style={styles.header}>
           <TouchableOpacity
             onPress={() => router.dismissTo('/(tabs)')}
             style={[styles.backBtn, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}
@@ -57,21 +51,21 @@ export default function HelpScreen() {
           </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: themeColors.text }]}>Help & Support</Text>
           <View style={{ width: 40 }} />
-        </Animated.View>
+        </View>
 
         {/* Support Banner */}
-        <Animated.View entering={FadeInUp.delay(150).duration(500).springify()} style={[styles.banner, { backgroundColor: themeColors.secondary }]}>
+        <View style={[styles.banner, { backgroundColor: themeColors.secondary }]}>
           <Ionicons name="headset" size={24} color="#FFF" />
           <View style={{ flex: 1 }}>
             <Text style={styles.bannerTitle}>24/7 Support</Text>
             <Text style={styles.bannerSub}>1800-36-ROUTE • support@36route.com</Text>
           </View>
-        </Animated.View>
+        </View>
 
         {/* FAQs */}
         <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Frequently Asked</Text>
         {FAQS.map((faq, i) => (
-          <Animated.View key={i} entering={FadeInUp.delay(250 + i * 80).duration(400)} layout={Layout.springify()}>
+          <View key={i}>
             <TouchableOpacity
               style={[styles.faq, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}
               onPress={() => setExpanded(expanded === i ? null : i)}
@@ -82,16 +76,16 @@ export default function HelpScreen() {
                 <Ionicons name={expanded === i ? 'chevron-up' : 'chevron-down'} size={18} color={themeColors.textMuted} />
               </View>
               {expanded === i && (
-                <Animated.View entering={FadeIn.duration(300)}>
+                <View>
                   <Text style={[styles.faqA, { color: themeColors.textSecondary }]}>{faq.a}</Text>
-                </Animated.View>
+                </View>
               )}
             </TouchableOpacity>
-          </Animated.View>
+          </View>
         ))}
 
         {/* Issue Form */}
-        <Animated.View entering={FadeInUp.delay(550).duration(400)}>
+        <View>
           <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Report an Issue</Text>
           <View style={[styles.formCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}>
             <AppInput
@@ -102,7 +96,7 @@ export default function HelpScreen() {
             />
             <AnimatedAppButton title="Submit Issue" onPress={handleSubmit} />
           </View>
-        </Animated.View>
+        </View>
       </ScrollView>
     </AppSafeAreaView>
   );

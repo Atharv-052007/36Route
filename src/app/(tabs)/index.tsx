@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -14,44 +14,19 @@ import { useApp } from '../../context/AppContext';
 import { Typography, BorderRadius, Shadows } from '../../constants/theme';
 import { RideCard, DriverCard } from '../../components/ui/RideCards';
 import { SectionHeader, EmptyState } from '../../components/ui/AppStates';
-import Animated, {
-  FadeInUp,
-  FadeInDown,
-  FadeIn,
-  SlideInRight,
-  Layout,
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withRepeat,
-  withSequence,
-  withTiming,
-} from 'react-native-reanimated';
 
-const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
-
-function AnimatedGridCard({ children, delay, onPress, style }: {
+function AnimatedGridCard({ children, onPress, style }: {
   children: React.ReactNode;
   delay: number;
   onPress: () => void;
   style?: any;
 }) {
-  const scale = useSharedValue(1);
-  const animStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
   return (
-    <Animated.View entering={FadeInUp.delay(delay).duration(400).springify()} style={[style, animStyle]}>
-      <TouchableOpacity
-        onPress={onPress}
-        activeOpacity={0.7}
-        onPressIn={() => { scale.value = withSpring(0.96, { damping: 15, stiffness: 400 }); }}
-        onPressOut={() => { scale.value = withSpring(1, { damping: 15, stiffness: 400 }); }}
-      >
+    <View style={style}>
+      <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
         {children}
       </TouchableOpacity>
-    </Animated.View>
+    </View>
   );
 }
 
@@ -60,22 +35,6 @@ export default function HomeScreen() {
   const { employee, activeRide, rides, refreshRides, themeColors, unreadNotificationCount, isDarkMode, toggleDarkMode } =
     useApp();
   const [refreshing, setRefreshing] = useState(false);
-  const headerGlow = useSharedValue(0);
-
-  useEffect(() => {
-    headerGlow.value = withRepeat(
-      withSequence(
-        withTiming(0.3, { duration: 2000 }),
-        withTiming(0, { duration: 2000 })
-      ),
-      -1,
-      false
-    );
-  }, []);
-
-  const glowStyle = useAnimatedStyle(() => ({
-    opacity: headerGlow.value,
-  }));
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -99,17 +58,16 @@ export default function HomeScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header Bar with Animation */}
-        <Animated.View entering={FadeInDown.duration(500)} style={styles.headerBar}>
+        {/* Header Bar */}
+        <View style={styles.headerBar}>
           <View style={styles.userCol}>
-            <Animated.View style={styles.avatarWrap}>
+            <View style={styles.avatarWrap}>
               <View style={[styles.avatar, { backgroundColor: themeColors.secondary }]}>
-                <Text style={styles.avatarText}>
+                <Text style={[styles.avatarText, { color: themeColors.textInverse }]}>
                   {employee?.name?.charAt(0) || 'U'}
                 </Text>
               </View>
-              <Animated.View style={[styles.avatarGlow, { backgroundColor: themeColors.secondary }, glowStyle]} />
-            </Animated.View>
+            </View>
             <View style={{ marginLeft: 12 }}>
               <Text style={[styles.greeting, { color: themeColors.textSecondary }]}>
                 {getGreeting()} 👋
@@ -140,7 +98,7 @@ export default function HomeScreen() {
               <Ionicons name="notifications-outline" size={22} color={themeColors.text} />
               {unreadNotificationCount > 0 && (
                 <View style={[styles.notifBadge, { backgroundColor: themeColors.danger }]}>
-                  <Text style={styles.notifBadgeText}>{unreadNotificationCount}</Text>
+                  <Text style={[styles.notifBadgeText, { color: themeColors.textInverse }]}>{unreadNotificationCount}</Text>
                 </View>
               )}
             </TouchableOpacity>
@@ -156,11 +114,11 @@ export default function HomeScreen() {
               <Text style={[styles.sosHeaderText, { color: themeColors.danger }]}>SOS</Text>
             </TouchableOpacity>
           </View>
-        </Animated.View>
+        </View>
 
         {/* Today's Trip Card */}
         {activeRide ? (
-          <Animated.View entering={SlideInRight.delay(200).duration(500).springify()} style={[styles.todayTripCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.small]}>
+          <View style={[styles.todayTripCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.small]}>
             <View style={styles.tripCardHeader}>
               <Text style={[styles.tripCardTitle, { color: themeColors.text }]}>Today's Trip</Text>
               <View style={[styles.tripStatusPill, { backgroundColor: themeColors.onTripLight }]}>
@@ -207,12 +165,12 @@ export default function HomeScreen() {
               onPress={() => router.push('/(tabs)/track')}
               activeOpacity={0.7}
             >
-              <Ionicons name="navigate" size={18} color="#FFFFFF" />
-              <Text style={styles.trackBtnText}>Track Vehicle</Text>
+              <Ionicons name="navigate" size={18} color={themeColors.textInverse} />
+              <Text style={[styles.trackBtnText, { color: themeColors.textInverse }]}>Track Vehicle</Text>
             </TouchableOpacity>
-          </Animated.View>
+          </View>
         ) : upcomingScheduled ? (
-          <Animated.View entering={SlideInRight.delay(200).duration(500).springify()} style={[styles.todayTripCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.small]}>
+          <View style={[styles.todayTripCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.small]}>
             <View style={styles.tripCardHeader}>
               <Text style={[styles.tripCardTitle, { color: themeColors.text }]}>Upcoming Trip</Text>
               <View style={[styles.tripStatusPill, { backgroundColor: themeColors.secondaryLight }]}>
@@ -245,9 +203,9 @@ export default function HomeScreen() {
                 <Text style={[styles.tripMetaText, { color: themeColors.textSecondary }]}>{upcomingScheduled.date}</Text>
               </View>
             </View>
-          </Animated.View>
+          </View>
         ) : (
-          <Animated.View entering={FadeInUp.delay(200).duration(500).springify()} style={[styles.noTripCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}>
+          <View style={[styles.noTripCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}>
             <View style={[styles.noTripIcon, { backgroundColor: themeColors.secondaryLight }]}>
               <Ionicons name="bus-outline" size={32} color={themeColors.secondary} />
             </View>
@@ -260,16 +218,16 @@ export default function HomeScreen() {
               onPress={() => router.push('/book-ride')}
               activeOpacity={0.7}
             >
-              <Text style={styles.bookBtnText}>Book a Ride</Text>
+              <Text style={[styles.bookBtnText, { color: themeColors.textInverse }]}>Book a Ride</Text>
             </TouchableOpacity>
-          </Animated.View>
+          </View>
         )}
 
         {/* Quick Actions with Staggered Animation */}
         <View style={{ marginTop: 8 }}>
-          <Animated.View entering={FadeIn.delay(400).duration(400)}>
+          <View>
             <SectionHeader title="Quick Actions" />
-          </Animated.View>
+          </View>
           <View style={styles.quickGrid}>
             <AnimatedGridCard delay={500} onPress={() => router.push('/book-ride')} style={[styles.gridCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}>
               <View style={[styles.gridIconCircle, { backgroundColor: themeColors.secondaryLight }]}>
@@ -336,7 +294,6 @@ const styles = StyleSheet.create({
     left: 0,
   },
   avatarText: {
-    color: '#FFFFFF',
     fontSize: Typography.fontSizes.lg,
     fontWeight: Typography.weights.bold as any,
   },
@@ -362,7 +319,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  notifBadgeText: { color: '#FFF', fontSize: 10, fontWeight: '700' },
+  notifBadgeText: { fontSize: 10, fontWeight: '700' },
   sosHeaderBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -445,7 +402,6 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   trackBtnText: {
-    color: '#FFFFFF',
     fontSize: Typography.fontSizes.md,
     fontWeight: Typography.weights.semibold as any,
   },
@@ -480,7 +436,6 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.md,
   },
   bookBtnText: {
-    color: '#FFFFFF',
     fontSize: Typography.fontSizes.md,
     fontWeight: Typography.weights.semibold as any,
   },

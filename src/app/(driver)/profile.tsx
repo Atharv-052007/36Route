@@ -11,15 +11,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useApp } from '../../context/AppContext';
 import { Typography, BorderRadius, Shadows } from '../../constants/theme';
-import Animated, {
-  FadeInUp,
-  SlideInRight,
-} from 'react-native-reanimated';
 
 const MenuItem = ({ icon, label, color, onPress, index }: { icon: string; label: string; color?: string; onPress: () => void; index: number }) => {
   const { themeColors } = useApp();
   return (
-    <Animated.View entering={SlideInRight.delay(300 + index * 80).duration(300).springify()}>
+    <View>
       <TouchableOpacity
         style={[styles.menuItem, { borderBottomColor: themeColors.borderLight }]}
         onPress={onPress}
@@ -29,7 +25,7 @@ const MenuItem = ({ icon, label, color, onPress, index }: { icon: string; label:
         <Text style={[styles.menuLabel, { color: color || themeColors.text }]}>{label}</Text>
         <Ionicons name="chevron-forward" size={16} color={themeColors.textMuted} />
       </TouchableOpacity>
-    </Animated.View>
+    </View>
   );
 };
 
@@ -52,7 +48,7 @@ export default function DriverProfileScreen() {
     <AppSafeAreaView edges={['top']} style={[styles.safe, { backgroundColor: themeColors.background }]}>
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
         {/* Profile Card */}
-        <Animated.View entering={FadeInUp.duration(500).springify()} style={[styles.profileCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.small]}>
+        <View style={[styles.profileCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.small]}>
           <View style={[styles.avatar, { backgroundColor: themeColors.secondary }]}>
             <Text style={styles.avatarText}>{employee?.name?.charAt(0) || 'D'}</Text>
           </View>
@@ -67,10 +63,10 @@ export default function DriverProfileScreen() {
             <Ionicons name="ellipse" size={10} color={themeColors.accent} />
             <Text style={[styles.statusText, { color: themeColors.accent }]}>On Duty</Text>
           </View>
-        </Animated.View>
+        </View>
 
         {/* Switch Role - Mode Selection */}
-        <Animated.View entering={FadeInUp.delay(150).duration(400)}>
+        <View>
           <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Switch Role</Text>
           <View style={[styles.menuCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}>
             <MenuItem icon="car-outline" label="Driver Mode" color={themeColors.secondary} onPress={() => switchMode('driver')} index={0} />
@@ -78,20 +74,20 @@ export default function DriverProfileScreen() {
             <MenuItem icon="person-outline" label="User Mode" color={themeColors.textSecondary} onPress={() => switchMode('user')} index={2} />
             <MenuItem icon="flash-outline" label="Super Admin Mode" color={themeColors.danger} onPress={() => switchMode('superadmin')} index={3} />
           </View>
-        </Animated.View>
+        </View>
 
         {/* Driver Account */}
-        <Animated.View entering={FadeInUp.delay(300).duration(400)}>
+        <View>
           <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Driver Account</Text>
           <View style={[styles.menuCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}>
             <MenuItem icon="calendar-outline" label="My Trips" onPress={() => router.push('/(driver)/trips')} index={0} />
             <MenuItem icon="settings-outline" label="Settings" onPress={() => router.push('/help')} index={1} />
             <MenuItem icon="alert-circle-outline" label="Emergency SOS" color={themeColors.danger} onPress={() => router.push('/sos')} index={2} />
           </View>
-        </Animated.View>
+        </View>
 
         {/* Exit Driver Mode */}
-        <Animated.View entering={FadeInUp.delay(500).duration(400)}>
+        <View>
           <TouchableOpacity
             style={[styles.signOutBtn, { backgroundColor: themeColors.dangerLight }]}
             onPress={() => switchMode('user')}
@@ -100,7 +96,7 @@ export default function DriverProfileScreen() {
             <Ionicons name="arrow-back-circle-outline" size={20} color={themeColors.danger} />
             <Text style={[styles.signOutText, { color: themeColors.danger }]}>Exit Driver Mode</Text>
           </TouchableOpacity>
-        </Animated.View>
+        </View>
 
         <Text style={[styles.version, { color: themeColors.textMuted }]}>Driver Mode • 36Route v1.0.0</Text>
       </ScrollView>

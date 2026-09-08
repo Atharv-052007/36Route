@@ -57,7 +57,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
           style={[styles.emptyAction, { backgroundColor: themeColors.secondary }]}
           activeOpacity={0.7}
         >
-          <Text style={styles.emptyActionText}>{actionTitle}</Text>
+          <Text style={[styles.emptyActionText, { color: themeColors.textInverse }]}>{actionTitle}</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -83,7 +83,7 @@ export const ErrorState: React.FC<{ message?: string; onRetry?: () => void }> = 
           style={[styles.emptyAction, { backgroundColor: themeColors.secondary }]}
           activeOpacity={0.7}
         >
-          <Text style={styles.emptyActionText}>Retry</Text>
+          <Text style={[styles.emptyActionText, { color: themeColors.textInverse }]}>Retry</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -220,7 +220,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
               style={[styles.modalBtn, { backgroundColor: confirmBg }]}
               activeOpacity={0.7}
             >
-              <Text style={[styles.modalBtnText, { color: '#FFFFFF' }]}>{confirmText}</Text>
+              <Text style={[styles.modalBtnText, { color: themeColors.textInverse }]}>{confirmText}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -324,7 +324,6 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.md,
   },
   emptyActionText: {
-    color: '#FFFFFF',
     fontSize: Typography.fontSizes.md,
     fontWeight: Typography.weights.semibold as any,
   },
