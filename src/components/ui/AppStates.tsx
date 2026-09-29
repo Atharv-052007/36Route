@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -6,20 +6,45 @@ import {
   TouchableOpacity,
   Modal,
   StyleSheet,
+  Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useApp } from '../../context/AppContext';
-import { BorderRadius, Typography, Shadows } from '../../constants/theme';
-import { NotificationItem } from '../../types';
+import { useApp } from '@/context/AppContext';
+import { BorderRadius, Typography, Shadows, Spacing, Colors } from '@/constants/theme';
+import { NotificationItem } from '@/types';
 
 // ─── Loading State ───────────────────────────────────────────────
 
 export const LoadingState: React.FC<{ message?: string }> = ({ message = 'Loading...' }) => {
-  const { themeColors } = useApp();
+  const { isDarkMode } = useApp();
+  const theme = isDarkMode ? Colors.dark : Colors.light;
+  const pulseAnim = useRef(new Animated.Value(0.5)).current;
+
+  useEffect(() => {
+    const pulse = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 0.5,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+    pulse.start();
+    return () => pulse.stop();
+  }, [pulseAnim]);
+
   return (
     <View style={styles.centered}>
-      <ActivityIndicator size="large" color={themeColors.secondary} />
-      <Text style={[styles.loadingText, { color: themeColors.textSecondary }]}>{message}</Text>
+      <Animated.View style={[styles.loadingRing, { opacity: pulseAnim }]}>
+        <ActivityIndicator size="large" color={theme.secondary} />
+      </Animated.View>
+      <Text style={[styles.loadingText, { color: theme.textSecondary }]}>{message}</Text>
     </View>
   );
 };
@@ -41,23 +66,25 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   onAction,
   icon = 'bus-outline',
 }) => {
-  const { themeColors } = useApp();
+  const { isDarkMode } = useApp();
+  const theme = isDarkMode ? Colors.dark : Colors.light;
+
   return (
     <View style={styles.centered}>
-      <View style={[styles.emptyIconCircle, { backgroundColor: themeColors.secondaryLight }]}>
-        <Ionicons name={icon as any} size={40} color={themeColors.secondary} />
+      <View style={[styles.emptyIconCircle, { backgroundColor: theme.secondaryLight }]}>
+        <Ionicons name={icon as any} size={44} color={theme.secondary} />
       </View>
-      <Text style={[styles.emptyTitle, { color: themeColors.text }]}>{title}</Text>
+      <Text style={[styles.emptyTitle, { color: theme.text }]}>{title}</Text>
       {description && (
-        <Text style={[styles.emptyDesc, { color: themeColors.textSecondary }]}>{description}</Text>
+        <Text style={[styles.emptyDesc, { color: theme.textSecondary }]}>{description}</Text>
       )}
       {actionTitle && onAction && (
         <TouchableOpacity
           onPress={onAction}
-          style={[styles.emptyAction, { backgroundColor: themeColors.secondary }]}
+          style={[styles.emptyAction, { backgroundColor: theme.secondary }]}
           activeOpacity={0.7}
         >
-          <Text style={[styles.emptyActionText, { color: themeColors.textInverse }]}>{actionTitle}</Text>
+          <Text style={[styles.emptyActionText, { color: theme.textInverse }]}>{actionTitle}</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -70,20 +97,22 @@ export const ErrorState: React.FC<{ message?: string; onRetry?: () => void }> = 
   message = 'Something went wrong',
   onRetry,
 }) => {
-  const { themeColors } = useApp();
+  const { isDarkMode } = useApp();
+  const theme = isDarkMode ? Colors.dark : Colors.light;
+
   return (
     <View style={styles.centered}>
-      <View style={[styles.emptyIconCircle, { backgroundColor: themeColors.dangerLight }]}>
-        <Ionicons name="alert-circle-outline" size={40} color={themeColors.danger} />
+      <View style={[styles.emptyIconCircle, { backgroundColor: theme.dangerLight }]}>
+        <Ionicons name="alert-circle-outline" size={44} color={theme.danger} />
       </View>
-      <Text style={[styles.emptyTitle, { color: themeColors.text }]}>{message}</Text>
+      <Text style={[styles.emptyTitle, { color: theme.text }]}>{message}</Text>
       {onRetry && (
         <TouchableOpacity
           onPress={onRetry}
-          style={[styles.emptyAction, { backgroundColor: themeColors.secondary }]}
+          style={[styles.emptyAction, { backgroundColor: theme.secondary }]}
           activeOpacity={0.7}
         >
-          <Text style={[styles.emptyActionText, { color: themeColors.textInverse }]}>Retry</Text>
+          <Text style={[styles.emptyActionText, { color: theme.textInverse }]}>Retry</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -105,18 +134,20 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
   action,
   onAction,
 }) => {
-  const { themeColors } = useApp();
+  const { isDarkMode } = useApp();
+  const theme = isDarkMode ? Colors.dark : Colors.light;
+
   return (
     <View style={styles.sectionHeader}>
       <View>
-        <Text style={[styles.sectionTitle, { color: themeColors.text }]}>{title}</Text>
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>{title}</Text>
         {subtitle && (
-          <Text style={[styles.sectionSubtitle, { color: themeColors.textSecondary }]}>{subtitle}</Text>
+          <Text style={[styles.sectionSubtitle, { color: theme.textSecondary }]}>{subtitle}</Text>
         )}
       </View>
       {action && onAction && (
         <TouchableOpacity onPress={onAction} activeOpacity={0.7}>
-          <Text style={[styles.sectionAction, { color: themeColors.secondary }]}>{action}</Text>
+          <Text style={[styles.sectionAction, { color: theme.secondary }]}>{action}</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -143,8 +174,10 @@ export const NotificationCard: React.FC<{
   notification: NotificationItem;
   onPress: () => void;
 }> = ({ notification, onPress }) => {
-  const { themeColors } = useApp();
+  const { isDarkMode } = useApp();
+  const theme = isDarkMode ? Colors.dark : Colors.light;
   const iconName = NOTIFICATION_ICON_MAP[notification.type] || 'notifications';
+  const isUnread = !notification.read;
 
   return (
     <TouchableOpacity
@@ -153,23 +186,23 @@ export const NotificationCard: React.FC<{
       style={[
         styles.notifCard,
         {
-          backgroundColor: notification.read ? themeColors.cardBackground : themeColors.secondaryLight,
-          borderColor: themeColors.border,
+          backgroundColor: isUnread ? theme.secondaryLight : theme.cardBackground,
+          borderLeftColor: isUnread ? theme.secondary : theme.border,
         },
       ]}
     >
-      <View style={[styles.notifIconCircle, { backgroundColor: themeColors.secondaryLight }]}>
-        <Ionicons name={iconName as any} size={20} color={themeColors.secondary} />
+      <View style={[styles.notifIconCircle, { backgroundColor: theme.backgroundElement }]}>
+        <Ionicons name={iconName as any} size={18} color={theme.secondary} />
       </View>
       <View style={styles.notifContent}>
-        <Text style={[styles.notifTitle, { color: themeColors.text }]}>{notification.title}</Text>
-        <Text style={[styles.notifMessage, { color: themeColors.textSecondary }]} numberOfLines={2}>
+        <Text style={[styles.notifTitle, { color: theme.text }]}>{notification.title}</Text>
+        <Text style={[styles.notifMessage, { color: theme.textSecondary }]} numberOfLines={2}>
           {notification.message}
         </Text>
-        <Text style={[styles.notifTime, { color: themeColors.textMuted }]}>{notification.timestamp}</Text>
+        <Text style={[styles.notifTime, { color: theme.textMuted }]}>{notification.timestamp}</Text>
       </View>
-      {!notification.read && (
-        <View style={[styles.notifDot, { backgroundColor: themeColors.secondary }]} />
+      {isUnread && (
+        <View style={[styles.notifDot, { backgroundColor: theme.secondary }]} />
       )}
     </TouchableOpacity>
   );
@@ -198,29 +231,30 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   onCancel,
   variant = 'primary',
 }) => {
-  const { themeColors } = useApp();
-  const confirmBg = variant === 'danger' ? themeColors.danger : themeColors.secondary;
+  const { isDarkMode } = useApp();
+  const theme = isDarkMode ? Colors.dark : Colors.light;
+  const confirmBg = variant === 'danger' ? theme.danger : theme.secondary;
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel}>
       <View style={styles.modalOverlay}>
-        <View style={[styles.modalContainer, { backgroundColor: themeColors.cardBackground }]}>
-          <Text style={[styles.modalTitle, { color: themeColors.text }]}>{title}</Text>
-          <Text style={[styles.modalMessage, { color: themeColors.textSecondary }]}>{message}</Text>
+        <View style={[styles.modalContainer, { backgroundColor: theme.cardBackground }]}>
+          <Text style={[styles.modalTitle, { color: theme.text }]}>{title}</Text>
+          <Text style={[styles.modalMessage, { color: theme.textSecondary }]}>{message}</Text>
           <View style={styles.modalActions}>
             <TouchableOpacity
               onPress={onCancel}
-              style={[styles.modalBtn, { backgroundColor: themeColors.backgroundElement }]}
+              style={[styles.modalBtn, { backgroundColor: theme.backgroundElement }]}
               activeOpacity={0.7}
             >
-              <Text style={[styles.modalBtnText, { color: themeColors.textSecondary }]}>{cancelText}</Text>
+              <Text style={[styles.modalBtnText, { color: theme.textSecondary }]}>{cancelText}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={onConfirm}
               style={[styles.modalBtn, { backgroundColor: confirmBg }]}
               activeOpacity={0.7}
             >
-              <Text style={[styles.modalBtnText, { color: themeColors.textInverse }]}>{confirmText}</Text>
+              <Text style={[styles.modalBtnText, { color: theme.textInverse }]}>{confirmText}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -231,22 +265,53 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
 
 // ─── Status Badge ────────────────────────────────────────────────
 
+const LIVE_STATUSES = ['IN_TRANSIT', 'BOARDING'];
+
 export const StatusBadge: React.FC<{
   status: string;
   size?: 'sm' | 'md';
 }> = ({ status, size = 'md' }) => {
-  const { themeColors } = useApp();
+  const { isDarkMode } = useApp();
+  const theme = isDarkMode ? Colors.dark : Colors.light;
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+  const isLive = LIVE_STATUSES.includes(status);
+
+  useEffect(() => {
+    if (!isLive) return;
+    const pulse = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 0.4,
+          duration: 1200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 1200,
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+    pulse.start();
+    return () => pulse.stop();
+  }, [isLive, pulseAnim]);
 
   const getStatusColor = () => {
     switch (status) {
-      case 'IN_TRANSIT': return { bg: themeColors.onTripLight, text: themeColors.onTrip, dot: themeColors.onTrip };
-      case 'BOARDING': return { bg: themeColors.onTripLight, text: themeColors.onTrip, dot: themeColors.onTrip };
-      case 'SCHEDULED': return { bg: themeColors.secondaryLight, text: themeColors.secondary, dot: themeColors.secondary };
-      case 'COMPLETED': return { bg: themeColors.accentLight, text: themeColors.accent, dot: themeColors.accent };
-      case 'ARRIVED': return { bg: themeColors.accentLight, text: themeColors.accent, dot: themeColors.accent };
-      case 'CANCELLED': return { bg: themeColors.dangerLight, text: themeColors.danger, dot: themeColors.danger };
-      case 'DELAYED': return { bg: themeColors.warningLight, text: themeColors.warning, dot: themeColors.warning };
-      default: return { bg: themeColors.backgroundElement, text: themeColors.textMuted, dot: themeColors.textMuted };
+      case 'IN_TRANSIT':
+      case 'BOARDING':
+        return { bg: theme.onTripLight, text: theme.onTrip, dot: theme.onTrip };
+      case 'SCHEDULED':
+        return { bg: theme.secondaryLight, text: theme.secondary, dot: theme.secondary };
+      case 'COMPLETED':
+      case 'ARRIVED':
+        return { bg: theme.accentLight, text: theme.accent, dot: theme.accent };
+      case 'CANCELLED':
+        return { bg: theme.dangerLight, text: theme.danger, dot: theme.danger };
+      case 'DELAYED':
+        return { bg: theme.warningLight, text: theme.warning, dot: theme.warning };
+      default:
+        return { bg: theme.backgroundElement, text: theme.textMuted, dot: theme.textMuted };
     }
   };
 
@@ -260,25 +325,41 @@ export const StatusBadge: React.FC<{
         alignItems: 'center',
         backgroundColor: colors.bg,
         paddingHorizontal: isSmall ? 8 : 12,
-        paddingVertical: isSmall ? 4 : 6,
+        paddingVertical: isSmall ? 3 : 5,
         borderRadius: BorderRadius.full,
+        borderWidth: 1,
+        borderColor: `${colors.dot}30`,
       }}
     >
-      <View
-        style={{
-          width: isSmall ? 6 : 8,
-          height: isSmall ? 6 : 8,
-          borderRadius: isSmall ? 3 : 4,
-          backgroundColor: colors.dot,
-          marginRight: 6,
-        }}
-      />
+      <View style={{ position: 'relative', marginRight: 6, alignItems: 'center', justifyContent: 'center' }}>
+        <View
+          style={{
+            width: isSmall ? 5 : 6,
+            height: isSmall ? 5 : 6,
+            borderRadius: BorderRadius.full,
+            backgroundColor: colors.dot,
+          }}
+        />
+        {isLive && (
+          <Animated.View
+            style={{
+              position: 'absolute',
+              width: isSmall ? 5 : 6,
+              height: isSmall ? 5 : 6,
+              borderRadius: BorderRadius.full,
+              backgroundColor: colors.dot,
+              opacity: pulseAnim,
+            }}
+          />
+        )}
+      </View>
       <Text
         style={{
-          fontSize: isSmall ? Typography.fontSizes.xs : Typography.fontSizes.sm,
+          fontSize: 11,
           fontWeight: Typography.weights.semibold as any,
           color: colors.text,
           textTransform: 'capitalize',
+          letterSpacing: 0.2,
         }}
       >
         {status.replace(/_/g, ' ').toLowerCase()}
@@ -287,45 +368,52 @@ export const StatusBadge: React.FC<{
   );
 };
 
+// ─── Styles ──────────────────────────────────────────────────────
+
 const styles = StyleSheet.create({
   centered: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 40,
-    paddingHorizontal: 24,
+    paddingVertical: 48,
+    paddingHorizontal: 32,
+  },
+  loadingRing: {
+    marginBottom: 16,
   },
   loadingText: {
-    marginTop: 12,
+    marginTop: 4,
     fontSize: Typography.fontSizes.md,
+    fontWeight: Typography.weights.medium,
   },
   emptyIconCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 96,
+    height: 96,
+    borderRadius: BorderRadius.xl,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
   },
   emptyTitle: {
     fontSize: Typography.fontSizes.lg,
-    fontWeight: Typography.weights.semibold as any,
+    fontWeight: Typography.weights.semibold,
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   emptyDesc: {
     fontSize: Typography.fontSizes.sm,
     textAlign: 'center',
     lineHeight: 20,
-    marginBottom: 20,
+    marginBottom: 24,
+    maxWidth: 280,
   },
   emptyAction: {
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: BorderRadius.md,
+    paddingHorizontal: 28,
+    paddingVertical: 13,
+    borderRadius: BorderRadius.full,
   },
   emptyActionText: {
     fontSize: Typography.fontSizes.md,
-    fontWeight: Typography.weights.semibold as any,
+    fontWeight: Typography.weights.semibold,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -335,29 +423,34 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   sectionTitle: {
-    fontSize: Typography.fontSizes.lg,
-    fontWeight: Typography.weights.semibold as any,
+    fontSize: Typography.fontSizes.xs,
+    fontWeight: Typography.weights.semibold,
+    textTransform: 'uppercase',
+    letterSpacing: 1.2,
   },
   sectionSubtitle: {
     fontSize: Typography.fontSizes.sm,
     marginTop: 2,
+    textTransform: 'none',
+    letterSpacing: 0,
   },
   sectionAction: {
     fontSize: Typography.fontSizes.sm,
-    fontWeight: Typography.weights.semibold as any,
+    fontWeight: Typography.weights.semibold,
   },
   notifCard: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     padding: 14,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
+    borderRadius: BorderRadius.lg,
+    borderLeftWidth: 3,
     marginBottom: 10,
+    ...Shadows.subtle,
   },
   notifIconCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 38,
+    height: 38,
+    borderRadius: BorderRadius.md,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -366,12 +459,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   notifTitle: {
-    fontSize: Typography.fontSizes.md,
-    fontWeight: Typography.weights.semibold as any,
+    fontSize: Typography.fontSizes.sm + 1,
+    fontWeight: Typography.weights.semibold,
     marginBottom: 2,
   },
   notifMessage: {
-    fontSize: Typography.fontSizes.sm,
+    fontSize: Typography.fontSizes.xs + 1,
     lineHeight: 18,
     marginBottom: 4,
   },
@@ -379,34 +472,37 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSizes.xs,
   },
   notifDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 7,
+    height: 7,
+    borderRadius: BorderRadius.full,
     marginLeft: 8,
-    marginTop: 4,
+    marginTop: 5,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.55)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
   },
   modalContainer: {
     width: '100%',
-    borderRadius: BorderRadius.lg,
-    padding: 24,
-    ...Shadows.medium,
+    maxWidth: 380,
+    borderRadius: BorderRadius.xl,
+    padding: 28,
+    ...Shadows.large,
   },
   modalTitle: {
-    fontSize: Typography.fontSizes.lg,
-    fontWeight: Typography.weights.bold as any,
-    marginBottom: 8,
+    fontSize: Typography.fontSizes.xl,
+    fontWeight: Typography.weights.bold,
+    marginBottom: 10,
+    textAlign: 'center',
   },
   modalMessage: {
     fontSize: Typography.fontSizes.md,
-    lineHeight: 22,
-    marginBottom: 24,
+    lineHeight: 23,
+    marginBottom: 28,
+    textAlign: 'center',
   },
   modalActions: {
     flexDirection: 'row',
@@ -414,12 +510,12 @@ const styles = StyleSheet.create({
   },
   modalBtn: {
     flex: 1,
-    paddingVertical: 12,
-    borderRadius: BorderRadius.md,
+    paddingVertical: 13,
+    borderRadius: BorderRadius.lg,
     alignItems: 'center',
   },
   modalBtnText: {
     fontSize: Typography.fontSizes.md,
-    fontWeight: Typography.weights.semibold as any,
+    fontWeight: Typography.weights.semibold,
   },
 });

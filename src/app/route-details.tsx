@@ -4,149 +4,337 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
 } from 'react-native';
-import { AppSafeAreaView } from '@/components/ui/AppSafeAreaView';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { Colors, Typography, BorderRadius, Spacing, Shadows } from '@/constants/theme';
 import { useApp } from '@/context/AppContext';
-import { Typography, BorderRadius, Shadows } from '@/constants/theme';
-import { StatusBadge } from '@/components/ui/AppStates';
+import { Header } from '@/components/ui/Header';
+import { Badge } from '@/components/ui/Badge';
 
 export default function RouteDetailsScreen() {
   const router = useRouter();
-  const { routes, themeColors } = useApp();
+  const { routes, isDarkMode } = useApp();
+  const theme = isDarkMode ? Colors.dark : Colors.light;
   const route = routes[0];
 
   if (!route) {
     return (
-      <AppSafeAreaView style={[styles.safe, { backgroundColor: themeColors.background }]}>
-        <Text style={{ textAlign: 'center', marginTop: 40, color: themeColors.textSecondary }}>No route data</Text>
-      </AppSafeAreaView>
+      <View style={[styles.safe, { backgroundColor: theme.background }]}>
+        <Header title="Route Details" showBack />
+        <View style={styles.emptyState}>
+          <Ionicons name="map-outline" size={48} color={theme.textMuted} />
+          <Text style={[styles.emptyText, { color: theme.textSecondary }]}>No route data</Text>
+        </View>
+      </View>
     );
   }
 
   return (
-    <AppSafeAreaView style={[styles.safe, { backgroundColor: themeColors.background }]}>
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <TouchableOpacity
-            onPress={() => router.dismissTo('/(tabs)')}
-            style={[styles.backBtn, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}
-          >
-            <Ionicons name="arrow-back" size={20} color={themeColors.text} />
-          </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: themeColors.text }]}>{route.name}</Text>
-          <StatusBadge status={route.status} size="sm" />
+    <View style={[styles.safe, { backgroundColor: theme.background }]}>
+      <Header
+        title={route.name}
+        showBack
+        rightAction={<Badge status={route.status} size="md" />}
+      />
+
+      <ScrollView
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Hero Card */}
+        <View style={[styles.heroCard, { backgroundColor: theme.cardBackground }, Shadows.medium]}>
+          <View style={styles.heroTop}>
+            <View style={styles.heroIcon}>
+              <Ionicons name="git-branch-outline" size={24} color={theme.primary} />
+            </View>
+            <Badge status={route.status} size="md" />
+          </View>
+          <Text style={[styles.routeName, { color: theme.text }]}>{route.name}</Text>
         </View>
 
-        {/* Route Info */}
-        <View style={[styles.infoCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.small]}>
-          <View style={styles.infoRow}>
-            <View style={styles.infoItem}>
-              <Ionicons name="map-outline" size={16} color={themeColors.textMuted} />
-              <Text style={[styles.infoLabel, { color: themeColors.textSecondary }]}>Distance</Text>
-              <Text style={[styles.infoValue, { color: themeColors.text }]}>{route.distance} km</Text>
-            </View>
-            <View style={styles.infoItem}>
-              <Ionicons name="time-outline" size={16} color={themeColors.textMuted} />
-              <Text style={[styles.infoLabel, { color: themeColors.textSecondary }]}>Duration</Text>
-              <Text style={[styles.infoValue, { color: themeColors.text }]}>{route.estimatedTime} min</Text>
-            </View>
-            <View style={styles.infoItem}>
-              <Ionicons name="people-outline" size={16} color={themeColors.textMuted} />
-              <Text style={[styles.infoLabel, { color: themeColors.textSecondary }]}>Seats</Text>
-              <Text style={[styles.infoValue, { color: themeColors.text }]}>{route.occupiedSeats}/{route.capacity}</Text>
-            </View>
+        {/* Stats Row */}
+        <View style={styles.statsRow}>
+          <View style={[styles.statCard, { backgroundColor: theme.cardBackground }, Shadows.small]}>
+            <Ionicons name="map-outline" size={20} color={theme.primary} />
+            <Text style={[styles.statValue, { color: theme.text }]}>{route.distance}</Text>
+            <Text style={[styles.statLabel, { color: theme.textSecondary }]}>km</Text>
+          </View>
+
+          <View style={[styles.statCard, { backgroundColor: theme.cardBackground }, Shadows.small]}>
+            <Ionicons name="time-outline" size={20} color={theme.accent} />
+            <Text style={[styles.statValue, { color: theme.text }]}>{route.estimatedTime}</Text>
+            <Text style={[styles.statLabel, { color: theme.textSecondary }]}>min</Text>
+          </View>
+
+          <View style={[styles.statCard, { backgroundColor: theme.cardBackground }, Shadows.small]}>
+            <Ionicons name="people-outline" size={20} color={theme.secondary} />
+            <Text style={[styles.statValue, { color: theme.text }]}>
+              {route.occupiedSeats}/{route.capacity}
+            </Text>
+            <Text style={[styles.statLabel, { color: theme.textSecondary }]}>seats</Text>
           </View>
         </View>
 
         {/* Stops Timeline */}
-        <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Stops</Text>
-        <View style={[styles.stopsCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.small]}>
-          {route.stops.map((stop: any, index: number) => (
-            <View key={stop.id} style={styles.stopRow}>
-              <View style={styles.stopLeft}>
-                <View style={[
-                  styles.stopDot,
-                  {
-                    backgroundColor: index === 0
-                      ? themeColors.accent
-                      : index === route.stops.length - 1
-                      ? themeColors.secondary
-                      : themeColors.textMuted,
-                  },
-                ]} />
-                {index < route.stops.length - 1 && (
-                  <View style={[styles.stopLine, { backgroundColor: themeColors.border }]} />
-                )}
-              </View>
-              <View style={styles.stopContent}>
-                <Text style={[styles.stopName, { color: themeColors.text }]}>{stop.name}</Text>
-                <Text style={[styles.stopAddress, { color: themeColors.textSecondary }]}>{stop.address}</Text>
-                <View style={styles.stopMeta}>
-                  <Text style={[styles.stopTime, { color: themeColors.textMuted }]}>{stop.expectedArrivalTime}</Text>
-                  <Text style={[styles.stopPassengers, { color: themeColors.textMuted }]}>
-                    {stop.passengerCount} passengers • {stop.type}
-                  </Text>
-                </View>
-              </View>
+        <View style={[styles.stopsCard, { backgroundColor: theme.cardBackground }, Shadows.small]}>
+          <View style={styles.stopsHeader}>
+            <Ionicons name="location-outline" size={16} color={theme.primary} />
+            <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>STOPS</Text>
+            <View style={[styles.stopCountBadge, { backgroundColor: theme.primaryLight }]}>
+              <Text style={[styles.stopCountText, { color: theme.primary }]}>
+                {route.stops.length}
+              </Text>
             </View>
-          ))}
+          </View>
+
+          <View style={styles.stopsList}>
+            {route.stops.map((stop: any, index: number) => {
+              const isFirst = index === 0;
+              const isLast = index === route.stops.length - 1;
+
+              return (
+                <View key={stop.id} style={styles.stopRow}>
+                  {/* Timeline Indicator */}
+                  <View style={styles.stopIndicator}>
+                    <View
+                      style={[
+                        styles.stopDot,
+                        {
+                          backgroundColor: isFirst
+                            ? theme.accent
+                            : isLast
+                            ? theme.primary
+                            : theme.textMuted,
+                          width: isFirst || isLast ? 12 : 8,
+                          height: isFirst || isLast ? 12 : 8,
+                          borderRadius: isFirst || isLast ? 6 : 4,
+                        },
+                      ]}
+                    />
+                    {!isLast && (
+                      <View style={[styles.stopLine, { backgroundColor: theme.border }]} />
+                    )}
+                  </View>
+
+                  {/* Stop Content */}
+                  <View style={[styles.stopContent, isLast && styles.stopContentLast]}>
+                    <View style={styles.stopTop}>
+                      <Text style={[styles.stopName, { color: theme.text }]}>{stop.name}</Text>
+                      {isFirst && (
+                        <View style={[styles.stopTag, { backgroundColor: theme.accentLight }]}>
+                          <Text style={[styles.stopTagText, { color: theme.accent }]}>START</Text>
+                        </View>
+                      )}
+                      {isLast && (
+                        <View style={[styles.stopTag, { backgroundColor: theme.primaryLight }]}>
+                          <Text style={[styles.stopTagText, { color: theme.primary }]}>END</Text>
+                        </View>
+                      )}
+                    </View>
+
+                    <Text style={[styles.stopAddress, { color: theme.textSecondary }]}>
+                      {stop.address}
+                    </Text>
+
+                    <View style={styles.stopMeta}>
+                      <View style={styles.stopMetaItem}>
+                        <Ionicons name="time-outline" size={12} color={theme.textMuted} />
+                        <Text style={[styles.stopMetaText, { color: theme.textMuted }]}>
+                          {stop.expectedArrivalTime}
+                        </Text>
+                      </View>
+                      <View style={styles.stopMetaItem}>
+                        <Ionicons name="people-outline" size={12} color={theme.textMuted} />
+                        <Text style={[styles.stopMetaText, { color: theme.textMuted }]}>
+                          {stop.passengerCount} pax
+                        </Text>
+                      </View>
+                      <View style={[styles.stopTypeBadge, { backgroundColor: theme.backgroundElement }]}>
+                        <Text style={[styles.stopTypeText, { color: theme.textSecondary }]}>
+                          {stop.type}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                </View>
+              );
+            })}
+          </View>
         </View>
       </ScrollView>
-    </AppSafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  container: { padding: 18, paddingBottom: 40 },
-  header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16,
+  container: {
+    padding: Spacing.base,
+    paddingBottom: Spacing.xxl,
+    gap: Spacing.md,
   },
-  backBtn: {
-    width: 40, height: 40, borderRadius: 20, borderWidth: 1,
-    justifyContent: 'center', alignItems: 'center',
+  emptyState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.sm,
   },
-  headerTitle: {
-    fontSize: Typography.fontSizes.lg, fontWeight: Typography.weights.bold as any, flex: 1, marginLeft: 12,
+  emptyText: {
+    fontSize: Typography.fontSizes.md,
+    fontWeight: Typography.weights.medium,
   },
-  infoCard: {
-    borderRadius: BorderRadius.md, borderWidth: 1, padding: 16, marginBottom: 20,
+  heroCard: {
+    padding: Spacing.md,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: 'rgba(37, 99, 235, 0.1)',
   },
-  infoRow: {
-    flexDirection: 'row', justifyContent: 'space-around',
+  heroTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
   },
-  infoItem: { alignItems: 'center', gap: 4 },
-  infoLabel: { fontSize: Typography.fontSizes.xs },
-  infoValue: { fontSize: Typography.fontSizes.lg, fontWeight: Typography.weights.bold as any },
-  sectionTitle: {
-    fontSize: Typography.fontSizes.md, fontWeight: Typography.weights.bold as any, marginBottom: 10,
+  heroIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: BorderRadius.full,
+    backgroundColor: 'rgba(37, 99, 235, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  routeName: {
+    fontSize: Typography.fontSizes.xl,
+    fontWeight: Typography.weights.bold,
+    letterSpacing: -0.3,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  statCard: {
+    flex: 1,
+    alignItems: 'center',
+    padding: Spacing.md,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: 'rgba(37, 99, 235, 0.06)',
+    gap: 4,
+  },
+  statValue: {
+    fontSize: Typography.fontSizes.xl,
+    fontWeight: Typography.weights.bold,
+  },
+  statLabel: {
+    fontSize: Typography.fontSizes.xs,
+    fontWeight: Typography.weights.medium,
+    letterSpacing: 0.3,
   },
   stopsCard: {
-    borderRadius: BorderRadius.md, borderWidth: 1, padding: 16,
+    padding: Spacing.md,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: 'rgba(37, 99, 235, 0.06)',
   },
+  stopsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    marginBottom: Spacing.md,
+  },
+  sectionTitle: {
+    fontSize: Typography.fontSizes.xs,
+    fontWeight: Typography.weights.bold,
+    letterSpacing: 0.8,
+    flex: 1,
+  },
+  stopCountBadge: {
+    width: 24,
+    height: 24,
+    borderRadius: BorderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stopCountText: {
+    fontSize: Typography.fontSizes.xs,
+    fontWeight: Typography.weights.bold,
+  },
+  stopsList: {},
   stopRow: {
     flexDirection: 'row',
   },
-  stopLeft: {
-    width: 24, alignItems: 'center',
+  stopIndicator: {
+    width: 24,
+    alignItems: 'center',
+    paddingTop: 3,
   },
   stopDot: {
-    width: 12, height: 12, borderRadius: 6,
+    zIndex: 2,
   },
   stopLine: {
-    width: 2, flex: 1, marginVertical: 4, borderRadius: 1,
+    width: 2,
+    flex: 1,
+    marginVertical: 4,
+    borderRadius: 1,
+    minHeight: 24,
   },
   stopContent: {
-    flex: 1, marginLeft: 12, paddingBottom: 20,
+    flex: 1,
+    paddingBottom: Spacing.md,
+    paddingLeft: Spacing.sm,
+  },
+  stopContentLast: {
+    paddingBottom: 0,
+  },
+  stopTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 2,
   },
   stopName: {
-    fontSize: Typography.fontSizes.md, fontWeight: Typography.weights.semibold as any, marginBottom: 2,
+    fontSize: Typography.fontSizes.md,
+    fontWeight: Typography.weights.semibold,
+    flex: 1,
   },
-  stopAddress: { fontSize: Typography.fontSizes.sm, marginBottom: 4 },
-  stopMeta: { flexDirection: 'row', gap: 12 },
-  stopTime: { fontSize: Typography.fontSizes.xs },
-  stopPassengers: { fontSize: Typography.fontSizes.xs },
+  stopTag: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: BorderRadius.xs,
+    marginLeft: Spacing.sm,
+  },
+  stopTagText: {
+    fontSize: Typography.fontSizes.xs - 1,
+    fontWeight: Typography.weights.bold,
+    letterSpacing: 0.5,
+  },
+  stopAddress: {
+    fontSize: Typography.fontSizes.sm,
+    marginBottom: Spacing.xs,
+  },
+  stopMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+  },
+  stopMetaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  stopMetaText: {
+    fontSize: Typography.fontSizes.xs,
+    fontWeight: Typography.weights.medium,
+  },
+  stopTypeBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: BorderRadius.xs,
+  },
+  stopTypeText: {
+    fontSize: Typography.fontSizes.xs - 1,
+    fontWeight: Typography.weights.medium,
+    textTransform: 'capitalize',
+  },
 });

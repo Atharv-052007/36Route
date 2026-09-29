@@ -19,8 +19,7 @@ import { SupervisorRoute } from '@/types';
 
 export default function RoutesScreen() {
   const router = useRouter();
-  const { routes, setSelectedRouteId, isDarkMode } = useApp();
-  const theme = isDarkMode ? Colors.dark : Colors.light;
+  const { routes, setSelectedRouteId, isDarkMode, themeColors } = useApp();
 
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -36,43 +35,33 @@ export default function RoutesScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: themeColors.background }]}>
       <StatusBar
         barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={theme.cardBackground}
+        backgroundColor={themeColors.cardBackground}
       />
 
-      <Header title="Routes" showBack />
+      <Header title="Routes" subtitle={`${routes.length} active routes`} showBack />
 
-      <View
-        style={[
-          styles.searchContainer,
-          {
-            backgroundColor: theme.cardBackground,
-            borderBottomColor: theme.border,
-          },
-        ]}
-      >
+      {/* Search Bar */}
+      <View style={[styles.searchContainer, { backgroundColor: themeColors.cardBackground }]}>
         <View
           style={[
             styles.searchBar,
-            {
-              backgroundColor: theme.backgroundElement,
-              borderColor: theme.border,
-            },
+            { backgroundColor: themeColors.backgroundElement, borderColor: themeColors.border },
           ]}
         >
-          <Ionicons name="search" size={16} color={theme.textMuted} />
+          <Ionicons name="search" size={18} color={themeColors.textMuted} />
           <TextInput
-            style={[styles.searchInput, { color: theme.text }]}
+            style={[styles.searchInput, { color: themeColors.text }]}
             placeholder="Search route name, stop..."
-            placeholderTextColor={theme.textMuted}
+            placeholderTextColor={themeColors.textMuted}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => setSearchQuery('')}>
-              <Ionicons name="close-circle" size={16} color={theme.textMuted} />
+              <Ionicons name="close-circle" size={18} color={themeColors.textMuted} />
             </TouchableOpacity>
           )}
         </View>
@@ -82,69 +71,97 @@ export default function RoutesScreen() {
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
       >
+        {/* Results count */}
+        <View style={styles.resultsRow}>
+          <Text style={[styles.resultsText, { color: themeColors.textMuted }]}>
+            {filteredRoutes.length} route{filteredRoutes.length !== 1 ? 's' : ''} found
+          </Text>
+        </View>
+
         {filteredRoutes.map((r) => (
-          <View
+          <TouchableOpacity
             key={r.id}
+            activeOpacity={0.7}
+            onPress={() => handleViewRoute(r)}
             style={[
               styles.routeCard,
-              {
-                backgroundColor: theme.cardBackground,
-                borderColor: theme.border,
-              },
+              { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border },
             ]}
           >
-            <View style={styles.cardHeader}>
-              <Text style={[styles.routeName, { color: theme.text }]}>
-                {r.name}
-              </Text>
+            <View style={styles.cardTop}>
+              <View style={styles.cardTopLeft}>
+                <View
+                  style={[
+                    styles.routeIcon,
+                    { backgroundColor: themeColors.primaryLight },
+                  ]}
+                >
+                  <Ionicons name="git-network-outline" size={18} color={themeColors.primary} />
+                </View>
+                <View style={styles.routeTitleCol}>
+                  <Text style={[styles.routeName, { color: themeColors.text }]}>
+                    {r.name}
+                  </Text>
+                  <Text style={[styles.routePassengers, { color: themeColors.textSecondary }]}>
+                    {r.typicalPassengers} typical passengers
+                  </Text>
+                </View>
+              </View>
+              <View
+                style={[
+                  styles.statusPill,
+                  {
+                    backgroundColor: themeColors.availableLight,
+                    borderColor: themeColors.availableBorder,
+                  },
+                ]}
+              >
+                <View style={[styles.statusDot, { backgroundColor: themeColors.available }]} />
+                <Text style={[styles.statusText, { color: themeColors.available }]}>Active</Text>
+              </View>
             </View>
 
-            <View style={styles.metaRow}>
+            <View style={[styles.cardDivider, { backgroundColor: themeColors.borderLight }]} />
+
+            <View style={styles.cardMeta}>
               <View style={styles.metaItem}>
-                <Ionicons name="location-outline" size={14} color={theme.textSecondary} />
-                <Text style={[styles.metaText, { color: theme.textSecondary }]}>
+                <Ionicons name="navigate-outline" size={14} color={themeColors.textMuted} />
+                <Text style={[styles.metaText, { color: themeColors.textSecondary }]}>
                   {r.stopsCount} stops
                 </Text>
               </View>
-
-              <Text style={[styles.metaDot, { color: theme.textMuted }]}>•</Text>
-
+              <View style={[styles.metaDot, { backgroundColor: themeColors.textMuted }]} />
               <View style={styles.metaItem}>
-                <Ionicons name="speedometer-outline" size={14} color={theme.textSecondary} />
-                <Text style={[styles.metaText, { color: theme.textSecondary }]}>
+                <Ionicons name="speedometer-outline" size={14} color={themeColors.textMuted} />
+                <Text style={[styles.metaText, { color: themeColors.textSecondary }]}>
                   {r.distanceKm} km
                 </Text>
               </View>
-
-              <Text style={[styles.metaDot, { color: theme.textMuted }]}>•</Text>
-
+              <View style={[styles.metaDot, { backgroundColor: themeColors.textMuted }]} />
               <View style={styles.metaItem}>
-                <Ionicons name="time-outline" size={14} color={theme.textSecondary} />
-                <Text style={[styles.metaText, { color: theme.textSecondary }]}>
+                <Ionicons name="time-outline" size={14} color={themeColors.textMuted} />
+                <Text style={[styles.metaText, { color: themeColors.textSecondary }]}>
                   ~{r.estimatedMinutes} mins
                 </Text>
               </View>
             </View>
 
-            <View style={styles.cardFooter}>
-              <Text style={[styles.passengersText, { color: theme.textSecondary }]}>
-                Typical passengers: {r.typicalPassengers}
-              </Text>
-              <TouchableOpacity
-                activeOpacity={0.7}
-                onPress={() => handleViewRoute(r)}
-                style={[
-                  styles.viewRouteBtn,
-                  {
-                    backgroundColor: theme.primary,
-                  },
-                ]}
-              >
-                <Text style={styles.viewRouteBtnText}>View Route</Text>
-              </TouchableOpacity>
+            <View style={styles.cardAction}>
+              <Text style={[styles.viewText, { color: themeColors.primary }]}>View Details</Text>
+              <Ionicons name="arrow-forward" size={16} color={themeColors.primary} />
             </View>
-          </View>
+          </TouchableOpacity>
         ))}
+
+        {filteredRoutes.length === 0 && (
+          <View style={styles.emptyState}>
+            <Ionicons name="search-outline" size={48} color={themeColors.textMuted} />
+            <Text style={[styles.emptyTitle, { color: themeColors.text }]}>No routes found</Text>
+            <Text style={[styles.emptyDesc, { color: themeColors.textSecondary }]}>
+              Try a different search term
+            </Text>
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -157,45 +174,97 @@ const styles = StyleSheet.create({
   },
   searchContainer: {
     paddingHorizontal: Spacing.base,
-    paddingVertical: Spacing.sm,
-    borderBottomWidth: 1,
+    paddingVertical: Spacing.sm + 2,
   },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: BorderRadius.sm,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm + 2,
+    borderRadius: BorderRadius.md,
     borderWidth: 1,
-    gap: 8,
+    gap: Spacing.sm,
   },
   searchInput: {
     flex: 1,
-    fontSize: Typography.fontSizes.sm,
+    fontSize: Typography.fontSizes.sm + 1,
     paddingVertical: 0,
   },
   listContent: {
     padding: Spacing.base,
     paddingBottom: Spacing.xxl,
   },
-  routeCard: {
-    padding: Spacing.md,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    marginBottom: Spacing.md,
-    ...Shadows.subtle,
+  resultsRow: {
+    marginBottom: Spacing.sm + 4,
   },
-  cardHeader: {
-    marginBottom: 6,
+  resultsText: {
+    fontSize: Typography.fontSizes.xs,
+    fontWeight: Typography.weights.medium,
+  },
+  routeCard: {
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    padding: Spacing.md,
+    marginBottom: Spacing.sm + 4,
+    ...Shadows.card,
+  },
+  cardTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  cardTopLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm + 4,
+    flex: 1,
+  },
+  routeIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: BorderRadius.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  routeTitleCol: {
+    flex: 1,
   },
   routeName: {
     fontSize: Typography.fontSizes.base,
     fontWeight: Typography.weights.bold,
+    letterSpacing: -0.2,
   },
-  metaRow: {
+  routePassengers: {
+    fontSize: Typography.fontSizes.xs,
+    marginTop: 2,
+  },
+  statusPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    gap: 5,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.full,
+    borderWidth: 1,
+  },
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  statusText: {
+    fontSize: Typography.fontSizes.xs - 1,
+    fontWeight: Typography.weights.semibold,
+  },
+  cardDivider: {
+    height: 1,
+    marginVertical: Spacing.sm + 4,
+  },
+  cardMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    marginBottom: Spacing.sm + 4,
   },
   metaItem: {
     flexDirection: 'row',
@@ -206,27 +275,33 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSizes.xs + 1,
   },
   metaDot: {
-    marginHorizontal: 8,
+    width: 3,
+    height: 3,
+    borderRadius: 1.5,
   },
-  cardFooter: {
+  cardAction: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: 10,
+    justifyContent: 'flex-end',
+    gap: 4,
+    paddingTop: Spacing.sm,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(150, 150, 150, 0.1)',
+    borderTopColor: 'rgba(150, 150, 150, 0.08)',
   },
-  passengersText: {
+  viewText: {
     fontSize: Typography.fontSizes.sm,
-  },
-  viewRouteBtn: {
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: BorderRadius.sm,
-  },
-  viewRouteBtnText: {
-    color: '#FFFFFF',
-    fontSize: Typography.fontSizes.xs + 1,
     fontWeight: Typography.weights.semibold,
+  },
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: Spacing.xxl,
+    gap: Spacing.sm,
+  },
+  emptyTitle: {
+    fontSize: Typography.fontSizes.lg,
+    fontWeight: Typography.weights.bold,
+  },
+  emptyDesc: {
+    fontSize: Typography.fontSizes.sm,
   },
 });

@@ -5,9 +5,6 @@ import {
   View,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
-  Platform,
-  StatusBar,
   Linking,
   Alert,
 } from 'react-native';
@@ -17,18 +14,17 @@ import { Colors, Typography, Spacing, BorderRadius, Shadows } from '@/constants/
 import { useApp } from '@/context/AppContext';
 import { Header } from '@/components/ui/Header';
 import { Badge } from '@/components/ui/Badge';
+import { AppButton } from '@/components/ui/AppButton';
 import { RouteTimeline, EventTimeline } from '@/components/ui/Timeline';
 
 export default function TripDetailsScreen() {
   const router = useRouter();
-  const { trips, selectedTripId, setSelectedDriverId, isDarkMode } = useApp();
+  const { trips, selectedTripId, isDarkMode } = useApp();
   const theme = isDarkMode ? Colors.dark : Colors.light;
 
   const [passengersExpanded, setPassengersExpanded] = useState(false);
 
-  // Find the selected trip or fallback to the first trip
   const trip = trips.find((t) => t.id === selectedTripId) || trips[0];
-
   const needsDriver = trip.status === 'Needs Attention' && !trip.driverId;
 
   const handleCallDriver = () => {
@@ -39,135 +35,83 @@ export default function TripDetailsScreen() {
     }
   };
 
-  const handleChangeDriver = () => {
-    router.push('/dispatch');
-  };
-
-  const handleChangeVehicle = () => {
-    router.push('/vehicles');
-  };
-
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={theme.cardBackground}
-      />
-
+    <View style={[styles.safe, { backgroundColor: theme.background }]}>
       <Header
         title={trip.tripNumber}
-        subtitle={`${trip.scheduledTime} • ${trip.routeSummary}`}
+        subtitle={`${trip.scheduledTime} · ${trip.routeSummary}`}
         showBack
+        rightAction={<Badge status={needsDriver ? 'Driver required' : trip.status} size="md" />}
       />
 
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
       >
-        {/* Main Status Banner */}
-        <View
-          style={[
-            styles.statusCard,
-            {
-              backgroundColor: theme.cardBackground,
-              borderColor: needsDriver ? theme.warningBorder : theme.border,
-            },
-          ]}
-        >
-          <View style={styles.statusTop}>
-            <View>
-              <Text style={[styles.scheduledTime, { color: theme.text }]}>
-                {trip.scheduledTime}
-              </Text>
-              <Text style={[styles.routeHeading, { color: theme.text }]}>
-                {trip.routeSummary}
-              </Text>
+        {/* Hero Status Card */}
+        <View style={[styles.heroCard, { backgroundColor: theme.cardBackground }, Shadows.medium]}>
+          <View style={styles.heroTop}>
+            <View style={styles.heroLeft}>
+              <Text style={[styles.scheduledTime, { color: theme.text }]}>{trip.scheduledTime}</Text>
+              <Text style={[styles.routeHeading, { color: theme.textSecondary }]}>{trip.routeSummary}</Text>
             </View>
-            <Badge
-              status={needsDriver ? 'Driver required' : trip.status}
-              size="md"
-            />
           </View>
 
           {needsDriver && (
-            <View
-              style={[
-                styles.dispatchActionCallout,
-                { backgroundColor: theme.warningLight, borderColor: theme.warningBorder },
-              ]}
-            >
-              <View style={styles.calloutTextWrap}>
-                <Ionicons name="alert-circle" size={18} color={theme.warning} />
-                <Text style={[styles.calloutText, { color: theme.text }]}>
-                  This trip has no assigned driver
-                </Text>
-              </View>
+            <View style={[styles.alertBanner, { backgroundColor: theme.warningLight, borderColor: theme.warningBorder }]}>
+              <Ionicons name="alert-circle" size={18} color={theme.warning} />
+              <Text style={[styles.alertText, { color: theme.text }]}>No driver assigned</Text>
               <TouchableOpacity
                 activeOpacity={0.8}
                 onPress={() => router.push('/dispatch')}
-                style={[styles.calloutBtn, { backgroundColor: theme.warning }]}
+                style={[styles.alertBtn, { backgroundColor: theme.warning }]}
               >
-                <Text style={styles.calloutBtnText}>Dispatch Driver</Text>
+                <Text style={styles.alertBtnText}>Dispatch</Text>
               </TouchableOpacity>
             </View>
           )}
         </View>
 
-        {/* PASSENGERS Section */}
-        <View
-          style={[
-            styles.card,
-            {
-              backgroundColor: theme.cardBackground,
-              borderColor: theme.border,
-            },
-          ]}
-        >
+        {/* Passengers Section */}
+        <View style={[styles.card, { backgroundColor: theme.cardBackground }, Shadows.small]}>
           <TouchableOpacity
             activeOpacity={0.7}
             onPress={() => setPassengersExpanded((prev) => !prev)}
-            style={styles.cardHeaderRow}
+            style={styles.cardHeader}
           >
-            <View style={styles.sectionTitleRow}>
-              <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>
-                PASSENGERS
-              </Text>
-              <Text style={[styles.passengerCountBadge, { color: theme.text }]}>
-                {trip.passengerCount} / {trip.maxCapacity}
-              </Text>
+            <View style={styles.cardTitleRow}>
+              <Ionicons name="people-outline" size={16} color={theme.primary} />
+              <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>PASSENGERS</Text>
+              <View style={[styles.countBadge, { backgroundColor: theme.primaryLight }]}>
+                <Text style={[styles.countText, { color: theme.primary }]}>
+                  {trip.passengerCount}/{trip.maxCapacity}
+                </Text>
+              </View>
             </View>
-            <View style={styles.expandRow}>
-              <Text style={[styles.expandText, { color: theme.accent }]}>
-                {passengersExpanded ? 'Hide' : 'View list'}
-              </Text>
-              <Ionicons
-                name={passengersExpanded ? 'chevron-up' : 'chevron-down'}
-                size={16}
-                color={theme.accent}
-              />
-            </View>
+            <Ionicons
+              name={passengersExpanded ? 'chevron-up' : 'chevron-down'}
+              size={18}
+              color={theme.primary}
+            />
           </TouchableOpacity>
 
           {passengersExpanded && (
-            <View style={styles.passengersList}>
+            <View style={styles.passengerList}>
               {trip.passengers.length === 0 ? (
-                <Text style={[styles.emptyListText, { color: theme.textSecondary }]}>
+                <Text style={[styles.emptyList, { color: theme.textSecondary }]}>
                   No passenger roster attached yet.
                 </Text>
               ) : (
                 trip.passengers.map((p) => (
-                  <View
-                    key={p.id}
-                    style={[
-                      styles.passengerRow,
-                      { borderBottomColor: theme.borderLight },
-                    ]}
-                  >
-                    <View style={styles.pInfo}>
-                      <Text style={[styles.pName, { color: theme.text }]}>
-                        {p.name}
+                  <View key={p.id} style={[styles.passengerRow, { borderBottomColor: theme.borderLight }]}>
+                    <View style={styles.passengerAvatar}>
+                      <Text style={[styles.passengerInitial, { color: theme.primary }]}>
+                        {p.name.charAt(0)}
                       </Text>
-                      <Text style={[styles.pSub, { color: theme.textSecondary }]}>
+                    </View>
+                    <View style={styles.passengerInfo}>
+                      <Text style={[styles.passengerName, { color: theme.text }]}>{p.name}</Text>
+                      <Text style={[styles.passengerRoute, { color: theme.textSecondary }]}>
                         {p.pickupPoint} → {p.dropPoint}
                       </Text>
                     </View>
@@ -179,364 +123,309 @@ export default function TripDetailsScreen() {
           )}
         </View>
 
-        {/* DRIVER Section */}
-        <View
-          style={[
-            styles.card,
-            {
-              backgroundColor: theme.cardBackground,
-              borderColor: theme.border,
-            },
-          ]}
-        >
-          <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>
-            DRIVER
-          </Text>
+        {/* Driver Section */}
+        <View style={[styles.card, { backgroundColor: theme.cardBackground }, Shadows.small]}>
+          <View style={styles.cardTitleRow}>
+            <Ionicons name="person-outline" size={16} color={theme.accent} />
+            <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>DRIVER</Text>
+          </View>
 
           {trip.driverName ? (
-            <>
-              <View style={styles.driverInfoRow}>
-                <View>
-                  <Text style={[styles.driverName, { color: theme.text }]}>
-                    {trip.driverName}
+            <View style={styles.driverSection}>
+              <View style={styles.driverRow}>
+                <View style={[styles.driverAvatar, { backgroundColor: theme.accentLight }]}>
+                  <Text style={[styles.driverInitial, { color: theme.accent }]}>
+                    {trip.driverName.charAt(0)}
                   </Text>
-                  <Text style={[styles.driverStatusText, { color: theme.textSecondary }]}>
+                </View>
+                <View style={styles.driverInfo}>
+                  <Text style={[styles.driverName, { color: theme.text }]}>{trip.driverName}</Text>
+                  <Text style={[styles.driverStatus, { color: theme.textSecondary }]}>
                     {trip.driverStatus || 'Available'}
                   </Text>
                 </View>
-                <Badge
-                  status={trip.driverStatus || 'Available'}
+                <Badge status={trip.driverStatus || 'Available'} size="sm" />
+              </View>
+
+              <View style={styles.driverActions}>
+                <AppButton
+                  title="Call Driver"
+                  onPress={handleCallDriver}
+                  variant="primary"
                   size="sm"
+                  icon={<Ionicons name="call" size={16} color="#FFF" />}
+                />
+                <AppButton
+                  title="Change"
+                  onPress={() => router.push('/dispatch')}
+                  variant="outline"
+                  size="sm"
+                  icon={<Ionicons name="swap-horizontal" size={16} color={theme.primary} />}
                 />
               </View>
-
-              <View style={styles.buttonsRow}>
-                <TouchableOpacity
-                  activeOpacity={0.7}
-                  onPress={handleChangeDriver}
-                  style={[
-                    styles.secondaryBtn,
-                    {
-                      backgroundColor: theme.backgroundElement,
-                      borderColor: theme.border,
-                    },
-                  ]}
-                >
-                  <Ionicons name="swap-horizontal" size={16} color={theme.text} />
-                  <Text style={[styles.btnText, { color: theme.text }]}>
-                    Change Driver
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  activeOpacity={0.7}
-                  onPress={handleCallDriver}
-                  style={[
-                    styles.primaryBtn,
-                    {
-                      backgroundColor: theme.primary,
-                    },
-                  ]}
-                >
-                  <Ionicons name="call" size={16} color="#FFFFFF" />
-                  <Text style={styles.primaryBtnText}>Call Driver</Text>
-                </TouchableOpacity>
-              </View>
-            </>
+            </View>
           ) : (
-            <View style={styles.unassignedDriverBox}>
+            <View style={styles.unassignedBox}>
               <Text style={[styles.unassignedText, { color: theme.textSecondary }]}>
-                No driver currently assigned to this trip.
+                No driver currently assigned.
               </Text>
-              <TouchableOpacity
-                activeOpacity={0.8}
+              <AppButton
+                title="Assign Driver"
                 onPress={() => router.push('/dispatch')}
-                style={[
-                  styles.primaryBtn,
-                  { backgroundColor: theme.accent, marginTop: Spacing.sm },
-                ]}
-              >
-                <Ionicons name="person-add" size={16} color="#FFFFFF" />
-                <Text style={styles.primaryBtnText}>Assign Driver</Text>
-              </TouchableOpacity>
+                variant="primary"
+                size="sm"
+                icon={<Ionicons name="person-add" size={16} color="#FFF" />}
+              />
             </View>
           )}
         </View>
 
-        {/* VEHICLE Section */}
-        <View
-          style={[
-            styles.card,
-            {
-              backgroundColor: theme.cardBackground,
-              borderColor: theme.border,
-            },
-          ]}
-        >
-          <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>
-            VEHICLE
-          </Text>
-          <View style={styles.vehicleInfoRow}>
-            <View>
+        {/* Vehicle Section */}
+        <View style={[styles.card, { backgroundColor: theme.cardBackground }, Shadows.small]}>
+          <View style={styles.cardTitleRow}>
+            <Ionicons name="car-sport-outline" size={16} color={theme.secondary} />
+            <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>VEHICLE</Text>
+          </View>
+
+          <View style={styles.vehicleRow}>
+            <View style={[styles.vehicleIcon, { backgroundColor: theme.secondaryLight }]}>
+              <Ionicons name="car-sport" size={20} color={theme.secondary} />
+            </View>
+            <View style={styles.vehicleInfo}>
               <Text style={[styles.vehicleModel, { color: theme.text }]}>
                 {trip.vehicleModel || 'Toyota Innova'}
               </Text>
               <Text style={[styles.vehiclePlate, { color: theme.textSecondary }]}>
-                {trip.vehiclePlate || 'MH-12-AB-1234'} • Capacity: {trip.maxCapacity}
+                {trip.vehiclePlate || 'MH-12-AB-1234'} · {trip.maxCapacity} seats
               </Text>
             </View>
             <TouchableOpacity
               activeOpacity={0.7}
-              onPress={handleChangeVehicle}
-              style={[
-                styles.changeVehicleBtn,
-                {
-                  backgroundColor: theme.backgroundElement,
-                  borderColor: theme.border,
-                },
-              ]}
+              onPress={() => router.push('/vehicles')}
+              style={[styles.changeBtn, { backgroundColor: theme.backgroundElement }]}
             >
-              <Text style={[styles.btnTextSmall, { color: theme.text }]}>
-                Change Vehicle
-              </Text>
+              <Text style={[styles.changeBtnText, { color: theme.text }]}>Change</Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* ROUTE Section */}
-        <View
-          style={[
-            styles.card,
-            {
-              backgroundColor: theme.cardBackground,
-              borderColor: theme.border,
-            },
-          ]}
-        >
-          <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>
-            ROUTE
-          </Text>
+        {/* Route Section */}
+        <View style={[styles.card, { backgroundColor: theme.cardBackground }, Shadows.small]}>
+          <View style={styles.cardTitleRow}>
+            <Ionicons name="map-outline" size={16} color={theme.primary} />
+            <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>ROUTE</Text>
+          </View>
           <RouteTimeline stops={trip.stops} style={{ marginTop: Spacing.xs }} />
         </View>
 
-        {/* TRIP EVENTS Section */}
-        <View
-          style={[
-            styles.card,
-            {
-              backgroundColor: theme.cardBackground,
-              borderColor: theme.border,
-            },
-          ]}
-        >
-          <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>
-            TRIP EVENTS
-          </Text>
+        {/* Events Timeline */}
+        <View style={[styles.card, { backgroundColor: theme.cardBackground }, Shadows.small]}>
+          <View style={styles.cardTitleRow}>
+            <Ionicons name="time-outline" size={16} color={theme.warning} />
+            <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>TRIP EVENTS</Text>
+          </View>
           <EventTimeline events={trip.events} style={{ marginTop: Spacing.xs }} />
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
-  },
-  scrollContent: {
+  safe: { flex: 1 },
+  container: {
     padding: Spacing.base,
     paddingBottom: Spacing.xxl,
+    gap: Spacing.md,
   },
-  statusCard: {
+  heroCard: {
     padding: Spacing.md,
-    borderRadius: BorderRadius.md,
+    borderRadius: BorderRadius.lg,
     borderWidth: 1,
-    marginBottom: Spacing.md,
-    ...Shadows.subtle,
+    borderColor: 'rgba(37, 99, 235, 0.1)',
   },
-  statusTop: {
+  heroTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
   },
+  heroLeft: {
+    flex: 1,
+  },
   scheduledTime: {
     fontSize: Typography.fontSizes.xxl,
     fontWeight: Typography.weights.bold,
+    letterSpacing: -0.5,
   },
   routeHeading: {
-    fontSize: Typography.fontSizes.base,
-    fontWeight: Typography.weights.semibold,
+    fontSize: Typography.fontSizes.md,
+    fontWeight: Typography.weights.medium,
     marginTop: 2,
   },
-  dispatchActionCallout: {
+  alertBanner: {
     marginTop: Spacing.md,
-    padding: Spacing.md,
+    padding: Spacing.sm + 4,
     borderRadius: BorderRadius.sm,
     borderWidth: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    gap: Spacing.sm,
   },
-  calloutTextWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    flex: 1,
-  },
-  calloutText: {
+  alertText: {
     fontSize: Typography.fontSizes.sm,
     fontWeight: Typography.weights.medium,
+    flex: 1,
   },
-  calloutBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: BorderRadius.sm,
+  alertBtn: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs + 2,
+    borderRadius: BorderRadius.xs,
   },
-  calloutBtnText: {
+  alertBtnText: {
     color: '#FFFFFF',
     fontSize: Typography.fontSizes.xs + 1,
     fontWeight: Typography.weights.bold,
   },
   card: {
     padding: Spacing.md,
-    borderRadius: BorderRadius.md,
+    borderRadius: BorderRadius.lg,
     borderWidth: 1,
-    marginBottom: Spacing.md,
-    ...Shadows.subtle,
+    borderColor: 'rgba(37, 99, 235, 0.06)',
   },
-  cardHeaderRow: {
+  cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  sectionTitleRow: {
+  cardTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
+    marginBottom: Spacing.md,
   },
   sectionTitle: {
     fontSize: Typography.fontSizes.xs,
     fontWeight: Typography.weights.bold,
     letterSpacing: 0.8,
-    marginBottom: 4,
+    flex: 1,
   },
-  passengerCountBadge: {
-    fontSize: Typography.fontSizes.sm,
+  countBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: BorderRadius.full,
+  },
+  countText: {
+    fontSize: Typography.fontSizes.xs + 1,
     fontWeight: Typography.weights.bold,
   },
-  expandRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
+  passengerList: {
+    gap: Spacing.sm,
   },
-  expandText: {
-    fontSize: Typography.fontSizes.xs + 1,
-    fontWeight: Typography.weights.semibold,
-  },
-  passengersList: {
-    marginTop: Spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(150, 150, 150, 0.15)',
-    paddingTop: Spacing.xs,
-  },
-  emptyListText: {
+  emptyList: {
     fontSize: Typography.fontSizes.sm,
     paddingVertical: Spacing.sm,
   },
   passengerRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: Spacing.sm,
     borderBottomWidth: 1,
+    gap: Spacing.sm + 4,
   },
-  pInfo: {
-    flex: 1,
-  },
-  pName: {
-    fontSize: Typography.fontSizes.sm,
-    fontWeight: Typography.weights.semibold,
-  },
-  pSub: {
-    fontSize: Typography.fontSizes.xs,
-    marginTop: 2,
-  },
-  driverInfoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  passengerAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: BorderRadius.full,
+    backgroundColor: 'rgba(37, 99, 235, 0.1)',
     alignItems: 'center',
-    marginVertical: Spacing.xs,
+    justifyContent: 'center',
   },
-  driverName: {
-    fontSize: Typography.fontSizes.base,
+  passengerInitial: {
+    fontSize: Typography.fontSizes.sm,
     fontWeight: Typography.weights.bold,
   },
-  driverStatusText: {
-    fontSize: Typography.fontSizes.xs + 1,
-    marginTop: 2,
-  },
-  buttonsRow: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-    marginTop: Spacing.md,
-  },
-  primaryBtn: {
+  passengerInfo: {
     flex: 1,
-    height: 42,
-    borderRadius: BorderRadius.sm,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
   },
-  primaryBtnText: {
-    color: '#FFFFFF',
+  passengerName: {
     fontSize: Typography.fontSizes.sm,
     fontWeight: Typography.weights.semibold,
   },
-  secondaryBtn: {
-    flex: 1,
-    height: 42,
-    borderRadius: BorderRadius.sm,
-    borderWidth: 1,
+  passengerRoute: {
+    fontSize: Typography.fontSizes.xs,
+    marginTop: 1,
+  },
+  driverSection: {
+    gap: Spacing.md,
+  },
+  driverRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: Spacing.sm + 4,
+  },
+  driverAvatar: {
+    width: 44,
+    height: 44,
+    borderRadius: BorderRadius.full,
+    alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
   },
-  btnText: {
-    fontSize: Typography.fontSizes.sm,
-    fontWeight: Typography.weights.medium,
+  driverInitial: {
+    fontSize: Typography.fontSizes.lg,
+    fontWeight: Typography.weights.bold,
   },
-  unassignedDriverBox: {
-    paddingVertical: Spacing.sm,
+  driverInfo: {
+    flex: 1,
+  },
+  driverName: {
+    fontSize: Typography.fontSizes.md,
+    fontWeight: Typography.weights.bold,
+  },
+  driverStatus: {
+    fontSize: Typography.fontSizes.xs + 1,
+    marginTop: 1,
+  },
+  driverActions: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  unassignedBox: {
+    gap: Spacing.sm,
   },
   unassignedText: {
     fontSize: Typography.fontSizes.sm,
+    marginBottom: Spacing.xs,
   },
-  vehicleInfoRow: {
+  vehicleRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: Spacing.xs,
+    gap: Spacing.sm + 4,
+  },
+  vehicleIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  vehicleInfo: {
+    flex: 1,
   },
   vehicleModel: {
-    fontSize: Typography.fontSizes.base,
+    fontSize: Typography.fontSizes.md,
     fontWeight: Typography.weights.bold,
   },
   vehiclePlate: {
-    fontSize: Typography.fontSizes.xs + 1,
-    marginTop: 2,
+    fontSize: Typography.fontSizes.sm,
+    marginTop: 1,
   },
-  changeVehicleBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+  changeBtn: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs + 2,
     borderRadius: BorderRadius.sm,
-    borderWidth: 1,
   },
-  btnTextSmall: {
+  changeBtnText: {
     fontSize: Typography.fontSizes.xs + 1,
-    fontWeight: Typography.weights.medium,
+    fontWeight: Typography.weights.semibold,
   },
 });

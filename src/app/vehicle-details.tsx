@@ -5,9 +5,6 @@ import {
   View,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
-  Platform,
-  StatusBar,
   Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -16,14 +13,14 @@ import { Colors, Typography, Spacing, BorderRadius, Shadows } from '@/constants/
 import { useApp } from '@/context/AppContext';
 import { Header } from '@/components/ui/Header';
 import { Badge } from '@/components/ui/Badge';
+import { AppButton } from '@/components/ui/AppButton';
 
 export default function VehicleDetailsScreen() {
   const router = useRouter();
   const { vehicles, selectedVehicleId, isDarkMode } = useApp();
   const theme = isDarkMode ? Colors.dark : Colors.light;
 
-  const vehicle =
-    vehicles.find((v) => v.id === selectedVehicleId) || vehicles[0];
+  const vehicle = vehicles.find((v) => v.id === selectedVehicleId) || vehicles[0];
 
   const handleChangeDriver = () => {
     router.push('/(admin)/people');
@@ -37,12 +34,7 @@ export default function VehicleDetailsScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={theme.cardBackground}
-      />
-
+    <View style={[styles.safe, { backgroundColor: theme.background }]}>
       <Header
         title={vehicle.model}
         subtitle={vehicle.plateNumber}
@@ -51,331 +43,365 @@ export default function VehicleDetailsScreen() {
       />
 
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
       >
-        {/* Vehicle Header Card */}
-        <View
-          style={[
-            styles.headerCard,
-            { backgroundColor: theme.cardBackground, borderColor: theme.border },
-          ]}
-        >
-          <View style={[styles.iconWrap, { backgroundColor: theme.backgroundElement }]}>
-            <Ionicons name="car-sport" size={24} color={theme.accent} />
+        {/* Hero Vehicle Card */}
+        <View style={[styles.heroCard, { backgroundColor: theme.cardBackground }, Shadows.medium]}>
+          <View style={[styles.vehicleSilhouette, { backgroundColor: theme.primaryLight }]}>
+            <Ionicons name="car-sport" size={40} color={theme.primary} />
           </View>
-          <View style={styles.headerInfo}>
-            <Text style={[styles.vehicleModel, { color: theme.text }]}>
-              {vehicle.model}
-            </Text>
-            <Text style={[styles.vehiclePlate, { color: theme.textSecondary }]}>
-              {vehicle.plateNumber}
-            </Text>
-          </View>
+          <Text style={[styles.vehicleModel, { color: theme.text }]}>{vehicle.model}</Text>
+          <Text style={[styles.vehiclePlate, { color: theme.textSecondary }]}>{vehicle.plateNumber}</Text>
+          <Badge status={vehicle.status} size="md" />
         </View>
 
-        {/* Action Buttons */}
-        <View style={styles.actionsRow}>
-          <TouchableOpacity
-            activeOpacity={0.8}
+        {/* Quick Actions */}
+        <View style={styles.actionRow}>
+          <AppButton
+            title="Change Driver"
             onPress={handleChangeDriver}
-            style={[styles.primaryActionBtn, { backgroundColor: theme.primary }]}
-          >
-            <Ionicons name="person-circle-outline" size={18} color="#FFFFFF" />
-            <Text style={styles.primaryActionText}>Change Driver</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            activeOpacity={0.7}
+            variant="primary"
+            icon={<Ionicons name="person-circle-outline" size={18} color="#FFF" />}
+          />
+          <AppButton
+            title="Maintenance"
             onPress={handleViewMaintenance}
-            style={[
-              styles.secondaryActionBtn,
-              { backgroundColor: theme.cardBackground, borderColor: theme.border },
-            ]}
-          >
-            <Ionicons name="build-outline" size={18} color={theme.text} />
-            <Text style={[styles.secondaryActionText, { color: theme.text }]}>
-              View Maintenance
-            </Text>
-          </TouchableOpacity>
+            variant="outline"
+            icon={<Ionicons name="build-outline" size={18} color={theme.primary} />}
+          />
         </View>
 
-        {/* SPECS & METRICS Section */}
-        <View
-          style={[
-            styles.card,
-            { backgroundColor: theme.cardBackground, borderColor: theme.border },
-          ]}
-        >
-          <View style={[styles.metricRow, { borderBottomColor: theme.borderLight }]}>
-            <Text style={[styles.metricLabel, { color: theme.textSecondary }]}>
-              Capacity
-            </Text>
-            <Text style={[styles.metricValue, { color: theme.text }]}>
-              {vehicle.capacity} passengers
-            </Text>
+        {/* Specs & Metrics */}
+        <View style={[styles.card, { backgroundColor: theme.cardBackground }, Shadows.small]}>
+          <View style={styles.cardTitleRow}>
+            <Ionicons name="information-circle-outline" size={16} color={theme.primary} />
+            <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>SPECIFICATIONS</Text>
           </View>
 
-          <View style={[styles.metricRow, { borderBottomColor: theme.borderLight }]}>
-            <Text style={[styles.metricLabel, { color: theme.textSecondary }]}>
-              Current Driver
-            </Text>
-            <Text style={[styles.metricValue, { color: theme.accent }]}>
-              {vehicle.currentDriverName || 'None assigned'}
-            </Text>
-          </View>
-
-          <View style={[styles.metricRow, { borderBottomColor: theme.borderLight }]}>
-            <Text style={[styles.metricLabel, { color: theme.textSecondary }]}>
-              Today's Trips
-            </Text>
-            <Text style={[styles.metricValue, { color: theme.text }]}>
-              {vehicle.todayTrips} trips
-            </Text>
-          </View>
-
-          <View style={styles.metricRow}>
-            <Text style={[styles.metricLabel, { color: theme.textSecondary }]}>
-              Distance
-            </Text>
-            <Text style={[styles.metricValue, { color: theme.text }]}>
-              {vehicle.todayDistanceKm} km
-            </Text>
+          <View style={styles.specsGrid}>
+            <View style={[styles.specItem, { backgroundColor: theme.backgroundElement }]}>
+              <Ionicons name="people-outline" size={18} color={theme.primary} />
+              <Text style={[styles.specValue, { color: theme.text }]}>{vehicle.capacity}</Text>
+              <Text style={[styles.specLabel, { color: theme.textSecondary }]}>Seats</Text>
+            </View>
+            <View style={[styles.specItem, { backgroundColor: theme.backgroundElement }]}>
+              <Ionicons name="speedometer-outline" size={18} color={theme.accent} />
+              <Text style={[styles.specValue, { color: theme.text }]}>{vehicle.todayDistanceKm}</Text>
+              <Text style={[styles.specLabel, { color: theme.textSecondary }]}>km today</Text>
+            </View>
+            <View style={[styles.specItem, { backgroundColor: theme.backgroundElement }]}>
+              <Ionicons name="car-outline" size={18} color={theme.secondary} />
+              <Text style={[styles.specValue, { color: theme.text }]}>{vehicle.todayTrips}</Text>
+              <Text style={[styles.specLabel, { color: theme.textSecondary }]}>trips</Text>
+            </View>
           </View>
         </View>
 
-        {/* DOCUMENTS Section */}
-        <View
-          style={[
-            styles.card,
-            { backgroundColor: theme.cardBackground, borderColor: theme.border },
-          ]}
-        >
-          <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>
-            DOCUMENTS
-          </Text>
+        {/* Current Driver */}
+        <View style={[styles.card, { backgroundColor: theme.cardBackground }, Shadows.small]}>
+          <View style={styles.cardTitleRow}>
+            <Ionicons name="person-outline" size={16} color={theme.accent} />
+            <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>CURRENT DRIVER</Text>
+          </View>
+
+          {vehicle.currentDriverName ? (
+            <View style={styles.driverRow}>
+              <View style={[styles.driverAvatar, { backgroundColor: theme.accentLight }]}>
+                <Text style={[styles.driverInitial, { color: theme.accent }]}>
+                  {vehicle.currentDriverName.charAt(0)}
+                </Text>
+              </View>
+              <View style={styles.driverInfo}>
+                <Text style={[styles.driverName, { color: theme.text }]}>{vehicle.currentDriverName}</Text>
+                <Text style={[styles.driverSub, { color: theme.textSecondary }]}>Assigned now</Text>
+              </View>
+              <TouchableOpacity
+                style={[styles.changeDriverBtn, { backgroundColor: theme.backgroundElement }]}
+                onPress={handleChangeDriver}
+              >
+                <Ionicons name="swap-horizontal" size={14} color={theme.text} />
+                <Text style={[styles.changeDriverText, { color: theme.text }]}>Change</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={[styles.emptyDriver, { backgroundColor: theme.backgroundElement }]}>
+              <Ionicons name="person-add-outline" size={20} color={theme.textMuted} />
+              <Text style={[styles.emptyDriverText, { color: theme.textSecondary }]}>
+                No driver currently assigned.
+              </Text>
+            </View>
+          )}
+        </View>
+
+        {/* Documents */}
+        <View style={[styles.card, { backgroundColor: theme.cardBackground }, Shadows.small]}>
+          <View style={styles.cardTitleRow}>
+            <Ionicons name="document-text-outline" size={16} color={theme.secondary} />
+            <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>DOCUMENTS</Text>
+          </View>
 
           <View style={styles.docsList}>
             <View style={styles.docItem}>
               <View style={styles.docLeft}>
-                <Ionicons
-                  name={vehicle.documents.insurance ? 'checkmark-circle' : 'close-circle'}
-                  size={18}
-                  color={vehicle.documents.insurance ? theme.available : theme.danger}
-                />
-                <Text style={[styles.docName, { color: theme.text }]}>
-                  Commercial Insurance
-                </Text>
+                <View style={[
+                  styles.docIcon,
+                  { backgroundColor: vehicle.documents.insurance ? theme.accentLight : theme.dangerLight }
+                ]}>
+                  <Ionicons
+                    name={vehicle.documents.insurance ? 'checkmark' : 'close'}
+                    size={14}
+                    color={vehicle.documents.insurance ? theme.accent : theme.danger}
+                  />
+                </View>
+                <Text style={[styles.docName, { color: theme.text }]}>Commercial Insurance</Text>
               </View>
-              <Text style={[styles.docStatus, { color: theme.available }]}>
-                Verified ✓
-              </Text>
+              <Badge status={vehicle.documents.insurance ? 'Completed' : 'Cancelled'} size="sm" />
             </View>
 
             <View style={styles.docItem}>
               <View style={styles.docLeft}>
-                <Ionicons
-                  name={vehicle.documents.permit ? 'checkmark-circle' : 'close-circle'}
-                  size={18}
-                  color={vehicle.documents.permit ? theme.available : theme.danger}
-                />
-                <Text style={[styles.docName, { color: theme.text }]}>
-                  All India Tourist / State Permit
-                </Text>
+                <View style={[
+                  styles.docIcon,
+                  { backgroundColor: vehicle.documents.permit ? theme.accentLight : theme.dangerLight }
+                ]}>
+                  <Ionicons
+                    name={vehicle.documents.permit ? 'checkmark' : 'close'}
+                    size={14}
+                    color={vehicle.documents.permit ? theme.accent : theme.danger}
+                  />
+                </View>
+                <Text style={[styles.docName, { color: theme.text }]}>Tourist / State Permit</Text>
               </View>
-              <Text style={[styles.docStatus, { color: theme.available }]}>
-                Active ✓
-              </Text>
+              <Badge status={vehicle.documents.permit ? 'Completed' : 'Cancelled'} size="sm" />
             </View>
 
-            <View style={styles.docItem}>
+            <View style={[styles.docItem, { borderBottomWidth: 0 }]}>
               <View style={styles.docLeft}>
-                <Ionicons
-                  name={vehicle.documents.fitness ? 'checkmark-circle' : 'alert-circle'}
-                  size={18}
-                  color={vehicle.documents.fitness ? theme.available : theme.warning}
-                />
-                <Text style={[styles.docName, { color: theme.text }]}>
-                  RTO Fitness Certificate
-                </Text>
+                <View style={[
+                  styles.docIcon,
+                  { backgroundColor: vehicle.documents.fitness ? theme.accentLight : theme.warningLight }
+                ]}>
+                  <Ionicons
+                    name={vehicle.documents.fitness ? 'checkmark' : 'alert'}
+                    size={14}
+                    color={vehicle.documents.fitness ? theme.accent : theme.warning}
+                  />
+                </View>
+                <Text style={[styles.docName, { color: theme.text }]}>RTO Fitness Certificate</Text>
               </View>
-              <Text
-                style={[
-                  styles.docStatus,
-                  {
-                    color: vehicle.documents.fitness ? theme.available : theme.warning,
-                  },
-                ]}
-              >
-                {vehicle.documents.fitness ? 'Valid ✓' : 'Due for inspection'}
-              </Text>
+              <Badge
+                status={vehicle.documents.fitness ? 'Completed' : 'Needs Attention'}
+                size="sm"
+              />
             </View>
           </View>
         </View>
 
-        {/* MAINTENANCE Section */}
-        <View
-          style={[
-            styles.card,
-            { backgroundColor: theme.cardBackground, borderColor: theme.border },
-          ]}
-        >
-          <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>
-            MAINTENANCE
-          </Text>
-          <View style={styles.serviceRow}>
-            <View>
-              <Text style={[styles.serviceTitle, { color: theme.text }]}>
-                Next service
-              </Text>
-              <Text style={[styles.serviceSubtitle, { color: theme.textSecondary }]}>
+        {/* Maintenance */}
+        <View style={[styles.card, { backgroundColor: theme.cardBackground }, Shadows.small]}>
+          <View style={styles.cardTitleRow}>
+            <Ionicons name="construct-outline" size={16} color={theme.warning} />
+            <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>MAINTENANCE</Text>
+          </View>
+
+          <View style={[styles.maintenanceBox, { backgroundColor: theme.warningLight, borderColor: theme.warningBorder }]}>
+            <View style={styles.maintenanceInfo}>
+              <Text style={[styles.maintenanceTitle, { color: theme.text }]}>Next Service</Text>
+              <Text style={[styles.maintenanceSub, { color: theme.textSecondary }]}>
                 Regular oil & brake inspection
               </Text>
             </View>
-            <Text style={[styles.serviceKm, { color: theme.text }]}>
-              {vehicle.nextServiceKm.toLocaleString()} km
-            </Text>
+            <View style={styles.maintenanceKm}>
+              <Text style={[styles.kmValue, { color: theme.warning }]}>{vehicle.nextServiceKm.toLocaleString()}</Text>
+              <Text style={[styles.kmUnit, { color: theme.textSecondary }]}>km</Text>
+            </View>
           </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
-  },
-  scrollContent: {
+  safe: { flex: 1 },
+  container: {
     padding: Spacing.base,
     paddingBottom: Spacing.xxl,
+    gap: Spacing.md,
   },
-  headerCard: {
-    flexDirection: 'row',
+  heroCard: {
     alignItems: 'center',
-    padding: Spacing.md,
-    borderRadius: BorderRadius.md,
+    padding: Spacing.lg,
+    borderRadius: BorderRadius.lg,
     borderWidth: 1,
-    marginBottom: Spacing.md,
-    ...Shadows.subtle,
+    borderColor: 'rgba(37, 99, 235, 0.1)',
+    gap: Spacing.sm,
   },
-  iconWrap: {
-    width: 48,
-    height: 48,
-    borderRadius: BorderRadius.md,
+  vehicleSilhouette: {
+    width: 80,
+    height: 80,
+    borderRadius: BorderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: Spacing.md,
-  },
-  headerInfo: {
-    flex: 1,
+    marginBottom: Spacing.xs,
   },
   vehicleModel: {
-    fontSize: Typography.fontSizes.lg,
+    fontSize: Typography.fontSizes.xl,
     fontWeight: Typography.weights.bold,
+    letterSpacing: -0.3,
   },
   vehiclePlate: {
-    fontSize: Typography.fontSizes.sm,
-    marginTop: 2,
+    fontSize: Typography.fontSizes.md,
+    fontWeight: Typography.weights.medium,
+    letterSpacing: 1,
   },
-  actionsRow: {
+  actionRow: {
     flexDirection: 'row',
     gap: Spacing.sm,
-    marginBottom: Spacing.md,
-  },
-  primaryActionBtn: {
-    flex: 1,
-    height: 46,
-    borderRadius: BorderRadius.sm,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-  },
-  primaryActionText: {
-    color: '#FFFFFF',
-    fontSize: Typography.fontSizes.sm,
-    fontWeight: Typography.weights.semibold,
-  },
-  secondaryActionBtn: {
-    flex: 1,
-    height: 46,
-    borderRadius: BorderRadius.sm,
-    borderWidth: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-  },
-  secondaryActionText: {
-    fontSize: Typography.fontSizes.sm,
-    fontWeight: Typography.weights.medium,
   },
   card: {
     padding: Spacing.md,
-    borderRadius: BorderRadius.md,
+    borderRadius: BorderRadius.lg,
     borderWidth: 1,
+    borderColor: 'rgba(37, 99, 235, 0.06)',
+  },
+  cardTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
     marginBottom: Spacing.md,
-    ...Shadows.subtle,
   },
   sectionTitle: {
     fontSize: Typography.fontSizes.xs,
     fontWeight: Typography.weights.bold,
     letterSpacing: 0.8,
-    marginBottom: Spacing.sm,
+    flex: 1,
   },
-  metricRow: {
+  specsGrid: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    gap: Spacing.sm,
+  },
+  specItem: {
+    flex: 1,
     alignItems: 'center',
-    paddingVertical: Spacing.sm,
-    borderBottomWidth: 1,
+    padding: Spacing.sm + 4,
+    borderRadius: BorderRadius.md,
+    gap: 4,
   },
-  metricLabel: {
-    fontSize: Typography.fontSizes.sm,
+  specValue: {
+    fontSize: Typography.fontSizes.xl,
+    fontWeight: Typography.weights.bold,
   },
-  metricValue: {
-    fontSize: Typography.fontSizes.sm,
+  specLabel: {
+    fontSize: Typography.fontSizes.xs,
+    fontWeight: Typography.weights.medium,
+  },
+  driverRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm + 4,
+  },
+  driverAvatar: {
+    width: 44,
+    height: 44,
+    borderRadius: BorderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  driverInitial: {
+    fontSize: Typography.fontSizes.lg,
+    fontWeight: Typography.weights.bold,
+  },
+  driverInfo: {
+    flex: 1,
+  },
+  driverName: {
+    fontSize: Typography.fontSizes.md,
+    fontWeight: Typography.weights.bold,
+  },
+  driverSub: {
+    fontSize: Typography.fontSizes.xs + 1,
+    marginTop: 1,
+  },
+  changeDriverBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: Spacing.sm + 4,
+    paddingVertical: Spacing.xs + 2,
+    borderRadius: BorderRadius.sm,
+  },
+  changeDriverText: {
+    fontSize: Typography.fontSizes.xs + 1,
     fontWeight: Typography.weights.semibold,
   },
-  docsList: {
+  emptyDriver: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Spacing.sm + 4,
+    borderRadius: BorderRadius.sm,
     gap: Spacing.sm,
+  },
+  emptyDriverText: {
+    fontSize: Typography.fontSizes.sm,
+    flex: 1,
+  },
+  docsList: {
+    gap: Spacing.xs,
   },
   docItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 4,
+    paddingVertical: Spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(150, 150, 150, 0.1)',
   },
   docLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: Spacing.sm + 4,
+    flex: 1,
+  },
+  docIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: BorderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   docName: {
     fontSize: Typography.fontSizes.sm,
+    fontWeight: Typography.weights.medium,
   },
-  docStatus: {
-    fontSize: Typography.fontSizes.xs + 1,
-    fontWeight: Typography.weights.semibold,
-  },
-  serviceRow: {
+  maintenanceBox: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 4,
+    justifyContent: 'space-between',
+    padding: Spacing.sm + 4,
+    borderRadius: BorderRadius.sm,
+    borderWidth: 1,
   },
-  serviceTitle: {
+  maintenanceInfo: {
+    flex: 1,
+  },
+  maintenanceTitle: {
     fontSize: Typography.fontSizes.sm + 1,
     fontWeight: Typography.weights.semibold,
   },
-  serviceSubtitle: {
+  maintenanceSub: {
     fontSize: Typography.fontSizes.xs,
     marginTop: 2,
   },
-  serviceKm: {
-    fontSize: Typography.fontSizes.base,
+  maintenanceKm: {
+    alignItems: 'center',
+  },
+  kmValue: {
+    fontSize: Typography.fontSizes.lg,
     fontWeight: Typography.weights.bold,
+  },
+  kmUnit: {
+    fontSize: Typography.fontSizes.xs,
   },
 });

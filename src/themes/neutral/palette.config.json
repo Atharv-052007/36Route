@@ -90,12 +90,12 @@
     {
       "id": "blue",
       "name": "Blue",
-      "seed": "#0074e2",
+      "seed": "#2563eb",
       "anchors": [
         {
           "mode": "light",
           "stop": 50,
-          "color": "#0074e2",
+          "color": "#2563eb",
           "policy": "exact"
         }
       ]

@@ -10,8 +10,8 @@ import {
 import { AppSafeAreaView } from '@/components/ui/AppSafeAreaView';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { Colors, Typography, BorderRadius, Shadows, Gradient } from '@/constants/theme';
 import { useApp } from '../../context/AppContext';
-import { Typography, BorderRadius, Shadows } from '../../constants/theme';
 import { SectionHeader, StatusBadge } from '../../components/ui/AppStates';
 
 export default function DriverDashboardScreen() {
@@ -40,13 +40,18 @@ export default function DriverDashboardScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
+        {/* ── Premium Header ── */}
         <View style={styles.headerBar}>
           <View style={styles.headerLeft}>
-            <View style={[styles.avatar, { backgroundColor: themeColors.secondary }]}>
+            <View
+              style={[
+                styles.avatar,
+                { backgroundColor: themeColors.secondary, borderColor: themeColors.primary },
+              ]}
+            >
               <Text style={styles.avatarText}>{employee?.name?.charAt(0) || 'D'}</Text>
             </View>
-            <View>
+            <View style={styles.headerTextGroup}>
               <Text style={[styles.greeting, { color: themeColors.textSecondary }]}>
                 {getGreeting()}, {employee?.name?.split(' ')[0] || 'Driver'}
               </Text>
@@ -54,123 +59,139 @@ export default function DriverDashboardScreen() {
             </View>
           </View>
           <TouchableOpacity
-            style={[styles.sosBtn, { backgroundColor: themeColors.dangerLight }]}
+            style={[styles.sosBtn, { backgroundColor: themeColors.dangerLight, borderColor: themeColors.danger }]}
             onPress={() => router.push('/sos')}
+            activeOpacity={0.7}
           >
-            <Ionicons name="alert-circle" size={18} color={themeColors.danger} />
+            <Ionicons name="alert-circle" size={16} color={themeColors.danger} />
             <Text style={[styles.sosText, { color: themeColors.danger }]}>SOS</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Active Trip Card */}
-        <View style={[styles.statusCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.small]}>
-          <View style={styles.statusCardHeader}>
-            <Text style={[styles.statusCardTitle, { color: themeColors.text }]}>Current Trip</Text>
+        {/* ── Current Trip Hero ── */}
+        <View style={[styles.heroCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.card]}>
+          <View style={styles.heroHeader}>
+            <Text style={[styles.heroLabel, { color: themeColors.textMuted }]}>CURRENT TRIP</Text>
             {activeRide ? (
               <StatusBadge status={activeRide.status} size="sm" />
             ) : (
-              <View style={[styles.idlePill, { backgroundColor: themeColors.accentLight }]}>
-                <View style={styles.idleDot} />
-                <Text style={[styles.idlePillText, { color: themeColors.accent }]}>Available</Text>
+              <View style={[styles.availablePill, { backgroundColor: themeColors.availableLight, borderColor: themeColors.availableBorder }]}>
+                <View style={[styles.availableDot, { backgroundColor: themeColors.available }]} />
+                <Text style={[styles.availableText, { color: themeColors.available }]}>Available</Text>
               </View>
             )}
           </View>
 
           {activeRide ? (
             <>
-              <View style={styles.routeRow}>
-                <View style={[styles.routeIcon, { backgroundColor: themeColors.secondaryLight }]}>
-                  <Ionicons name="bus" size={20} color={themeColors.secondary} />
+              {/* Route Visualization */}
+              <View style={styles.routeViz}>
+                <View style={styles.routeVizLine}>
+                  <View style={[styles.routeVizDot, { backgroundColor: themeColors.primary }]} />
+                  <View style={[styles.routeVizBar, { backgroundColor: themeColors.border }]} />
+                  <Ionicons name="navigate" size={14} color={themeColors.primary} />
+                  <View style={[styles.routeVizBar, { backgroundColor: themeColors.border }]} />
+                  <View style={[styles.routeVizDot, { backgroundColor: themeColors.danger }]} />
                 </View>
-                <View style={styles.routeInfo}>
-                  <Text style={[styles.routeName, { color: themeColors.text }]}>
-                    {activeRide.route?.name || 'Route 36'}
-                  </Text>
-                  <Text style={[styles.routePoints, { color: themeColors.textSecondary }]}>
-                    {activeRide.pickup.name} → {activeRide.drop.name}
-                  </Text>
+                <View style={styles.routeVizLabels}>
+                  <Text style={[styles.routeVizLabel, { color: themeColors.textSecondary }]}>START</Text>
+                  <Text style={[styles.routeVizLabel, { color: themeColors.textSecondary }]}>END</Text>
                 </View>
               </View>
-              <View style={styles.metaRow}>
-                <View style={styles.meta}>
-                  <Ionicons name="time-outline" size={14} color={themeColors.textMuted} />
-                  <Text style={[styles.metaText, { color: themeColors.textSecondary }]}>{activeRide.time}</Text>
+
+              <Text style={[styles.heroRouteName, { color: themeColors.text }]}>
+                {activeRide.route?.name || 'Route 36'}
+              </Text>
+              <Text style={[styles.heroRoutePoints, { color: themeColors.textSecondary }]}>
+                {activeRide.pickup.name} → {activeRide.drop.name}
+              </Text>
+
+              {/* Metadata row */}
+              <View style={styles.heroMetaRow}>
+                <View style={[styles.heroMetaChip, { backgroundColor: themeColors.backgroundElement }]}>
+                  <Ionicons name="time-outline" size={13} color={themeColors.textMuted} />
+                  <Text style={[styles.heroMetaText, { color: themeColors.textSecondary }]}>{activeRide.time}</Text>
                 </View>
-                <View style={styles.meta}>
-                  <Ionicons name="car-sport-outline" size={14} color={themeColors.textMuted} />
-                  <Text style={[styles.metaText, { color: themeColors.textSecondary }]}>
+                <View style={[styles.heroMetaChip, { backgroundColor: themeColors.backgroundElement }]}>
+                  <Ionicons name="car-sport-outline" size={13} color={themeColors.textMuted} />
+                  <Text style={[styles.heroMetaText, { color: themeColors.textSecondary }]}>
                     {activeRide.vehicle?.vehicleNumber}
                   </Text>
                 </View>
-                <View style={styles.meta}>
-                  <Ionicons name="navigate" size={14} color={themeColors.secondary} />
-                  <Text style={[styles.metaText, { color: themeColors.secondary, fontWeight: Typography.weights.semibold as any }]}>
-                    {activeRide.eta}
+                <View style={[styles.heroMetaChip, { backgroundColor: themeColors.primaryLight }]}>
+                  <Ionicons name="navigate" size={13} color={themeColors.primary} />
+                  <Text style={[styles.heroMetaText, { color: themeColors.primary, fontWeight: Typography.weights.semibold as any }]}>
+                    ETA {activeRide.eta}
                   </Text>
                 </View>
               </View>
             </>
           ) : (
-            <Text style={[styles.idleDesc, { color: themeColors.textSecondary }]}>
-              {"You're"} available. Your next assigned route will appear here when it begins.
-            </Text>
+            <View style={styles.idleState}>
+              <Ionicons name="car-outline" size={40} color={themeColors.textMuted} />
+              <Text style={[styles.idleTitle, { color: themeColors.text }]}>No Active Trip</Text>
+              <Text style={[styles.idleDesc, { color: themeColors.textSecondary }]}>
+                {"You're"} currently available. Your next assigned route will appear here.
+              </Text>
+            </View>
           )}
 
-          <View style={styles.actionRow}>
+          {/* Action Buttons */}
+          <View style={styles.heroActions}>
             <TouchableOpacity
-              style={[styles.actionBtnPrimary, { backgroundColor: themeColors.secondary }]}
+              style={[styles.ctaPrimary, { backgroundColor: themeColors.primary }]}
               onPress={() => router.push('/(driver)/active-trip')}
               activeOpacity={0.7}
             >
               <Ionicons name="navigate" size={16} color="#FFF" />
-              <Text style={styles.actionBtnText}>Active Trip</Text>
+              <Text style={styles.ctaPrimaryText}>Active Trip</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.actionBtnSecondary, { backgroundColor: themeColors.backgroundElement }]}
+              style={[styles.ctaSecondary, { backgroundColor: themeColors.backgroundElement, borderColor: themeColors.border }]}
               onPress={() => router.push('/(driver)/trips')}
               activeOpacity={0.7}
             >
               <Ionicons name="calendar-outline" size={16} color={themeColors.textSecondary} />
-              <Text style={[styles.actionBtnTextAlt, { color: themeColors.textSecondary }]}>My Trips</Text>
+              <Text style={[styles.ctaSecondaryText, { color: themeColors.textSecondary }]}>My Trips</Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* Stats */}
+        {/* ── Today's Overview ── */}
         <View>
           <SectionHeader title="Today's Overview" />
           <View style={styles.statsRow}>
-            <View style={[styles.statCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}>
-              <View style={[styles.statIcon, { backgroundColor: themeColors.secondaryLight }]}>
-                <Ionicons name="calendar-outline" size={18} color={themeColors.secondary} />
+            <View style={[styles.statCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.subtle]}>
+              <View style={[styles.statIcon, { backgroundColor: themeColors.primaryLight }]}>
+                <Ionicons name="map-outline" size={18} color={themeColors.primary} />
               </View>
-              <Text style={[styles.statValue, { color: themeColors.text }]}>3</Text>
+              <Text style={[styles.statValue, { color: themeColors.primary }]}>3</Text>
               <Text style={[styles.statLabel, { color: themeColors.textSecondary }]}>Trips Today</Text>
             </View>
-            <View style={[styles.statCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}>
+            <View style={[styles.statCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.subtle]}>
               <View style={[styles.statIcon, { backgroundColor: themeColors.accentLight }]}>
                 <Ionicons name="people-outline" size={18} color={themeColors.accent} />
               </View>
-              <Text style={[styles.statValue, { color: themeColors.text }]}>{totalPassengers || 42}</Text>
+              <Text style={[styles.statValue, { color: themeColors.accent }]}>{totalPassengers || 42}</Text>
               <Text style={[styles.statLabel, { color: themeColors.textSecondary }]}>Passengers</Text>
             </View>
-            <View style={[styles.statCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}>
+            <View style={[styles.statCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.subtle]}>
               <View style={[styles.statIcon, { backgroundColor: themeColors.warningLight }]}>
-                <Ionicons name="time-outline" size={18} color={themeColors.warning} />
+                <Ionicons name="checkmark-circle-outline" size={18} color={themeColors.warning} />
               </View>
-              <Text style={[styles.statValue, { color: themeColors.text }]}>98%</Text>
+              <Text style={[styles.statValue, { color: themeColors.warning }]}>98%</Text>
               <Text style={[styles.statLabel, { color: themeColors.textSecondary }]}>On-Time</Text>
             </View>
           </View>
         </View>
 
-        {/* Assigned Routes + Passengers */}
+        {/* ── Manage ── */}
         <View>
           <SectionHeader title="Manage" />
           <View style={styles.manageGrid}>
             <TouchableOpacity
               onPress={() => router.push('/(driver)/routes')}
-              style={[styles.manageCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}
+              style={[styles.manageCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.subtle]}
               activeOpacity={0.7}
             >
               <View style={[styles.manageIcon, { backgroundColor: themeColors.secondaryLight }]}>
@@ -181,7 +202,7 @@ export default function DriverDashboardScreen() {
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => router.push('/(driver)/passengers')}
-              style={[styles.manageCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}
+              style={[styles.manageCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.subtle]}
               activeOpacity={0.7}
             >
               <View style={[styles.manageIcon, { backgroundColor: themeColors.accentLight }]}>
@@ -193,31 +214,33 @@ export default function DriverDashboardScreen() {
           </View>
         </View>
 
-        {/* Assigned Routes List */}
+        {/* ── Assigned Routes ── */}
         {routes.length > 0 && (
           <View>
             <SectionHeader title="Assigned Routes" action="See all" onAction={() => router.push('/(driver)/routes')} />
-            {routes.slice(0, 2).map((r, i) => (
-              <View key={r.id}>
-                <TouchableOpacity
-                  onPress={() => router.push('/(driver)/routes')}
-                  style={[styles.routeCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}
-                  activeOpacity={0.7}
-                >
-                  <View style={[styles.routeIcon, { backgroundColor: themeColors.secondaryLight }]}>
-                    <Ionicons name="map" size={18} color={themeColors.secondary} />
-                  </View>
-                  <View style={styles.routeInfo}>
-                    <Text style={[styles.routeName, { color: themeColors.text }]}>{r.name}</Text>
-                    <Text style={[styles.routeDesc, { color: themeColors.textSecondary }]}>
-                      {r.startingPoint} → {r.destination} • {r.distance} km
-                    </Text>
-                  </View>
-                  <Text style={[styles.seatsText, { color: themeColors.textSecondary }]}>
+            {routes.slice(0, 3).map((r) => (
+              <TouchableOpacity
+                key={r.id}
+                onPress={() => router.push('/(driver)/routes')}
+                style={[styles.routeCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.subtle]}
+                activeOpacity={0.7}
+              >
+                <View style={[styles.routeCardIcon, { backgroundColor: themeColors.secondaryLight }]}>
+                  <Ionicons name="map" size={18} color={themeColors.secondary} />
+                </View>
+                <View style={styles.routeCardInfo}>
+                  <Text style={[styles.routeCardName, { color: themeColors.text }]}>{r.name}</Text>
+                  <Text style={[styles.routeCardRoute, { color: themeColors.textSecondary }]}>
+                    {r.startingPoint} → {r.destination} · {r.distance} km
+                  </Text>
+                </View>
+                <View style={styles.routeCardSeats}>
+                  <Ionicons name="person-outline" size={12} color={themeColors.textMuted} />
+                  <Text style={[styles.routeCardSeatsText, { color: themeColors.textSecondary }]}>
                     {r.occupiedSeats}/{r.capacity}
                   </Text>
-                </TouchableOpacity>
-              </View>
+                </View>
+              </TouchableOpacity>
             ))}
           </View>
         )}
@@ -228,137 +251,254 @@ export default function DriverDashboardScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  container: { padding: 18, paddingBottom: 40 },
+  container: { padding: 20, paddingBottom: 40 },
+
+  /* ── Header ── */
   headerBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 18,
+    marginBottom: 20,
   },
   headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  headerTextGroup: { gap: 1 },
   avatar: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    borderWidth: 2,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  avatarText: { color: '#FFF', fontSize: Typography.fontSizes.lg, fontWeight: Typography.weights.bold as any },
+  avatarText: {
+    color: '#FFF',
+    fontSize: Typography.fontSizes.lg,
+    fontWeight: Typography.weights.bold as any,
+  },
   greeting: { fontSize: Typography.fontSizes.xs },
-  headerTitle: { fontSize: Typography.fontSizes.xl, fontWeight: Typography.weights.bold as any },
+  headerTitle: {
+    fontSize: Typography.fontSizes.xl,
+    fontWeight: Typography.weights.bold as any,
+  },
   sosBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: BorderRadius.full,
+    borderWidth: 1,
     gap: 4,
   },
-  sosText: { fontSize: Typography.fontSizes.xs, fontWeight: Typography.weights.bold as any },
-  statusCard: {
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    padding: 16,
-    marginBottom: 16,
+  sosText: {
+    fontSize: Typography.fontSizes.xs,
+    fontWeight: Typography.weights.bold as any,
   },
-  statusCardHeader: {
+
+  /* ── Hero Card ── */
+  heroCard: {
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    padding: 20,
+    marginBottom: 20,
+  },
+  heroHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
   },
-  statusCardTitle: { fontSize: Typography.fontSizes.md, fontWeight: Typography.weights.semibold as any },
-  idlePill: {
+  heroLabel: {
+    fontSize: Typography.fontSizes.xs,
+    fontWeight: Typography.weights.bold as any,
+    letterSpacing: 1.5,
+  },
+  availablePill: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: BorderRadius.full,
+    borderWidth: 1,
     gap: 6,
   },
-  idleDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#5F9F63' },
-  idlePillText: { fontSize: Typography.fontSizes.xs, fontWeight: Typography.weights.semibold as any },
-  idleDesc: { fontSize: Typography.fontSizes.sm, marginBottom: 14 },
-  routeRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
-  routeInfo: { flex: 1 },
-  routeIcon: {
-    width: 44,
-    height: 44,
+  availableDot: { width: 6, height: 6, borderRadius: 3 },
+  availableText: {
+    fontSize: Typography.fontSizes.xs,
+    fontWeight: Typography.weights.semibold as any,
+  },
+
+  /* Route Visualization */
+  routeViz: { marginBottom: 16 },
+  routeVizLine: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 6,
+  },
+  routeVizDot: { width: 10, height: 10, borderRadius: 5 },
+  routeVizBar: { flex: 1, height: 2, marginHorizontal: 4 },
+  routeVizLabels: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 2,
+  },
+  routeVizLabel: {
+    fontSize: 10,
+    fontWeight: Typography.weights.semibold as any,
+    letterSpacing: 1,
+  },
+  heroRouteName: {
+    fontSize: Typography.fontSizes.lg,
+    fontWeight: Typography.weights.bold as any,
+    marginBottom: 4,
+  },
+  heroRoutePoints: {
+    fontSize: Typography.fontSizes.sm,
+    marginBottom: 14,
+  },
+  heroMetaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 18 },
+  heroMetaChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: BorderRadius.sm,
+    gap: 4,
+  },
+  heroMetaText: { fontSize: Typography.fontSizes.xs },
+
+  /* Idle State */
+  idleState: {
+    alignItems: 'center',
+    paddingVertical: 16,
+    marginBottom: 14,
+  },
+  idleTitle: {
+    fontSize: Typography.fontSizes.md,
+    fontWeight: Typography.weights.semibold as any,
+    marginTop: 10,
+    marginBottom: 4,
+  },
+  idleDesc: {
+    fontSize: Typography.fontSizes.sm,
+    textAlign: 'center',
+    lineHeight: 18,
+  },
+
+  /* Actions */
+  heroActions: { flexDirection: 'row', gap: 10 },
+  ctaPrimary: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 13,
+    borderRadius: BorderRadius.md,
+    gap: 6,
+  },
+  ctaPrimaryText: {
+    color: '#FFF',
+    fontSize: Typography.fontSizes.sm,
+    fontWeight: Typography.weights.semibold as any,
+  },
+  ctaSecondary: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 13,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    gap: 6,
+  },
+  ctaSecondaryText: {
+    fontSize: Typography.fontSizes.sm,
+    fontWeight: Typography.weights.semibold as any,
+  },
+
+  /* ── Stats ── */
+  statsRow: { flexDirection: 'row', gap: 10, marginBottom: 20 },
+  statCard: {
+    flex: 1,
+    alignItems: 'center',
+    padding: 14,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+  },
+  statIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  statValue: {
+    fontSize: Typography.fontSizes.xxl,
+    fontWeight: Typography.weights.bold as any,
+    letterSpacing: -1,
+  },
+  statLabel: {
+    fontSize: Typography.fontSizes.xs,
+    marginTop: 2,
+    textAlign: 'center',
+  },
+
+  /* ── Manage ── */
+  manageGrid: { flexDirection: 'row', gap: 10, marginBottom: 4 },
+  manageCard: {
+    flex: 1,
+    alignItems: 'flex-start',
+    padding: 18,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+  },
+  manageIcon: {
+    width: 46,
+    height: 46,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  manageTitle: {
+    fontSize: Typography.fontSizes.md,
+    fontWeight: Typography.weights.semibold as any,
+    marginBottom: 2,
+  },
+  manageSub: { fontSize: Typography.fontSizes.xs },
+
+  /* ── Route Cards ── */
+  routeCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    marginBottom: 10,
+  },
+  routeCardIcon: {
+    width: 40,
+    height: 40,
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
   },
-  routeName: { fontSize: Typography.fontSizes.md, fontWeight: Typography.weights.semibold as any, marginBottom: 2 },
-  routePoints: { fontSize: Typography.fontSizes.sm },
-  metaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 16, marginBottom: 14 },
-  meta: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  metaText: { fontSize: Typography.fontSizes.sm },
-  actionRow: { flexDirection: 'row', gap: 10 },
-  actionBtnPrimary: {
-    flex: 1,
+  routeCardInfo: { flex: 1 },
+  routeCardName: {
+    fontSize: Typography.fontSizes.md,
+    fontWeight: Typography.weights.semibold as any,
+    marginBottom: 2,
+  },
+  routeCardRoute: { fontSize: Typography.fontSizes.sm },
+  routeCardSeats: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 11,
-    borderRadius: BorderRadius.md,
-    gap: 6,
+    gap: 4,
   },
-  actionBtnSecondary: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 11,
-    borderRadius: BorderRadius.md,
-    gap: 6,
+  routeCardSeatsText: {
+    fontSize: Typography.fontSizes.sm,
+    fontWeight: Typography.weights.semibold as any,
   },
-  actionBtnText: { color: '#FFF', fontSize: Typography.fontSizes.sm, fontWeight: Typography.weights.semibold as any },
-  actionBtnTextAlt: { fontSize: Typography.fontSizes.sm, fontWeight: Typography.weights.semibold as any },
-  statsRow: { flexDirection: 'row', gap: 10, marginBottom: 16 },
-  statCard: {
-    flex: 1,
-    alignItems: 'center',
-    padding: 14,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-  },
-  statIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  statValue: { fontSize: Typography.fontSizes.xl, fontWeight: Typography.weights.bold as any },
-  statLabel: { fontSize: Typography.fontSizes.xs, marginTop: 2, textAlign: 'center' },
-  manageGrid: { flexDirection: 'row', gap: 10, marginBottom: 4 },
-  manageCard: {
-    flex: 1,
-    alignItems: 'flex-start',
-    padding: 16,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-  },
-  manageIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  manageTitle: { fontSize: Typography.fontSizes.md, fontWeight: Typography.weights.semibold as any },
-  manageSub: { fontSize: Typography.fontSizes.xs, marginTop: 2 },
-  routeCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 14,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    marginBottom: 10,
-  },
-  routeDesc: { fontSize: Typography.fontSizes.sm },
-  seatsText: { fontSize: Typography.fontSizes.sm, fontWeight: Typography.weights.semibold as any },
 });

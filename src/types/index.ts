@@ -2,7 +2,7 @@
 
 export type RideStatus = 'SCHEDULED' | 'BOARDING' | 'IN_TRANSIT' | 'ARRIVED' | 'COMPLETED' | 'CANCELLED';
 
-export type ShiftType = 'PICKUP' | 'DROP';
+export type ShiftType = 'PICKUP' | 'DROP' | 'NIGHT';
 
 export type VehicleStatus = 'AVAILABLE' | 'ON_TRIP' | 'MAINTENANCE' | 'OFFLINE';
 

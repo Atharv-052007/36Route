@@ -1,9 +1,9 @@
 import React from 'react';
-import { ColorValue } from 'react-native';
+import { View, StyleSheet, ColorValue, Platform } from 'react-native';
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { Colors, Typography, BorderRadius, Shadows } from '@/constants/theme';
 import { useApp } from '@/context/AppContext';
-import { Typography } from '@/constants/theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const TAB_ICONS: Record<string, { focused: string; unfocused: string }> = {
@@ -26,13 +26,19 @@ function AnimatedTabIcon({
   name,
   color,
   size,
+  focused,
 }: {
   name: string;
   color: ColorValue;
   size: number;
   focused: boolean;
 }) {
-  return <Ionicons name={name as any} size={size} color={color} />;
+  return (
+    <View style={styles.iconContainer}>
+      <Ionicons name={name as any} size={size} color={color} />
+      {focused && <View style={[styles.indicator, { backgroundColor: Colors.light.primary }]} />}
+    </View>
+  );
 }
 
 export default function TabLayout() {
@@ -47,21 +53,27 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: themeColors.secondary,
+        tabBarActiveTintColor: Colors.light.primary,
         tabBarInactiveTintColor: themeColors.textMuted,
         tabBarHideOnKeyboard: true,
         tabBarStyle: {
           backgroundColor: themeColors.cardBackground,
+          borderTopWidth: 1,
           borderTopColor: themeColors.border,
           height: tabHeight,
           paddingBottom: tabPaddingBottom,
           paddingTop: 8,
-          borderTopWidth: 1,
-          elevation: 8,
-          shadowColor: themeColors.shadowColor,
-          shadowOffset: { width: 0, height: -2 },
-          shadowOpacity: 0.08,
-          shadowRadius: 8,
+          ...Platform.select({
+            ios: {
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: -4 },
+              shadowOpacity: 0.06,
+              shadowRadius: 12,
+            },
+            android: {
+              elevation: 12,
+            },
+          }),
         },
         tabBarItemStyle: {
           justifyContent: 'center',
@@ -153,3 +165,18 @@ export default function TabLayout() {
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  iconContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 48,
+  },
+  indicator: {
+    position: 'absolute',
+    bottom: -6,
+    width: 20,
+    height: 3,
+    borderRadius: BorderRadius.full,
+  },
+});

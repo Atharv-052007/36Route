@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Typography, BorderRadius, Spacing } from '@/constants/theme';
+import { Colors, Typography, BorderRadius, Spacing, Shadows } from '@/constants/theme';
 import { useApp } from '@/context/AppContext';
 
 interface AlertCardProps {
@@ -23,9 +23,15 @@ export const AlertCard: React.FC<AlertCardProps> = ({
   const theme = isDarkMode ? Colors.dark : Colors.light;
 
   const isDanger = severity === 'danger';
-  const bg = isDanger ? theme.dangerLight : theme.warningLight;
-  const borderColor = isDanger ? theme.dangerBorder : theme.warningBorder;
-  const iconColor = isDanger ? theme.danger : theme.warning;
+  const isInfo = severity === 'info';
+
+  const accentColor = isDanger ? theme.danger : isInfo ? theme.primary : theme.warning;
+  const bg = isDanger
+    ? theme.dangerLight
+    : isInfo
+    ? theme.primaryLight
+    : theme.warningLight;
+  const icon = isDanger ? 'alert-circle' : isInfo ? 'information-circle' : 'warning-outline';
 
   return (
     <TouchableOpacity
@@ -35,29 +41,25 @@ export const AlertCard: React.FC<AlertCardProps> = ({
         styles.card,
         {
           backgroundColor: bg,
-          borderColor: borderColor,
+          borderLeftColor: accentColor,
         },
         style,
       ]}
     >
       <View style={styles.leftRow}>
         <View style={[styles.iconContainer, { backgroundColor: theme.backgroundElement }]}>
-          <Ionicons
-            name={isDanger ? 'alert-circle' : 'warning-outline'}
-            size={18}
-            color={iconColor}
-          />
+          <Ionicons name={icon as any} size={16} color={accentColor} />
         </View>
         <View style={styles.textContainer}>
-          <Text style={[styles.title, { color: theme.text }]}>{title}</Text>
-          <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
+          <Text style={[styles.title, { color: theme.text }]} numberOfLines={1}>
+            {title}
+          </Text>
+          <Text style={[styles.subtitle, { color: theme.textSecondary }]} numberOfLines={2}>
             {subtitle}
           </Text>
         </View>
       </View>
-      <View style={styles.rightArrow}>
-        <Ionicons name="chevron-forward" size={16} color={theme.textMuted} />
-      </View>
+      <Ionicons name="chevron-forward" size={15} color={theme.textMuted} />
     </TouchableOpacity>
   );
 };
@@ -67,21 +69,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: Spacing.md,
+    paddingVertical: Spacing.md - 2,
     paddingHorizontal: Spacing.md,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
+    borderRadius: BorderRadius.lg,
+    borderLeftWidth: 3,
     marginBottom: Spacing.sm,
+    ...Shadows.subtle,
   },
   leftRow: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
-    gap: Spacing.md,
+    gap: Spacing.sm + 4,
   },
   iconContainer: {
-    width: 32,
-    height: 32,
+    width: 30,
+    height: 30,
     borderRadius: BorderRadius.sm,
     alignItems: 'center',
     justifyContent: 'center',
@@ -92,13 +95,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: Typography.fontSizes.sm + 1,
     fontWeight: Typography.weights.semibold,
-    marginBottom: 2,
+    marginBottom: 1,
   },
   subtitle: {
     fontSize: Typography.fontSizes.xs + 1,
     fontWeight: Typography.weights.regular,
-  },
-  rightArrow: {
-    marginLeft: Spacing.sm,
+    lineHeight: 16,
   },
 });

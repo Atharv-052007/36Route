@@ -17,6 +17,7 @@ import { Colors, Typography, Spacing, BorderRadius, Shadows } from '@/constants/
 import { useApp } from '@/context/AppContext';
 import { Header } from '@/components/ui/Header';
 import { StepIndicator } from '@/components/ui/StepIndicator';
+import { AppButton } from '@/components/ui/AppButton';
 
 const STEP_LABELS = [
   'Pickup & Destination',
@@ -27,10 +28,18 @@ const STEP_LABELS = [
   'Driver Assignment',
 ];
 
+const STEP_ICONS: string[] = [
+  'location',
+  'calendar',
+  'people',
+  'map',
+  'car',
+  'person',
+];
+
 export default function CreateTripScreen() {
   const router = useRouter();
-  const { routes, vehicles, drivers, createTrip, setSelectedTripId, isDarkMode } = useApp();
-  const theme = isDarkMode ? Colors.dark : Colors.light;
+  const { routes, vehicles, drivers, createTrip, setSelectedTripId, isDarkMode, themeColors } = useApp();
 
   const [step, setStep] = useState(1);
 
@@ -78,14 +87,8 @@ export default function CreateTripScreen() {
         'Trip Created',
         `${newTrip.tripNumber} (${time} • ${origin} → ${destination}) has been successfully scheduled.`,
         [
-          {
-            text: 'View Trip Details',
-            onPress: () => router.replace('/trip-details'),
-          },
-          {
-            text: 'Go to Trips',
-            onPress: () => router.replace('/(admin)/trips'),
-          },
+          { text: 'View Trip Details', onPress: () => router.replace('/trip-details') },
+          { text: 'Go to Trips', onPress: () => router.replace('/(admin)/trips') },
         ]
       );
     } catch (e) {
@@ -94,10 +97,10 @@ export default function CreateTripScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: themeColors.background }]}>
       <StatusBar
         barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={theme.cardBackground}
+        backgroundColor={themeColors.cardBackground}
       />
 
       <Header
@@ -107,12 +110,58 @@ export default function CreateTripScreen() {
         onBackPress={handlePrev}
       />
 
-      <View style={[styles.indicatorContainer, { backgroundColor: theme.cardBackground }]}>
-        <StepIndicator
-          currentStep={step}
-          totalSteps={6}
-          stepLabels={STEP_LABELS}
-        />
+      {/* Step progress bar */}
+      <View style={[styles.progressContainer, { backgroundColor: themeColors.cardBackground }]}>
+        <View style={styles.stepRow}>
+          {[1, 2, 3, 4, 5, 6].map((s) => (
+            <View key={s} style={styles.stepCol}>
+              <View style={styles.stepDotRow}>
+                <View
+                  style={[
+                    styles.stepDot,
+                    {
+                      backgroundColor: s <= step ? themeColors.primary : themeColors.backgroundElement,
+                      borderColor: s <= step ? themeColors.primary : themeColors.border,
+                    },
+                  ]}
+                >
+                  {s < step ? (
+                    <Ionicons name="checkmark" size={11} color="#FFFFFF" />
+                  ) : (
+                    <Text
+                      style={[
+                        styles.stepDotText,
+                        { color: s <= step ? '#FFFFFF' : themeColors.textMuted },
+                      ]}
+                    >
+                      {s}
+                    </Text>
+                  )}
+                </View>
+                {s < 6 && (
+                  <View
+                    style={[
+                      styles.stepConnector,
+                      { backgroundColor: s < step ? themeColors.primary : themeColors.border },
+                    ]}
+                  />
+                )}
+              </View>
+              <Text
+                style={[
+                  styles.stepDotLabel,
+                  {
+                    color: s === step ? themeColors.text : themeColors.textMuted,
+                    fontWeight: s === step ? '600' : '400',
+                  },
+                ]}
+                numberOfLines={1}
+              >
+                {STEP_LABELS[s - 1]}
+              </Text>
+            </View>
+          ))}
+        </View>
       </View>
 
       <ScrollView
@@ -124,78 +173,81 @@ export default function CreateTripScreen() {
           <View
             style={[
               styles.stepCard,
-              { backgroundColor: theme.cardBackground, borderColor: theme.border },
+              { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border },
             ]}
           >
-            <Text style={[styles.stepTitle, { color: theme.text }]}>
-              Enter Pickup & Destination
-            </Text>
-            <Text style={[styles.stepDesc, { color: theme.textSecondary }]}>
-              Specify primary origin and end termination points.
-            </Text>
+            <View style={styles.stepCardHeader}>
+              <View style={[styles.stepCardIcon, { backgroundColor: themeColors.primaryLight }]}>
+                <Ionicons name="location" size={20} color={themeColors.primary} />
+              </View>
+              <View>
+                <Text style={[styles.stepTitle, { color: themeColors.text }]}>
+                  Pickup & Destination
+                </Text>
+                <Text style={[styles.stepDesc, { color: themeColors.textSecondary }]}>
+                  Specify origin and termination points
+                </Text>
+              </View>
+            </View>
 
             <View style={styles.inputGroup}>
-              <Text style={[styles.label, { color: theme.textSecondary }]}>
+              <Text style={[styles.inputLabel, { color: themeColors.textSecondary }]}>
                 Pickup Location
               </Text>
-              <TextInput
-                style={[
-                  styles.textInput,
-                  {
-                    backgroundColor: theme.backgroundElement,
-                    borderColor: theme.border,
-                    color: theme.text,
-                  },
-                ]}
-                value={origin}
-                onChangeText={setOrigin}
-                placeholder="e.g. Kothrud Stand"
-                placeholderTextColor={theme.textMuted}
-              />
+              <View style={[styles.inputWrap, { backgroundColor: themeColors.backgroundElement, borderColor: themeColors.border }]}>
+                <Ionicons name="radio-button-on" size={16} color={themeColors.primary} />
+                <TextInput
+                  style={[styles.textInput, { color: themeColors.text }]}
+                  value={origin}
+                  onChangeText={setOrigin}
+                  placeholder="e.g. Kothrud Stand"
+                  placeholderTextColor={themeColors.textMuted}
+                />
+              </View>
+            </View>
+
+            <View style={styles.routeArrow}>
+              <View style={[styles.routeArrowLine, { backgroundColor: themeColors.border }]} />
+              <Ionicons name="swap-vertical" size={16} color={themeColors.textMuted} />
+              <View style={[styles.routeArrowLine, { backgroundColor: themeColors.border }]} />
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={[styles.label, { color: theme.textSecondary }]}>
+              <Text style={[styles.inputLabel, { color: themeColors.textSecondary }]}>
                 Destination
               </Text>
-              <TextInput
-                style={[
-                  styles.textInput,
-                  {
-                    backgroundColor: theme.backgroundElement,
-                    borderColor: theme.border,
-                    color: theme.text,
-                  },
-                ]}
-                value={destination}
-                onChangeText={setDestination}
-                placeholder="e.g. Hinjewadi Phase 1"
-                placeholderTextColor={theme.textMuted}
-              />
+              <View style={[styles.inputWrap, { backgroundColor: themeColors.backgroundElement, borderColor: themeColors.border }]}>
+                <Ionicons name="location" size={16} color={themeColors.danger} />
+                <TextInput
+                  style={[styles.textInput, { color: themeColors.text }]}
+                  value={destination}
+                  onChangeText={setDestination}
+                  placeholder="e.g. Hinjewadi Phase 1"
+                  placeholderTextColor={themeColors.textMuted}
+                />
+              </View>
             </View>
 
-            <View style={styles.presetsRow}>
-              <Text style={[styles.presetLabel, { color: theme.textMuted }]}>
-                Recent:
+            <View style={styles.presetSection}>
+              <Text style={[styles.presetLabel, { color: themeColors.textMuted }]}>
+                Recent Routes
               </Text>
-              {['Kothrud → Hinjewadi', 'Wakad → Baner', 'Hadapsar → Kharadi'].map((p) => (
-                <TouchableOpacity
-                  key={p}
-                  onPress={() => {
-                    const parts = p.split('→');
-                    setOrigin(parts[0].trim());
-                    setDestination(parts[1].trim());
-                  }}
-                  style={[
-                    styles.presetChip,
-                    { backgroundColor: theme.backgroundElement, borderColor: theme.border },
-                  ]}
-                >
-                  <Text style={[styles.presetChipText, { color: theme.textSecondary }]}>
-                    {p}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+              <View style={styles.presetWrap}>
+                {['Kothrud → Hinjewadi', 'Wakad → Baner', 'Hadapsar → Kharadi'].map((p) => (
+                  <TouchableOpacity
+                    key={p}
+                    onPress={() => {
+                      const parts = p.split('→');
+                      setOrigin(parts[0].trim());
+                      setDestination(parts[1].trim());
+                    }}
+                    style={[styles.presetChip, { backgroundColor: themeColors.backgroundElement, borderColor: themeColors.border }]}
+                  >
+                    <Ionicons name="time-outline" size={13} color={themeColors.textSecondary} />
+                    <Text style={[styles.presetChipText, { color: themeColors.textSecondary }]}>{p}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
             </View>
           </View>
         )}
@@ -205,39 +257,43 @@ export default function CreateTripScreen() {
           <View
             style={[
               styles.stepCard,
-              { backgroundColor: theme.cardBackground, borderColor: theme.border },
+              { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border },
             ]}
           >
-            <Text style={[styles.stepTitle, { color: theme.text }]}>
-              Schedule Date & Time
-            </Text>
-            <Text style={[styles.stepDesc, { color: theme.textSecondary }]}>
-              Select the departure shift schedule.
-            </Text>
+            <View style={styles.stepCardHeader}>
+              <View style={[styles.stepCardIcon, { backgroundColor: themeColors.primaryLight }]}>
+                <Ionicons name="calendar" size={20} color={themeColors.primary} />
+              </View>
+              <View>
+                <Text style={[styles.stepTitle, { color: themeColors.text }]}>
+                  Schedule Departure
+                </Text>
+                <Text style={[styles.stepDesc, { color: themeColors.textSecondary }]}>
+                  Select the departure shift schedule
+                </Text>
+              </View>
+            </View>
 
             <View style={styles.inputGroup}>
-              <Text style={[styles.label, { color: theme.textSecondary }]}>
-                Date
-              </Text>
-              <View style={styles.chipsRow}>
+              <Text style={[styles.inputLabel, { color: themeColors.textSecondary }]}>Date</Text>
+              <View style={styles.chipGrid}>
                 {['Today, 4 Sep', 'Tomorrow, 5 Sep', 'Custom Date'].map((d) => (
                   <TouchableOpacity
                     key={d}
                     onPress={() => setDate(d)}
                     style={[
-                      styles.choiceChip,
+                      styles.chip,
                       {
-                        backgroundColor:
-                          date === d ? theme.primary : theme.backgroundElement,
-                        borderColor: date === d ? theme.primary : theme.border,
+                        backgroundColor: date === d ? themeColors.primary : themeColors.backgroundElement,
+                        borderColor: date === d ? themeColors.primary : themeColors.border,
                       },
                     ]}
                   >
                     <Text
                       style={[
-                        styles.choiceChipText,
+                        styles.chipText,
                         {
-                          color: date === d ? theme.textInverse : theme.textSecondary,
+                          color: date === d ? '#FFFFFF' : themeColors.textSecondary,
                           fontWeight: date === d ? '600' : '400',
                         },
                       ]}
@@ -250,24 +306,20 @@ export default function CreateTripScreen() {
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={[styles.label, { color: theme.textSecondary }]}>
+              <Text style={[styles.inputLabel, { color: themeColors.textSecondary }]}>
                 Departure Time
               </Text>
-              <TextInput
-                style={[
-                  styles.textInput,
-                  {
-                    backgroundColor: theme.backgroundElement,
-                    borderColor: theme.border,
-                    color: theme.text,
-                  },
-                ]}
-                value={time}
-                onChangeText={setTime}
-                placeholder="e.g. 07:30 or 08:00"
-                placeholderTextColor={theme.textMuted}
-              />
-              <View style={styles.chipsRow}>
+              <View style={[styles.inputWrap, { backgroundColor: themeColors.backgroundElement, borderColor: themeColors.border }]}>
+                <Ionicons name="time-outline" size={16} color={themeColors.textMuted} />
+                <TextInput
+                  style={[styles.textInput, { color: themeColors.text }]}
+                  value={time}
+                  onChangeText={setTime}
+                  placeholder="e.g. 08:30"
+                  placeholderTextColor={themeColors.textMuted}
+                />
+              </View>
+              <View style={styles.chipGrid}>
                 {['07:15', '07:30', '08:00', '08:30', '09:00'].map((t) => (
                   <TouchableOpacity
                     key={t}
@@ -275,17 +327,16 @@ export default function CreateTripScreen() {
                     style={[
                       styles.timeChip,
                       {
-                        backgroundColor:
-                          time === t ? theme.accent : theme.backgroundElement,
-                        borderColor: time === t ? theme.accent : theme.border,
+                        backgroundColor: time === t ? themeColors.accent : themeColors.backgroundElement,
+                        borderColor: time === t ? themeColors.accent : themeColors.border,
                       },
                     ]}
                   >
                     <Text
                       style={[
-                        styles.choiceChipText,
+                        styles.chipText,
                         {
-                          color: time === t ? '#FFFFFF' : theme.textSecondary,
+                          color: time === t ? '#FFFFFF' : themeColors.textSecondary,
                           fontWeight: time === t ? '600' : '400',
                         },
                       ]}
@@ -304,38 +355,42 @@ export default function CreateTripScreen() {
           <View
             style={[
               styles.stepCard,
-              { backgroundColor: theme.cardBackground, borderColor: theme.border },
+              { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border },
             ]}
           >
-            <Text style={[styles.stepTitle, { color: theme.text }]}>
-              Expected Passengers
-            </Text>
-            <Text style={[styles.stepDesc, { color: theme.textSecondary }]}>
-              How many employees will ride this trip?
-            </Text>
-
-            <View style={styles.inputGroup}>
-              <Text style={[styles.label, { color: theme.textSecondary }]}>
-                Passenger Count
-              </Text>
-              <TextInput
-                style={[
-                  styles.textInput,
-                  {
-                    backgroundColor: theme.backgroundElement,
-                    borderColor: theme.border,
-                    color: theme.text,
-                    fontSize: Typography.fontSizes.xl,
-                    fontWeight: '700',
-                  },
-                ]}
-                value={passengerCount}
-                onChangeText={setPassengerCount}
-                keyboardType="number-pad"
-              />
+            <View style={styles.stepCardHeader}>
+              <View style={[styles.stepCardIcon, { backgroundColor: themeColors.primaryLight }]}>
+                <Ionicons name="people" size={20} color={themeColors.primary} />
+              </View>
+              <View>
+                <Text style={[styles.stepTitle, { color: themeColors.text }]}>
+                  Passenger Count
+                </Text>
+                <Text style={[styles.stepDesc, { color: themeColors.textSecondary }]}>
+                  How many employees will ride this trip?
+                </Text>
+              </View>
             </View>
 
-            <View style={styles.chipsRow}>
+            <View style={styles.inputGroup}>
+              <Text style={[styles.inputLabel, { color: themeColors.textSecondary }]}>
+                Number of Passengers
+              </Text>
+              <View style={[styles.inputWrap, { backgroundColor: themeColors.backgroundElement, borderColor: themeColors.border }]}>
+                <Ionicons name="person-outline" size={16} color={themeColors.textMuted} />
+                <TextInput
+                  style={[
+                    styles.textInput,
+                    { color: themeColors.text, fontSize: Typography.fontSizes.xl, fontWeight: '700' },
+                  ]}
+                  value={passengerCount}
+                  onChangeText={setPassengerCount}
+                  keyboardType="number-pad"
+                />
+              </View>
+            </View>
+
+            <View style={styles.chipGrid}>
               {['6', '8', '12', '14', '18'].map((c) => (
                 <TouchableOpacity
                   key={c}
@@ -343,17 +398,16 @@ export default function CreateTripScreen() {
                   style={[
                     styles.countChip,
                     {
-                      backgroundColor:
-                        passengerCount === c ? theme.accent : theme.backgroundElement,
-                      borderColor: passengerCount === c ? theme.accent : theme.border,
+                      backgroundColor: passengerCount === c ? themeColors.accent : themeColors.backgroundElement,
+                      borderColor: passengerCount === c ? themeColors.accent : themeColors.border,
                     },
                   ]}
                 >
                   <Text
                     style={[
-                      styles.choiceChipText,
+                      styles.chipText,
                       {
-                        color: passengerCount === c ? '#FFFFFF' : theme.textSecondary,
+                        color: passengerCount === c ? '#FFFFFF' : themeColors.textSecondary,
                         fontWeight: passengerCount === c ? '600' : '400',
                       },
                     ]}
@@ -371,15 +425,22 @@ export default function CreateTripScreen() {
           <View
             style={[
               styles.stepCard,
-              { backgroundColor: theme.cardBackground, borderColor: theme.border },
+              { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border },
             ]}
           >
-            <Text style={[styles.stepTitle, { color: theme.text }]}>
-              Select Route
-            </Text>
-            <Text style={[styles.stepDesc, { color: theme.textSecondary }]}>
-              Standard route with predefined pickup stops.
-            </Text>
+            <View style={styles.stepCardHeader}>
+              <View style={[styles.stepCardIcon, { backgroundColor: themeColors.primaryLight }]}>
+                <Ionicons name="map" size={20} color={themeColors.primary} />
+              </View>
+              <View>
+                <Text style={[styles.stepTitle, { color: themeColors.text }]}>
+                  Select Route
+                </Text>
+                <Text style={[styles.stepDesc, { color: themeColors.textSecondary }]}>
+                  Standard route with predefined pickup stops
+                </Text>
+              </View>
+            </View>
 
             {routes.map((r) => {
               const isSelected = selectedRouteId === r.id;
@@ -389,30 +450,43 @@ export default function CreateTripScreen() {
                   activeOpacity={0.7}
                   onPress={() => setSelectedRouteId(r.id)}
                   style={[
-                    styles.selectableCard,
+                    styles.selectCard,
                     {
-                      backgroundColor: isSelected
-                        ? theme.backgroundElement
-                        : theme.cardBackground,
-                      borderColor: isSelected ? theme.accent : theme.border,
+                      backgroundColor: isSelected ? themeColors.backgroundSelected : 'transparent',
+                      borderColor: isSelected ? themeColors.primary : themeColors.border,
                     },
                   ]}
                 >
-                  <View style={styles.selectableLeft}>
-                    <Ionicons
-                      name={isSelected ? 'radio-button-on' : 'radio-button-off'}
-                      size={18}
-                      color={isSelected ? theme.accent : theme.textMuted}
-                    />
-                    <View>
-                      <Text style={[styles.selectCardTitle, { color: theme.text }]}>
+                  <View style={styles.selectCardLeft}>
+                    <View
+                      style={[
+                        styles.radioOuter,
+                        { borderColor: isSelected ? themeColors.primary : themeColors.textMuted },
+                      ]}
+                    >
+                      {isSelected && <View style={[styles.radioInner, { backgroundColor: themeColors.primary }]} />}
+                    </View>
+                    <View style={styles.selectCardInfo}>
+                      <Text style={[styles.selectCardTitle, { color: themeColors.text }]}>
                         {r.name}
                       </Text>
-                      <Text style={[styles.selectCardSub, { color: theme.textSecondary }]}>
-                        {r.stopsCount} stops • {r.distanceKm} km • ~{r.estimatedMinutes} mins
-                      </Text>
+                      <View style={styles.selectCardMeta}>
+                        <Ionicons name="navigate-outline" size={12} color={themeColors.textMuted} />
+                        <Text style={[styles.selectCardSub, { color: themeColors.textSecondary }]}>
+                          {r.stopsCount} stops
+                        </Text>
+                        <Text style={[styles.selectCardDot, { color: themeColors.textMuted }]}>•</Text>
+                        <Text style={[styles.selectCardSub, { color: themeColors.textSecondary }]}>
+                          {r.distanceKm} km
+                        </Text>
+                        <Text style={[styles.selectCardDot, { color: themeColors.textMuted }]}>•</Text>
+                        <Text style={[styles.selectCardSub, { color: themeColors.textSecondary }]}>
+                          ~{r.estimatedMinutes}m
+                        </Text>
+                      </View>
                     </View>
                   </View>
+                  {isSelected && <Ionicons name="checkmark-circle" size={20} color={themeColors.primary} />}
                 </TouchableOpacity>
               );
             })}
@@ -424,15 +498,22 @@ export default function CreateTripScreen() {
           <View
             style={[
               styles.stepCard,
-              { backgroundColor: theme.cardBackground, borderColor: theme.border },
+              { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border },
             ]}
           >
-            <Text style={[styles.stepTitle, { color: theme.text }]}>
-              Select Vehicle
-            </Text>
-            <Text style={[styles.stepDesc, { color: theme.textSecondary }]}>
-              Fleet vehicles matching capacity requirements ({passengerCount} seats).
-            </Text>
+            <View style={styles.stepCardHeader}>
+              <View style={[styles.stepCardIcon, { backgroundColor: themeColors.primaryLight }]}>
+                <Ionicons name="car" size={20} color={themeColors.primary} />
+              </View>
+              <View>
+                <Text style={[styles.stepTitle, { color: themeColors.text }]}>
+                  Select Vehicle
+                </Text>
+                <Text style={[styles.stepDesc, { color: themeColors.textSecondary }]}>
+                  Fleet vehicles matching {passengerCount} seats
+                </Text>
+              </View>
+            </View>
 
             {vehicles
               .filter((v) => v.status !== 'Maintenance')
@@ -444,30 +525,32 @@ export default function CreateTripScreen() {
                     activeOpacity={0.7}
                     onPress={() => setSelectedVehicleId(v.id)}
                     style={[
-                      styles.selectableCard,
+                      styles.selectCard,
                       {
-                        backgroundColor: isSelected
-                          ? theme.backgroundElement
-                          : theme.cardBackground,
-                        borderColor: isSelected ? theme.accent : theme.border,
+                        backgroundColor: isSelected ? themeColors.backgroundSelected : 'transparent',
+                        borderColor: isSelected ? themeColors.primary : themeColors.border,
                       },
                     ]}
                   >
-                    <View style={styles.selectableLeft}>
-                      <Ionicons
-                        name={isSelected ? 'radio-button-on' : 'radio-button-off'}
-                        size={18}
-                        color={isSelected ? theme.accent : theme.textMuted}
-                      />
-                      <View>
-                        <Text style={[styles.selectCardTitle, { color: theme.text }]}>
-                          {v.model} ({v.plateNumber})
+                    <View style={styles.selectCardLeft}>
+                      <View
+                        style={[
+                          styles.radioOuter,
+                          { borderColor: isSelected ? themeColors.primary : themeColors.textMuted },
+                        ]}
+                      >
+                        {isSelected && <View style={[styles.radioInner, { backgroundColor: themeColors.primary }]} />}
+                      </View>
+                      <View style={styles.selectCardInfo}>
+                        <Text style={[styles.selectCardTitle, { color: themeColors.text }]}>
+                          {v.model}
                         </Text>
-                        <Text style={[styles.selectCardSub, { color: theme.textSecondary }]}>
-                          Capacity: {v.capacity} • Status: {v.status}
+                        <Text style={[styles.selectCardSub, { color: themeColors.textSecondary }]}>
+                          {v.plateNumber} • {v.capacity} seats • {v.status}
                         </Text>
                       </View>
                     </View>
+                    {isSelected && <Ionicons name="checkmark-circle" size={20} color={themeColors.primary} />}
                   </TouchableOpacity>
                 );
               })}
@@ -479,15 +562,22 @@ export default function CreateTripScreen() {
           <View
             style={[
               styles.stepCard,
-              { backgroundColor: theme.cardBackground, borderColor: theme.border },
+              { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border },
             ]}
           >
-            <Text style={[styles.stepTitle, { color: theme.text }]}>
-              Select Driver
-            </Text>
-            <Text style={[styles.stepDesc, { color: theme.textSecondary }]}>
-              Choose an available driver or confirm dispatch.
-            </Text>
+            <View style={styles.stepCardHeader}>
+              <View style={[styles.stepCardIcon, { backgroundColor: themeColors.primaryLight }]}>
+                <Ionicons name="person" size={20} color={themeColors.primary} />
+              </View>
+              <View>
+                <Text style={[styles.stepTitle, { color: themeColors.text }]}>
+                  Select Driver
+                </Text>
+                <Text style={[styles.stepDesc, { color: themeColors.textSecondary }]}>
+                  Choose an available driver or confirm dispatch
+                </Text>
+              </View>
+            </View>
 
             {drivers
               .filter((d) => d.status !== 'Unavailable')
@@ -499,61 +589,75 @@ export default function CreateTripScreen() {
                     activeOpacity={0.7}
                     onPress={() => setSelectedDriverId(d.id)}
                     style={[
-                      styles.selectableCard,
+                      styles.selectCard,
                       {
-                        backgroundColor: isSelected
-                          ? theme.backgroundElement
-                          : theme.cardBackground,
-                        borderColor: isSelected ? theme.accent : theme.border,
+                        backgroundColor: isSelected ? themeColors.backgroundSelected : 'transparent',
+                        borderColor: isSelected ? themeColors.primary : themeColors.border,
                       },
                     ]}
                   >
-                    <View style={styles.selectableLeft}>
-                      <Ionicons
-                        name={isSelected ? 'radio-button-on' : 'radio-button-off'}
-                        size={18}
-                        color={isSelected ? theme.accent : theme.textMuted}
-                      />
-                      <View>
-                        <View style={styles.driverNameRank}>
-                          <Text style={[styles.selectCardTitle, { color: theme.text }]}>
+                    <View style={styles.selectCardLeft}>
+                      <View
+                        style={[
+                          styles.radioOuter,
+                          { borderColor: isSelected ? themeColors.primary : themeColors.textMuted },
+                        ]}
+                      >
+                        {isSelected && <View style={[styles.radioInner, { backgroundColor: themeColors.primary }]} />}
+                      </View>
+                      <View style={styles.selectCardInfo}>
+                        <View style={styles.driverNameRow}>
+                          <Text style={[styles.selectCardTitle, { color: themeColors.text }]}>
                             {d.name}
                           </Text>
                           {index === 0 && (
-                            <View style={[styles.recTag, { backgroundColor: theme.availableLight }]}>
-                              <Text style={[styles.recTagText, { color: theme.available }]}>
+                            <View style={[styles.recBadge, { backgroundColor: themeColors.accentLight }]}>
+                              <Text style={[styles.recBadgeText, { color: themeColors.accent }]}>
                                 Recommended
                               </Text>
                             </View>
                           )}
                         </View>
-                        <Text style={[styles.selectCardSub, { color: theme.textSecondary }]}>
+                        <Text style={[styles.selectCardSub, { color: themeColors.textSecondary }]}>
                           {d.status} • {d.assignedVehicleModel} • On-time: {d.onTimePerformance}%
                         </Text>
                       </View>
                     </View>
+                    {isSelected && <Ionicons name="checkmark-circle" size={20} color={themeColors.primary} />}
                   </TouchableOpacity>
                 );
               })}
           </View>
         )}
 
-        {/* Action Controls */}
-        <View style={styles.bottomControls}>
-          <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={handleNext}
-            style={[styles.nextBtn, { backgroundColor: theme.primary }]}
-          >
-            <Text style={styles.nextBtnText}>
-              {step === 6 ? 'Create Trip' : 'Continue'}
-            </Text>
-            <Ionicons
-              name={step === 6 ? 'checkmark-circle' : 'arrow-forward'}
-              size={18}
-              color="#FFFFFF"
+        {/* Navigation */}
+        <View style={styles.navRow}>
+          {step > 1 && (
+            <AppButton
+              title="Back"
+              onPress={handlePrev}
+              variant="outline"
+              size="md"
+              fullWidth={false}
+              style={{ flex: 1 }}
+              icon={<Ionicons name="arrow-back" size={16} color={themeColors.primary} />}
             />
-          </TouchableOpacity>
+          )}
+          <AppButton
+            title={step === 6 ? 'Create Trip' : 'Continue'}
+            onPress={handleNext}
+            variant="primary"
+            size="md"
+            fullWidth={step === 1}
+            style={{ flex: step > 1 ? 1 : undefined }}
+            icon={
+              <Ionicons
+                name={step === 6 ? 'checkmark-circle' : 'arrow-forward'}
+                size={18}
+                color="#FFFFFF"
+              />
+            }
+          />
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -565,82 +669,137 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
-  indicatorContainer: {
+  progressContainer: {
     paddingHorizontal: Spacing.base,
+    paddingVertical: Spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(150, 150, 150, 0.15)',
+    borderBottomColor: 'rgba(150, 150, 150, 0.1)',
+  },
+  stepRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  stepCol: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 4,
+  },
+  stepDotRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    justifyContent: 'center',
+  },
+  stepDot: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+  },
+  stepDotText: {
+    fontSize: 10,
+    fontWeight: '700',
+  },
+  stepConnector: {
+    height: 2,
+    flex: 1,
+    borderRadius: 1,
+    marginLeft: 4,
+  },
+  stepDotLabel: {
+    fontSize: 9,
+    letterSpacing: 0.2,
+    textAlign: 'center',
   },
   scrollContent: {
     padding: Spacing.base,
     paddingBottom: Spacing.xxl,
   },
+  // Step card
   stepCard: {
-    padding: Spacing.base,
-    borderRadius: BorderRadius.md,
+    borderRadius: BorderRadius.lg,
     borderWidth: 1,
+    padding: Spacing.base,
     marginBottom: Spacing.lg,
-    ...Shadows.subtle,
+    ...Shadows.card,
+  },
+  stepCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+    marginBottom: Spacing.base,
+  },
+  stepCardIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   stepTitle: {
     fontSize: Typography.fontSizes.lg,
     fontWeight: Typography.weights.bold,
-    marginBottom: 4,
+    letterSpacing: -0.3,
   },
   stepDesc: {
     fontSize: Typography.fontSizes.sm,
-    marginBottom: Spacing.base,
+    marginTop: 2,
   },
+  // Input
   inputGroup: {
-    marginBottom: Spacing.base,
+    marginBottom: Spacing.md,
   },
-  label: {
+  inputLabel: {
     fontSize: Typography.fontSizes.sm,
     fontWeight: Typography.weights.medium,
-    marginBottom: 6,
+    marginBottom: Spacing.sm,
+    letterSpacing: 0.1,
+  },
+  inputWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    height: 48,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
   },
   textInput: {
-    height: 48,
-    borderRadius: BorderRadius.sm,
-    borderWidth: 1,
-    paddingHorizontal: Spacing.md,
+    flex: 1,
     fontSize: Typography.fontSizes.base,
+    paddingVertical: 0,
   },
-  presetsRow: {
-    marginTop: Spacing.sm,
+  routeArrow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    paddingHorizontal: Spacing.xl,
+    marginBottom: Spacing.md,
   },
-  presetLabel: {
-    fontSize: Typography.fontSizes.xs,
-    marginBottom: 6,
+  routeArrowLine: {
+    flex: 1,
+    height: 1,
   },
-  presetChip: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: BorderRadius.sm,
-    borderWidth: 1,
-    marginBottom: 6,
-  },
-  presetChipText: {
-    fontSize: Typography.fontSizes.xs + 1,
-    fontWeight: Typography.weights.medium,
-  },
-  chipsRow: {
+  // Chips
+  chipGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: Spacing.xs + 2,
-    marginTop: 6,
+    gap: Spacing.sm,
   },
-  choiceChip: {
+  chip: {
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: BorderRadius.sm,
     borderWidth: 1,
   },
-  choiceChipText: {
+  chipText: {
     fontSize: Typography.fontSizes.xs + 1,
   },
   timeChip: {
     paddingHorizontal: 14,
-    paddingVertical: 8,
+    paddingVertical: 10,
     borderRadius: BorderRadius.sm,
     borderWidth: 1,
   },
@@ -650,53 +809,96 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.sm,
     borderWidth: 1,
   },
-  selectableCard: {
-    padding: Spacing.md,
+  // Presets
+  presetSection: {
+    marginTop: Spacing.sm,
+  },
+  presetLabel: {
+    fontSize: Typography.fontSizes.xs,
+    marginBottom: Spacing.sm,
+    fontWeight: Typography.weights.medium,
+  },
+  presetWrap: {
+    gap: Spacing.sm,
+  },
+  presetChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     borderRadius: BorderRadius.sm,
+    borderWidth: 1,
+  },
+  presetChipText: {
+    fontSize: Typography.fontSizes.xs + 1,
+    fontWeight: Typography.weights.medium,
+  },
+  // Select card
+  selectCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
     borderWidth: 1,
     marginBottom: Spacing.sm,
   },
-  selectableLeft: {
+  selectCardLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.md,
+    flex: 1,
+  },
+  radioOuter: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  radioInner: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+  selectCardInfo: {
+    flex: 1,
   },
   selectCardTitle: {
     fontSize: Typography.fontSizes.sm + 1,
     fontWeight: Typography.weights.bold,
   },
-  selectCardSub: {
-    fontSize: Typography.fontSizes.xs,
-    marginTop: 2,
-  },
-  driverNameRank: {
+  selectCardMeta: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 4,
+    marginTop: 3,
   },
-  recTag: {
+  selectCardSub: {
+    fontSize: Typography.fontSizes.xs,
+  },
+  selectCardDot: {
+    fontSize: Typography.fontSizes.xs,
+  },
+  driverNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  recBadge: {
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: BorderRadius.xs,
   },
-  recTagText: {
+  recBadgeText: {
     fontSize: 10,
     fontWeight: '700',
   },
-  bottomControls: {
-    marginTop: Spacing.xs,
-  },
-  nextBtn: {
-    height: 48,
-    borderRadius: BorderRadius.sm,
+  // Navigation
+  navRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  nextBtnText: {
-    color: '#FFFFFF',
-    fontSize: Typography.fontSizes.base,
-    fontWeight: Typography.weights.semibold,
+    gap: Spacing.sm,
   },
 });

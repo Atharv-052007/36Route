@@ -11,7 +11,8 @@ import { AppSafeAreaView } from '@/components/ui/AppSafeAreaView';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useApp } from '@/context/AppContext';
-import { Typography, BorderRadius } from '@/constants/theme';
+import { Typography, BorderRadius, Shadows, Spacing } from '@/constants/theme';
+import { Header } from '@/components/ui/Header';
 import { AppInput } from '@/components/ui/AppInput';
 import { AnimatedAppButton } from '@/components/ui/AnimatedAppButton';
 
@@ -37,39 +38,78 @@ export default function EditProfileScreen() {
 
   return (
     <AppSafeAreaView style={[styles.safe, { backgroundColor: themeColors.background }]}>
+      <Header title="Edit Profile" showBack />
+
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <TouchableOpacity
-            onPress={() => router.dismissTo('/(tabs)')}
-            style={[styles.backBtn, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}
-          >
-            <Ionicons name="arrow-back" size={20} color={themeColors.text} />
+        {/* Avatar Section */}
+        <View style={styles.avatarSection}>
+          <View style={[styles.avatarRing, { borderColor: themeColors.secondary }]}>
+            <View style={[styles.avatar, { backgroundColor: themeColors.secondaryLight }]}>
+              <Text style={[styles.avatarInitial, { color: themeColors.secondary }]}>
+                {name.charAt(0).toUpperCase() || 'U'}
+              </Text>
+            </View>
+          </View>
+          <TouchableOpacity style={[styles.editOverlay, { backgroundColor: themeColors.secondary }]}>
+            <Ionicons name="camera" size={14} color="#FFF" />
           </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: themeColors.text }]}>Edit Profile</Text>
-          <View style={{ width: 40 }} />
+          <Text style={[styles.avatarLabel, { color: themeColors.textSecondary }]}>Tap to change photo</Text>
         </View>
 
         {/* Personal Info */}
-        <View>
-          <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Personal & Work Info</Text>
-          <View style={[styles.formCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}>
-            <AppInput label="Full Name" value={name} onChangeText={setName} leftIcon={<Ionicons name="person-outline" size={18} color={themeColors.textMuted} />} />
-            <AppInput label="Phone" value={phone} onChangeText={setPhone} keyboardType="phone-pad" leftIcon={<Ionicons name="call-outline" size={18} color={themeColors.textMuted} />} />
-            <AppInput label="Default Pickup" value={pickup} onChangeText={setPickup} leftIcon={<Ionicons name="location-outline" size={18} color={themeColors.accent} />} />
-            <AppInput label="Default Drop" value={drop} onChangeText={setDrop} leftIcon={<Ionicons name="location" size={18} color={themeColors.secondary} />} />
-          </View>
+        <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Personal Info</Text>
+        <View style={[styles.formCard, { backgroundColor: themeColors.cardBackground }, Shadows.card]}>
+          <AppInput
+            label="Full Name"
+            value={name}
+            onChangeText={setName}
+            leftIcon={<Ionicons name="person-outline" size={18} color={themeColors.textMuted} />}
+          />
+          <AppInput
+            label="Phone"
+            value={phone}
+            onChangeText={setPhone}
+            keyboardType="phone-pad"
+            leftIcon={<Ionicons name="call-outline" size={18} color={themeColors.textMuted} />}
+          />
+        </View>
+
+        {/* Default Locations */}
+        <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Default Locations</Text>
+        <View style={[styles.formCard, { backgroundColor: themeColors.cardBackground }, Shadows.card]}>
+          <AppInput
+            label="Default Pickup"
+            value={pickup}
+            onChangeText={setPickup}
+            leftIcon={<Ionicons name="location-outline" size={18} color={themeColors.accent} />}
+          />
+          <AppInput
+            label="Default Drop"
+            value={drop}
+            onChangeText={setDrop}
+            leftIcon={<Ionicons name="location" size={18} color={themeColors.secondary} />}
+          />
         </View>
 
         {/* Emergency Contact */}
-        <View>
-          <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Emergency Contact</Text>
-          <View style={[styles.formCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}>
-            <AppInput label="Contact Name" value={emergencyName} onChangeText={setEmergencyName} leftIcon={<Ionicons name="person-outline" size={18} color={themeColors.danger} />} />
-            <AppInput label="Contact Phone" value={emergencyPhone} onChangeText={setEmergencyPhone} keyboardType="phone-pad" leftIcon={<Ionicons name="call-outline" size={18} color={themeColors.danger} />} />
-          </View>
+        <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Emergency Contact</Text>
+        <View style={[styles.formCard, { backgroundColor: themeColors.cardBackground }, Shadows.card]}>
+          <AppInput
+            label="Contact Name"
+            value={emergencyName}
+            onChangeText={setEmergencyName}
+            leftIcon={<Ionicons name="person-outline" size={18} color={themeColors.danger} />}
+          />
+          <AppInput
+            label="Contact Phone"
+            value={emergencyPhone}
+            onChangeText={setEmergencyPhone}
+            keyboardType="phone-pad"
+            leftIcon={<Ionicons name="call-outline" size={18} color={themeColors.danger} />}
+          />
         </View>
 
-        <View>
+        <View style={{ marginTop: 4 }}>
           <AnimatedAppButton title="Save Changes" onPress={handleSave} loading={loading} size="lg" />
         </View>
       </ScrollView>
@@ -79,22 +119,59 @@ export default function EditProfileScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  container: { padding: 18, paddingBottom: 40 },
-  header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16,
+  container: { padding: Spacing.base, paddingBottom: 40 },
+  avatarSection: {
+    alignItems: 'center',
+    paddingVertical: 20,
+    marginBottom: 8,
   },
-  backBtn: {
-    width: 40, height: 40, borderRadius: 20, borderWidth: 1,
-    justifyContent: 'center', alignItems: 'center',
+  avatarRing: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    borderWidth: 3,
+    padding: 4,
+    marginBottom: 8,
   },
-  headerTitle: {
-    fontSize: Typography.fontSizes.lg, fontWeight: Typography.weights.bold as any,
+  avatar: {
+    flex: 1,
+    borderRadius: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarInitial: {
+    fontSize: Typography.fontSizes.hero,
+    fontWeight: Typography.weights.bold as any,
+  },
+  editOverlay: {
+    position: 'absolute',
+    top: 20,
+    right: '35%',
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#FFF',
+  },
+  avatarLabel: {
+    fontSize: Typography.fontSizes.xs,
+    marginTop: 4,
   },
   sectionTitle: {
-    fontSize: Typography.fontSizes.sm, fontWeight: Typography.weights.semibold as any,
-    textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8, marginTop: 8,
+    fontSize: Typography.fontSizes.sm,
+    fontWeight: Typography.weights.bold as any,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+    marginBottom: 10,
+    marginTop: 4,
   },
   formCard: {
-    borderRadius: BorderRadius.md, borderWidth: 1, padding: 16, marginBottom: 16,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.04)',
+    padding: 16,
+    marginBottom: 16,
   },
 });

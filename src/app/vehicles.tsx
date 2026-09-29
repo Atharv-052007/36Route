@@ -16,9 +16,22 @@ import { Colors, Typography, Spacing, BorderRadius, Shadows } from '@/constants/
 import { useApp } from '@/context/AppContext';
 import { Header } from '@/components/ui/Header';
 import { Badge } from '@/components/ui/Badge';
+import { EmptyState } from '@/components/ui/AppStates';
 import { SupervisorVehicle } from '@/types';
 
-type VehicleFilter = 'All' | 'Available' | 'On Trip' | 'Maintenance';
+type VehicleFilter = 'All' | 'Active' | 'Maintenance' | 'Offline';
+
+const STATUS_BORDER_COLORS: Record<string, string> = {
+  Available: '#10B981',
+  'On Trip': '#2563EB',
+  Maintenance: '#F59E0B',
+};
+
+const STATUS_ICON: Record<string, string> = {
+  Available: 'car-sport',
+  'On Trip': 'car-sport',
+  Maintenance: 'construct',
+};
 
 export default function VehiclesScreen() {
   const router = useRouter();
@@ -28,7 +41,7 @@ export default function VehiclesScreen() {
   const [filter, setFilter] = useState<VehicleFilter>('All');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filterTabs: VehicleFilter[] = ['All', 'Available', 'On Trip', 'Maintenance'];
+  const filterTabs: VehicleFilter[] = ['All', 'Active', 'Maintenance', 'Offline'];
 
   const filteredVehicles = useMemo(() => {
     return vehicles.filter((v) => {
@@ -38,7 +51,10 @@ export default function VehiclesScreen() {
         v.plateNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (v.currentDriverName && v.currentDriverName.toLowerCase().includes(searchQuery.toLowerCase()));
 
-      const matchesFilter = filter === 'All' || v.status === filter;
+      let matchesFilter = true;
+      if (filter === 'Active') matchesFilter = v.status === 'Available' || v.status === 'On Trip';
+      else if (filter === 'Maintenance') matchesFilter = v.status === 'Maintenance';
+      else if (filter === 'Offline') matchesFilter = false;
 
       return matchesSearch && matchesFilter;
     });
@@ -53,46 +69,40 @@ export default function VehiclesScreen() {
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
       <StatusBar
         barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={theme.cardBackground}
+        backgroundColor={theme.background}
       />
 
       <Header title="Vehicles" showBack />
 
-      <View
-        style={[
-          styles.filterContainer,
-          {
-            backgroundColor: theme.cardBackground,
-            borderBottomColor: theme.border,
-          },
-        ]}
-      >
-        {/* Search Bar */}
+      {/* Search Bar */}
+      <View style={styles.searchSection}>
         <View
           style={[
             styles.searchBar,
             {
-              backgroundColor: theme.backgroundElement,
+              backgroundColor: theme.cardBackground,
               borderColor: theme.border,
             },
           ]}
         >
-          <Ionicons name="search" size={16} color={theme.textMuted} />
+          <Ionicons name="search" size={18} color={theme.textMuted} />
           <TextInput
             style={[styles.searchInput, { color: theme.text }]}
-            placeholder="Search vehicle model, plate number..."
+            placeholder="Search model, plate number, driver..."
             placeholderTextColor={theme.textMuted}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => setSearchQuery('')}>
-              <Ionicons name="close-circle" size={16} color={theme.textMuted} />
+              <Ionicons name="close-circle" size={18} color={theme.textMuted} />
             </TouchableOpacity>
           )}
         </View>
+      </View>
 
-        {/* Filter Pills */}
+      {/* Filter Tabs */}
+      <View style={styles.filterSection}>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -108,7 +118,7 @@ export default function VehiclesScreen() {
                 style={[
                   styles.filterPill,
                   {
-                    backgroundColor: isSelected ? theme.primary : theme.backgroundElement,
+                    backgroundColor: isSelected ? theme.primary : theme.cardBackground,
                     borderColor: isSelected ? theme.primary : theme.border,
                   },
                 ]}
@@ -128,100 +138,104 @@ export default function VehiclesScreen() {
             );
           })}
         </ScrollView>
+      </View>
 
-        {/* Fleet Operational Summary */}
+      {/* Fleet Summary */}
+      <View style={styles.summarySection}>
+        <Text style={[styles.sectionLabel, { color: theme.textMuted }]}>
+          FLEET OVERVIEW
+        </Text>
         <View
           style={[
             styles.summaryBar,
             {
-              backgroundColor: theme.backgroundElement,
+              backgroundColor: theme.cardBackground,
               borderColor: theme.border,
             },
           ]}
         >
-          <Text style={[styles.summaryTotal, { color: theme.text }]}>
-            {kpis.totalVehicles} Vehicles
-          </Text>
-          <View style={styles.summaryMetaRow}>
-            <Text style={[styles.summaryItem, { color: theme.available }]}>
-              {kpis.vehiclesAvailable} Available
-            </Text>
-            <Text style={[styles.summaryDot, { color: theme.textMuted }]}>•</Text>
-            <Text style={[styles.summaryItem, { color: theme.onTrip }]}>
-              {kpis.vehiclesOnTrip} On Trip
-            </Text>
-            <Text style={[styles.summaryDot, { color: theme.textMuted }]}>•</Text>
-            <Text style={[styles.summaryItem, { color: theme.maintenance }]}>
-              {kpis.vehiclesMaintenance} Maintenance
-            </Text>
+          <View style={[styles.summaryItem, { borderRightColor: theme.border }]}>
+            <Text style={[styles.summaryCount, { color: theme.text }]}>{kpis.totalVehicles}</Text>
+            <Text style={[styles.summaryLabel, { color: theme.textMuted }]}>Total</Text>
+          </View>
+          <View style={[styles.summaryItem, { borderRightColor: theme.border }]}>
+            <Text style={[styles.summaryCount, { color: theme.available }]}>{kpis.vehiclesAvailable}</Text>
+            <Text style={[styles.summaryLabel, { color: theme.textMuted }]}>Available</Text>
+          </View>
+          <View style={[styles.summaryItem, { borderRightColor: theme.border }]}>
+            <Text style={[styles.summaryCount, { color: theme.onTrip }]}>{kpis.vehiclesOnTrip}</Text>
+            <Text style={[styles.summaryLabel, { color: theme.textMuted }]}>On Trip</Text>
+          </View>
+          <View style={styles.summaryItem}>
+            <Text style={[styles.summaryCount, { color: theme.maintenance }]}>{kpis.vehiclesMaintenance}</Text>
+            <Text style={[styles.summaryLabel, { color: theme.textMuted }]}>Maint.</Text>
           </View>
         </View>
       </View>
 
-      {/* Vehicle Cards List */}
+      {/* Vehicle List */}
       <ScrollView
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
       >
         {filteredVehicles.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Ionicons name="car-outline" size={40} color={theme.textMuted} />
-            <Text style={[styles.emptyTitle, { color: theme.text }]}>
-              No vehicles found
-            </Text>
-          </View>
+          <EmptyState
+            title="No vehicles found"
+            description="Try adjusting your search or filter"
+            icon="car-outline"
+          />
         ) : (
-          filteredVehicles.map((vehicle) => (
-            <TouchableOpacity
-              key={vehicle.id}
-              activeOpacity={0.75}
-              onPress={() => handleVehiclePress(vehicle)}
-              style={[
-                styles.vehicleCard,
-                {
-                  backgroundColor: theme.cardBackground,
-                  borderColor:
-                    vehicle.status === 'Maintenance'
-                      ? theme.warningBorder
-                      : theme.border,
-                },
-              ]}
-            >
-              <View style={styles.cardTop}>
-                <View>
-                  <Text style={[styles.modelText, { color: theme.text }]}>
-                    {vehicle.model}
-                  </Text>
-                  <Text style={[styles.plateText, { color: theme.textSecondary }]}>
-                    {vehicle.plateNumber}
-                  </Text>
-                </View>
-                <Badge status={vehicle.status} size="sm" />
-              </View>
+          filteredVehicles.map((vehicle) => {
+            const borderColor = STATUS_BORDER_COLORS[vehicle.status] || theme.border;
+            const iconName = STATUS_ICON[vehicle.status] || 'car-sport';
 
-              <View style={styles.cardFooter}>
-                <View style={styles.metaItem}>
-                  <Text style={[styles.metaLabel, { color: theme.textMuted }]}>
-                    Capacity:
-                  </Text>
-                  <Text style={[styles.metaValue, { color: theme.text }]}>
-                    {vehicle.capacity}
-                  </Text>
+            return (
+              <TouchableOpacity
+                key={vehicle.id}
+                activeOpacity={0.7}
+                onPress={() => handleVehiclePress(vehicle)}
+                style={[
+                  styles.vehicleCard,
+                  {
+                    backgroundColor: theme.cardBackground,
+                    borderLeftColor: borderColor,
+                  },
+                ]}
+              >
+                {/* Top Row: Icon + Info + Badge */}
+                <View style={styles.cardTopRow}>
+                  <View style={[styles.vehicleIconWrap, { backgroundColor: `${borderColor}18` }]}>
+                    <Ionicons name={iconName as any} size={22} color={borderColor} />
+                  </View>
+                  <View style={styles.vehicleInfo}>
+                    <Text style={[styles.vehicleModel, { color: theme.text }]} numberOfLines={1}>
+                      {vehicle.model}
+                    </Text>
+                    <Text style={[styles.vehiclePlate, { color: theme.textMuted }]}>
+                      {vehicle.plateNumber}
+                    </Text>
+                  </View>
+                  <Badge status={vehicle.status} size="sm" />
                 </View>
 
-                <View style={styles.metaItem}>
-                  <Text style={[styles.metaLabel, { color: theme.textMuted }]}>
-                    Driver:
-                  </Text>
-                  <Text style={[styles.metaValue, { color: theme.text }]}>
-                    {vehicle.currentDriverName || 'Unassigned'}
-                  </Text>
+                {/* Bottom Row: Driver + Capacity */}
+                <View style={styles.cardBottomRow}>
+                  <View style={styles.metaChip}>
+                    <Ionicons name="person-outline" size={13} color={theme.textSecondary} />
+                    <Text style={[styles.metaChipText, { color: theme.textSecondary }]}>
+                      {vehicle.currentDriverName || 'Unassigned'}
+                    </Text>
+                  </View>
+                  <View style={styles.metaChip}>
+                    <Ionicons name="people-outline" size={13} color={theme.textSecondary} />
+                    <Text style={[styles.metaChipText, { color: theme.textSecondary }]}>
+                      {vehicle.capacity} seats
+                    </Text>
+                  </View>
                 </View>
-
-                <Ionicons name="chevron-forward" size={16} color={theme.textMuted} />
-              </View>
-            </TouchableOpacity>
-          ))
+              </TouchableOpacity>
+            );
+          })
         )}
       </ScrollView>
     </SafeAreaView>
@@ -233,120 +247,123 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
-  filterContainer: {
+  searchSection: {
     paddingHorizontal: Spacing.base,
-    paddingTop: Spacing.sm,
     paddingBottom: Spacing.sm,
-    borderBottomWidth: 1,
   },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: BorderRadius.sm,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: BorderRadius.lg,
     borderWidth: 1,
-    marginBottom: Spacing.xs + 2,
-    gap: 8,
+    gap: 10,
+    ...Shadows.subtle,
   },
   searchInput: {
     flex: 1,
     fontSize: Typography.fontSizes.sm,
     paddingVertical: 0,
   },
+  filterSection: {
+    paddingBottom: Spacing.sm,
+  },
   filterScroll: {
     flexDirection: 'row',
-    gap: Spacing.xs + 2,
-    paddingVertical: 4,
-    marginBottom: Spacing.xs,
+    gap: 8,
+    paddingHorizontal: Spacing.base,
   },
   filterPill: {
-    paddingHorizontal: 12,
-    paddingVertical: 5,
+    paddingHorizontal: 16,
+    paddingVertical: 7,
     borderRadius: BorderRadius.full,
     borderWidth: 1,
   },
   filterText: {
     fontSize: Typography.fontSizes.xs + 1,
   },
-  summaryBar: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: BorderRadius.sm,
-    borderWidth: 1,
-    marginTop: 2,
+  summarySection: {
+    paddingHorizontal: Spacing.base,
+    marginBottom: Spacing.sm,
   },
-  summaryTotal: {
-    fontSize: Typography.fontSizes.sm,
+  sectionLabel: {
+    fontSize: Typography.fontSizes.xs,
     fontWeight: Typography.weights.bold,
+    textTransform: 'uppercase',
+    letterSpacing: 1.2,
+    marginBottom: 8,
   },
-  summaryMetaRow: {
+  summaryBar: {
     flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 2,
-    flexWrap: 'wrap',
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    paddingVertical: 12,
+    ...Shadows.subtle,
   },
   summaryItem: {
-    fontSize: Typography.fontSizes.xs,
-    fontWeight: Typography.weights.medium,
+    flex: 1,
+    alignItems: 'center',
+    borderRightWidth: 1,
   },
-  summaryDot: {
-    marginHorizontal: 6,
+  summaryCount: {
+    fontSize: Typography.fontSizes.lg,
+    fontWeight: Typography.weights.bold,
+  },
+  summaryLabel: {
     fontSize: Typography.fontSizes.xs,
+    marginTop: 2,
   },
   listContent: {
     padding: Spacing.base,
     paddingBottom: Spacing.xxl,
   },
-  emptyState: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 60,
-  },
-  emptyTitle: {
-    fontSize: Typography.fontSizes.lg,
-    fontWeight: Typography.weights.bold,
-    marginTop: 12,
-  },
   vehicleCard: {
-    padding: Spacing.md,
-    borderRadius: BorderRadius.md,
+    padding: 14,
+    borderRadius: BorderRadius.lg,
     borderWidth: 1,
-    marginBottom: Spacing.sm,
+    borderLeftWidth: 3.5,
+    borderColor: '#E2E8F0',
+    marginBottom: 10,
     ...Shadows.subtle,
   },
-  cardTop: {
+  cardTopRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 10,
+    alignItems: 'center',
+    marginBottom: 12,
   },
-  modelText: {
+  vehicleIconWrap: {
+    width: 42,
+    height: 42,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  vehicleInfo: {
+    flex: 1,
+  },
+  vehicleModel: {
     fontSize: Typography.fontSizes.base,
     fontWeight: Typography.weights.bold,
+    letterSpacing: -0.2,
   },
-  plateText: {
-    fontSize: Typography.fontSizes.sm,
+  vehiclePlate: {
+    fontSize: Typography.fontSizes.xs + 1,
     marginTop: 2,
+    letterSpacing: 0.5,
   },
-  cardFooter: {
+  cardBottomRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(150, 150, 150, 0.1)',
+    gap: 12,
   },
-  metaItem: {
+  metaChip: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
   },
-  metaLabel: {
+  metaChipText: {
     fontSize: Typography.fontSizes.xs + 1,
-  },
-  metaValue: {
-    fontSize: Typography.fontSizes.xs + 1,
-    fontWeight: Typography.weights.semibold,
+    fontWeight: Typography.weights.medium,
   },
 });

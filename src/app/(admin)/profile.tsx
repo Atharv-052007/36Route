@@ -1,18 +1,18 @@
 import React from 'react';
 import {
-  StyleSheet,
-  Text,
   View,
+  Text,
+  StyleSheet,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
-  Platform,
-  StatusBar,
+  Switch,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { AppSafeAreaView } from '@/components/ui/AppSafeAreaView';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Typography, Spacing, BorderRadius, Shadows } from '@/constants/theme';
+import { useRouter } from 'expo-router';
 import { useApp } from '@/context/AppContext';
+import { Typography, BorderRadius, Spacing, Shadows } from '@/constants/theme';
+import { ConfirmationModal } from '@/components/ui/AppStates';
 
 type AdminMode = 'admin' | 'driver' | 'user' | 'superadmin';
 
@@ -25,8 +25,8 @@ const MODES: { key: AdminMode; label: string; subtitle: string; icon: string; ac
 
 export default function AdminProfileScreen() {
   const router = useRouter();
-  const { user, isDarkMode, toggleDarkMode, logout } = useApp();
-  const theme = isDarkMode ? Colors.dark : Colors.light;
+  const { user, isDarkMode, toggleDarkMode, logout, themeColors } = useApp();
+  const [showLogout, setShowLogout] = React.useState(false);
 
   const switchMode = (mode: AdminMode) => {
     if (mode === 'driver') {
@@ -38,204 +38,116 @@ export default function AdminProfileScreen() {
     }
   };
 
+  const handleLogout = () => {
+    setShowLogout(false);
+    logout();
+    router.replace('/login');
+  };
+
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={theme.cardBackground}
-      />
-
-      {/* Screen Header */}
-      <View
-        style={[
-          styles.header,
-          {
-            backgroundColor: theme.cardBackground,
-            borderBottomColor: theme.border,
-          },
-        ]}
-      >
-        <Text style={[styles.headerTitle, { color: theme.text }]}>Profile</Text>
-      </View>
-
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
+    <AppSafeAreaView edges={['top']} style={[styles.safe, { backgroundColor: themeColors.background }]}>
+      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
         {/* Profile Card */}
-        <View
-          style={[
-            styles.profileCard,
-            {
-              backgroundColor: theme.cardBackground,
-              borderColor: theme.border,
-            },
-          ]}
-        >
-          <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
+        <View style={[styles.profileCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.card]}>
+          <View style={[styles.avatar, { backgroundColor: themeColors.primary, borderWidth: 3, borderColor: themeColors.primaryLight }]}>
             <Text style={styles.avatarText}>
-              {user?.name ? user.name.charAt(0).toUpperCase() : 'G'}
+              {user?.name ? user.name.charAt(0).toUpperCase() : 'A'}
             </Text>
           </View>
-          <Text style={[styles.userName, { color: theme.text }]}>
-            {user?.name || 'Govind'}
+          <Text style={[styles.userName, { color: themeColors.text }]}>
+            {user?.name || 'Admin'}
           </Text>
-          <Text style={[styles.userRole, { color: theme.accent }]}>
+          <Text style={[styles.userRole, { color: themeColors.secondary }]}>
             {user?.role || 'Operations Lead'}
           </Text>
-          <View style={[styles.statusPill, { backgroundColor: theme.availableLight }]}>
-            <Ionicons name="ellipse" size={10} color={theme.available} />
-            <Text style={[styles.statusText, { color: theme.available }]}>On Duty</Text>
+          <View style={[styles.statusPill, { backgroundColor: themeColors.accentLight }]}>
+            <Ionicons name="ellipse" size={10} color={themeColors.accent} />
+            <Text style={[styles.statusText, { color: themeColors.accent }]}>On Duty</Text>
           </View>
 
-          <View
-            style={[
-              styles.detailGrid,
-              { borderTopColor: theme.border },
-            ]}
-          >
+          <View style={[styles.detailGrid, { borderTopColor: themeColors.borderLight }]}>
             <View style={styles.detailItem}>
-              <Text style={[styles.detailLabel, { color: theme.textMuted }]}>Email</Text>
-              <Text style={[styles.detailValue, { color: theme.text }]}>{user?.email || 'govind@36route.com'}</Text>
+              <Ionicons name="mail-outline" size={14} color={themeColors.textMuted} />
+              <Text style={[styles.detailValue, { color: themeColors.textSecondary }]}>{user?.email || 'admin@36route.com'}</Text>
             </View>
             <View style={styles.detailItem}>
-              <Text style={[styles.detailLabel, { color: theme.textMuted }]}>Phone</Text>
-              <Text style={[styles.detailValue, { color: theme.text }]}>{user?.phone || '+91 98220 00000'}</Text>
+              <Ionicons name="call-outline" size={14} color={themeColors.textMuted} />
+              <Text style={[styles.detailValue, { color: themeColors.textSecondary }]}>{user?.phone || '+91 98220 00000'}</Text>
             </View>
             <View style={styles.detailItem}>
-              <Text style={[styles.detailLabel, { color: theme.textMuted }]}>Hub</Text>
-              <Text style={[styles.detailValue, { color: theme.text }]}>{user?.hub || 'Pune Operations Hub'}</Text>
+              <Ionicons name="location-outline" size={14} color={themeColors.textMuted} />
+              <Text style={[styles.detailValue, { color: themeColors.textSecondary }]}>{user?.hub || 'Pune Operations Hub'}</Text>
             </View>
           </View>
         </View>
 
-        {/* Switch Role - Mode Selection */}
-        <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>
-          SWITCH ROLE
-        </Text>
-        <View
-          style={[
-            styles.menuList,
-            {
-              backgroundColor: theme.cardBackground,
-              borderColor: theme.border,
-            },
-          ]}
-        >
-          {MODES.map((mode, index) => {
-            const isLast = index === MODES.length - 1;
-            return (
-              <TouchableOpacity
-                key={mode.key}
-                activeOpacity={0.7}
-                onPress={() => switchMode(mode.key)}
-                style={[
-                  styles.menuItem,
-                  !isLast && {
-                    borderBottomWidth: 1,
-                    borderBottomColor: theme.border,
-                  },
-                ]}
-              >
-                <View
-                  style={[
-                    styles.iconWrap,
-                    {
-                      backgroundColor: mode.active
-                        ? theme.accentLight
-                        : theme.backgroundElement,
-                    },
-                  ]}
-                >
-                  <Ionicons
-                    name={mode.icon as any}
-                    size={18}
-                    color={mode.active ? theme.accent : theme.text}
-                  />
-                </View>
-                <View style={[styles.menuTextWrap, mode.active && styles.menuActiveWrap]}>
-                  <Text style={[styles.menuTitle, { color: theme.text }]}>
-                    {mode.label}
-                  </Text>
-                  <Text style={[styles.menuSubtitle, { color: theme.textSecondary }]}>
-                    {mode.subtitle}
-                  </Text>
-                </View>
-                {mode.active ? (
-                  <Text style={[styles.activeLabel, { color: theme.accent }]}>Active</Text>
-                ) : (
-                  <Ionicons name="chevron-forward" size={16} color={theme.textMuted} />
-                )}
-              </TouchableOpacity>
-            );
-          })}
+        {/* Switch Role */}
+        <Text style={[styles.sectionTitle, { color: themeColors.textMuted }]}>SWITCH ROLE</Text>
+        <View style={[styles.menuCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.subtle]}>
+          {MODES.map((mode, index) => (
+            <TouchableOpacity
+              key={mode.key}
+              activeOpacity={0.7}
+              onPress={() => switchMode(mode.key)}
+              style={[
+                styles.menuItem,
+                index < MODES.length - 1 && { borderBottomColor: themeColors.borderLight },
+              ]}
+            >
+              <View style={[styles.iconWrap, { backgroundColor: mode.active ? themeColors.accentLight : themeColors.backgroundElement }]}>
+                <Ionicons name={mode.icon as any} size={18} color={mode.active ? themeColors.secondary : themeColors.textSecondary} />
+              </View>
+              <View style={styles.menuTextWrap}>
+                <Text style={[styles.menuTitle, { color: themeColors.text }]}>{mode.label}</Text>
+                <Text style={[styles.menuSubtitle, { color: themeColors.textMuted }]}>{mode.subtitle}</Text>
+              </View>
+              {mode.active ? (
+                <Text style={[styles.activeLabel, { color: themeColors.secondary }]}>Active</Text>
+              ) : (
+                <Ionicons name="chevron-forward" size={16} color={themeColors.textMuted} />
+              )}
+            </TouchableOpacity>
+          ))}
         </View>
 
-        {/* Account Options */}
-        <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>
-          ACCOUNT
-        </Text>
-        <View
-          style={[
-            styles.menuList,
-            {
-              backgroundColor: theme.cardBackground,
-              borderColor: theme.border,
-            },
-          ]}
-        >
+        {/* Account */}
+        <Text style={[styles.sectionTitle, { color: themeColors.textMuted }]}>ACCOUNT</Text>
+        <View style={[styles.menuCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.subtle]}>
           <TouchableOpacity
             activeOpacity={0.7}
             onPress={toggleDarkMode}
-            style={[
-              styles.menuItem,
-              {
-                borderBottomWidth: 1,
-                borderBottomColor: theme.border,
-              },
-            ]}
+            style={[styles.menuItem, { borderBottomColor: themeColors.borderLight }]}
           >
-            <View
-              style={[styles.iconWrap, { backgroundColor: theme.backgroundElement }]}
-            >
-              <Ionicons
-                name={isDarkMode ? 'sunny-outline' : 'moon-outline'}
-                size={18}
-                color={theme.text}
-              />
+            <View style={[styles.iconWrap, { backgroundColor: themeColors.backgroundElement }]}>
+              <Ionicons name={isDarkMode ? 'sunny-outline' : 'moon-outline'} size={18} color={themeColors.textSecondary} />
             </View>
             <View style={styles.menuTextWrap}>
-              <Text style={[styles.menuTitle, { color: theme.text }]}>Dark Mode</Text>
-              <Text style={[styles.menuSubtitle, { color: theme.textSecondary }]}>
+              <Text style={[styles.menuTitle, { color: themeColors.text }]}>Dark Mode</Text>
+              <Text style={[styles.menuSubtitle, { color: themeColors.textMuted }]}>
                 {isDarkMode ? 'Turn off dim palette' : 'Turn on dim palette'}
               </Text>
             </View>
-            <Ionicons name="chevron-forward" size={16} color={theme.textMuted} />
+            <Switch
+              value={isDarkMode}
+              onValueChange={toggleDarkMode}
+              trackColor={{ false: themeColors.border, true: themeColors.accentLight }}
+              thumbColor={isDarkMode ? themeColors.accent : themeColors.textMuted}
+            />
           </TouchableOpacity>
 
           <TouchableOpacity
             activeOpacity={0.7}
             onPress={() => router.push('/settings')}
-            style={[
-              styles.menuItem,
-              {
-                borderBottomWidth: 1,
-                borderBottomColor: theme.border,
-              },
-            ]}
+            style={[styles.menuItem, { borderBottomColor: themeColors.borderLight }]}
           >
-            <View
-              style={[styles.iconWrap, { backgroundColor: theme.backgroundElement }]}
-            >
-              <Ionicons name="settings-outline" size={18} color={theme.text} />
+            <View style={[styles.iconWrap, { backgroundColor: themeColors.backgroundElement }]}>
+              <Ionicons name="settings-outline" size={18} color={themeColors.textSecondary} />
             </View>
             <View style={styles.menuTextWrap}>
-              <Text style={[styles.menuTitle, { color: theme.text }]}>Settings</Text>
-              <Text style={[styles.menuSubtitle, { color: theme.textSecondary }]}>
-                Supervisor preferences & thresholds
-              </Text>
+              <Text style={[styles.menuTitle, { color: themeColors.text }]}>Settings</Text>
+              <Text style={[styles.menuSubtitle, { color: themeColors.textMuted }]}>Supervisor preferences & thresholds</Text>
             </View>
-            <Ionicons name="chevron-forward" size={16} color={theme.textMuted} />
+            <Ionicons name="chevron-forward" size={16} color={themeColors.textMuted} />
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -243,88 +155,64 @@ export default function AdminProfileScreen() {
             onPress={() => router.push('/help')}
             style={styles.menuItem}
           >
-            <View
-              style={[styles.iconWrap, { backgroundColor: theme.backgroundElement }]}
-            >
-              <Ionicons name="help-circle-outline" size={18} color={theme.text} />
+            <View style={[styles.iconWrap, { backgroundColor: themeColors.backgroundElement }]}>
+              <Ionicons name="help-circle-outline" size={18} color={themeColors.textSecondary} />
             </View>
             <View style={styles.menuTextWrap}>
-              <Text style={[styles.menuTitle, { color: theme.text }]}>Help & Support</Text>
-              <Text style={[styles.menuSubtitle, { color: theme.textSecondary }]}>
-                Operation manuals & escalations
-              </Text>
+              <Text style={[styles.menuTitle, { color: themeColors.text }]}>Help & Support</Text>
+              <Text style={[styles.menuSubtitle, { color: themeColors.textMuted }]}>Operation manuals & escalations</Text>
             </View>
-            <Ionicons name="chevron-forward" size={16} color={theme.textMuted} />
+            <Ionicons name="chevron-forward" size={16} color={themeColors.textMuted} />
           </TouchableOpacity>
         </View>
 
-        {/* Sign Out Button */}
+        {/* Sign Out */}
         <TouchableOpacity
           activeOpacity={0.7}
-          onPress={() => {
-            logout();
-            router.replace('/login');
-          }}
-          style={[
-            styles.logoutBtn,
-            {
-              backgroundColor: theme.cardBackground,
-              borderColor: theme.dangerBorder,
-            },
-          ]}
+          onPress={() => setShowLogout(true)}
+          style={[styles.signOutBtn, { backgroundColor: themeColors.dangerLight, borderColor: themeColors.dangerBorder }]}
         >
-          <Ionicons name="log-out-outline" size={18} color={theme.danger} />
-          <Text style={[styles.logoutText, { color: theme.danger }]}>
-            Sign Out
-          </Text>
+          <Ionicons name="log-out-outline" size={20} color={themeColors.danger} />
+          <Text style={[styles.signOutText, { color: themeColors.danger }]}>Sign Out</Text>
         </TouchableOpacity>
 
-        <Text style={[styles.version, { color: theme.textMuted }]}>
-          Admin Mode • 36Route v1.0.0
-        </Text>
+        <Text style={[styles.version, { color: themeColors.textMuted }]}>Admin Mode · 36Route v1.0.0</Text>
       </ScrollView>
-    </SafeAreaView>
+
+      <ConfirmationModal
+        visible={showLogout}
+        title="Sign Out"
+        message="Are you sure you want to sign out of Admin Mode?"
+        confirmText="Sign Out"
+        onConfirm={handleLogout}
+        onCancel={() => setShowLogout(false)}
+        variant="danger"
+      />
+    </AppSafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
-  },
-  header: {
-    paddingHorizontal: Spacing.base,
-    paddingVertical: Spacing.md,
-    borderBottomWidth: 1,
-  },
-  headerTitle: {
-    fontSize: Typography.fontSizes.xl,
-    fontWeight: Typography.weights.bold,
-    letterSpacing: -0.3,
-  },
-  scrollContent: {
-    padding: Spacing.base,
-    paddingBottom: Spacing.xxl,
-  },
+  safe: { flex: 1 },
+  container: { padding: Spacing.base, paddingBottom: Spacing.xxl },
   profileCard: {
     alignItems: 'center',
     padding: Spacing.lg,
-    borderRadius: BorderRadius.md,
+    borderRadius: BorderRadius.lg,
     borderWidth: 1,
-    marginBottom: Spacing.md,
-    ...Shadows.subtle,
+    marginBottom: Spacing.lg,
   },
   avatar: {
-    width: 72,
-    height: 72,
-    borderRadius: BorderRadius.full,
+    width: 96,
+    height: 96,
+    borderRadius: 48,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: Spacing.sm,
+    marginBottom: Spacing.md,
   },
   avatarText: {
     color: '#FFFFFF',
-    fontSize: Typography.fontSizes.xxl,
+    fontSize: Typography.fontSizes.hero,
     fontWeight: Typography.weights.bold,
   },
   userName: {
@@ -352,22 +240,20 @@ const styles = StyleSheet.create({
   },
   detailGrid: {
     alignSelf: 'stretch',
-    borderTopWidth: 1,
+    borderTopWidth: StyleSheet.hairlineWidth,
     marginTop: Spacing.md,
     paddingTop: Spacing.md,
-    alignItems: 'center',
+    gap: Spacing.sm,
   },
   detailItem: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: Spacing.sm,
-  },
-  detailLabel: {
-    fontSize: Typography.fontSizes.xs,
+    gap: Spacing.sm,
+    justifyContent: 'center',
   },
   detailValue: {
-    fontSize: Typography.fontSizes.sm + 1,
-    fontWeight: Typography.weights.semibold,
-    marginTop: 2,
+    fontSize: Typography.fontSizes.sm,
+    fontWeight: Typography.weights.medium,
   },
   sectionTitle: {
     fontSize: Typography.fontSizes.xs,
@@ -376,18 +262,18 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.sm,
     marginTop: Spacing.xs,
   },
-  menuList: {
+  menuCard: {
     borderRadius: BorderRadius.md,
     borderWidth: 1,
     overflow: 'hidden',
     marginBottom: Spacing.md,
-    ...Shadows.subtle,
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.md,
+    borderBottomWidth: 1,
   },
   iconWrap: {
     width: 34,
@@ -400,11 +286,8 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: Spacing.md,
   },
-  menuActiveWrap: {
-    opacity: 1,
-  },
   menuTitle: {
-    fontSize: Typography.fontSizes.sm + 1,
+    fontSize: Typography.fontSizes.md,
     fontWeight: Typography.weights.semibold,
   },
   menuSubtitle: {
@@ -415,22 +298,23 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSizes.xs,
     fontWeight: Typography.weights.bold,
   },
-  logoutBtn: {
+  signOutBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: Spacing.md,
     borderRadius: BorderRadius.md,
     borderWidth: 1,
-    gap: 8,
+    gap: Spacing.sm,
   },
-  logoutText: {
-    fontSize: Typography.fontSizes.sm,
+  signOutText: {
+    fontSize: Typography.fontSizes.md,
     fontWeight: Typography.weights.semibold,
   },
   version: {
     textAlign: 'center',
     fontSize: Typography.fontSizes.xs,
     marginTop: Spacing.lg,
+    marginBottom: Spacing.xs,
   },
 });

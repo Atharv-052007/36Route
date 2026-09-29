@@ -1,11 +1,12 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { Platform } from 'react-native';
+import { View, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Typography } from '@/constants/theme';
 import { useApp } from '@/context/AppContext';
-
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+const ACTIVE_COLOR = Colors.light.primary;
 
 export default function TabLayout() {
   const { isDarkMode, alerts } = useApp();
@@ -15,23 +16,28 @@ export default function TabLayout() {
   const unresolvedAlertCount = alerts.filter((a) => !a.resolved).length;
 
   const bottomInset = insets.bottom;
-  const tabHeight = 60 + (bottomInset > 0 ? bottomInset : 4);
+  const tabHeight = 62 + (bottomInset > 0 ? bottomInset : 4);
   const tabPaddingBottom = bottomInset > 0 ? bottomInset : 8;
 
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: theme.accent,
+        tabBarActiveTintColor: ACTIVE_COLOR,
         tabBarInactiveTintColor: theme.textMuted,
         tabBarHideOnKeyboard: true,
         tabBarStyle: {
-          backgroundColor: theme.cardBackground,
-          borderTopColor: theme.border,
+          backgroundColor: '#FFFFFF',
+          borderTopColor: '#E5E7EB',
           borderTopWidth: 1,
           height: tabHeight,
           paddingBottom: tabPaddingBottom,
-          paddingTop: 8,
+          paddingTop: 6,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -3 },
+          shadowOpacity: 0.08,
+          shadowRadius: 12,
+          elevation: 12,
         },
         tabBarItemStyle: {
           justifyContent: 'center',
@@ -39,8 +45,9 @@ export default function TabLayout() {
           paddingTop: 2,
         },
         tabBarLabelStyle: {
-          fontSize: Typography.fontSizes.xs,
-          fontWeight: Typography.weights.medium,
+          fontSize: 11,
+          fontWeight: Typography.weights.semibold,
+          fontFamily: 'Inter-SemiBold',
           marginTop: 2,
         },
         tabBarIconStyle: {
@@ -53,11 +60,24 @@ export default function TabLayout() {
         options={{
           title: 'Home',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons
-              name={focused ? 'grid' : 'grid-outline'}
-              size={22}
-              color={color}
-            />
+            <View style={{ alignItems: 'center' }}>
+              <Ionicons
+                name={focused ? 'grid' : 'grid-outline'}
+                size={22}
+                color={focused ? ACTIVE_COLOR : color}
+              />
+              {focused && (
+                <View
+                  style={{
+                    width: 16,
+                    height: 3,
+                    borderRadius: 1.5,
+                    backgroundColor: ACTIVE_COLOR,
+                    marginTop: 3,
+                  }}
+                />
+              )}
+            </View>
           ),
           tabBarBadge: unresolvedAlertCount > 0 ? unresolvedAlertCount : undefined,
           tabBarBadgeStyle: {
@@ -73,11 +93,24 @@ export default function TabLayout() {
         options={{
           title: 'Trips',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons
-              name={focused ? 'bus' : 'bus-outline'}
-              size={22}
-              color={color}
-            />
+            <View style={{ alignItems: 'center' }}>
+              <Ionicons
+                name={focused ? 'bus' : 'bus-outline'}
+                size={22}
+                color={focused ? ACTIVE_COLOR : color}
+              />
+              {focused && (
+                <View
+                  style={{
+                    width: 16,
+                    height: 3,
+                    borderRadius: 1.5,
+                    backgroundColor: ACTIVE_COLOR,
+                    marginTop: 3,
+                  }}
+                />
+              )}
+            </View>
           ),
         }}
       />
@@ -86,11 +119,24 @@ export default function TabLayout() {
         options={{
           title: 'People',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons
-              name={focused ? 'people' : 'people-outline'}
-              size={22}
-              color={color}
-            />
+            <View style={{ alignItems: 'center' }}>
+              <Ionicons
+                name={focused ? 'people' : 'people-outline'}
+                size={22}
+                color={focused ? ACTIVE_COLOR : color}
+              />
+              {focused && (
+                <View
+                  style={{
+                    width: 16,
+                    height: 3,
+                    borderRadius: 1.5,
+                    backgroundColor: ACTIVE_COLOR,
+                    marginTop: 3,
+                  }}
+                />
+              )}
+            </View>
           ),
         }}
       />
@@ -99,11 +145,24 @@ export default function TabLayout() {
         options={{
           title: 'Profile',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons
-              name={focused ? 'person' : 'person-outline'}
-              size={22}
-              color={color}
-            />
+            <View style={{ alignItems: 'center' }}>
+              <Ionicons
+                name={focused ? 'person' : 'person-outline'}
+                size={22}
+                color={focused ? ACTIVE_COLOR : color}
+              />
+              {focused && (
+                <View
+                  style={{
+                    width: 16,
+                    height: 3,
+                    borderRadius: 1.5,
+                    backgroundColor: ACTIVE_COLOR,
+                    marginTop: 3,
+                  }}
+                />
+              )}
+            </View>
           ),
         }}
       />
@@ -112,11 +171,28 @@ export default function TabLayout() {
         options={{
           title: 'More',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons
-              name={focused ? 'ellipsis-horizontal-circle' : 'ellipsis-horizontal-circle-outline'}
-              size={22}
-              color={color}
-            />
+            <View style={{ alignItems: 'center' }}>
+              <Ionicons
+                name={
+                  focused
+                    ? 'ellipsis-horizontal-circle'
+                    : 'ellipsis-horizontal-circle-outline'
+                }
+                size={22}
+                color={focused ? ACTIVE_COLOR : color}
+              />
+              {focused && (
+                <View
+                  style={{
+                    width: 16,
+                    height: 3,
+                    borderRadius: 1.5,
+                    backgroundColor: ACTIVE_COLOR,
+                    marginTop: 3,
+                  }}
+                />
+              )}
+            </View>
           ),
         }}
       />

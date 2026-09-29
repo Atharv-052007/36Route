@@ -4,17 +4,29 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
   Alert,
 } from 'react-native';
-import { AppSafeAreaView } from '@/components/ui/AppSafeAreaView';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useApp } from '@/context/AppContext';
-import { Typography, BorderRadius, Shadows } from '@/constants/theme';
+import { Typography, BorderRadius, Shadows, Spacing } from '@/constants/theme';
+import { Header } from '@/components/ui/Header';
 import { AppInput } from '@/components/ui/AppInput';
-import { AnimatedAppButton } from '@/components/ui/AnimatedAppButton';
+import { AppButton } from '@/components/ui/AppButton';
 import { ShiftType } from '@/types';
+
+type ShiftOption = {
+  key: ShiftType;
+  label: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  time: string;
+};
+
+const SHIFT_OPTIONS: ShiftOption[] = [
+  { key: 'PICKUP', label: 'Morning', icon: 'sunny-outline', time: '08:30 AM' },
+  { key: 'DROP', label: 'Evening', icon: 'moon-outline', time: '06:30 PM' },
+  { key: 'NIGHT', label: 'Night', icon: 'moon', time: '10:00 PM' },
+];
 
 export default function BookRideScreen() {
   const router = useRouter();
@@ -28,17 +40,15 @@ export default function BookRideScreen() {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const toggleShift = () => {
-    const newType = shiftType === 'PICKUP' ? 'DROP' : 'PICKUP';
-    setShiftType(newType);
-    if (newType === 'DROP') {
-      setTime('06:30 PM');
-      setPickup('36Route Tech Park, Electronic City');
-      setDrop('Kothrud, Pune');
-    } else {
-      setTime('08:30 AM');
+  const handleShiftSelect = (option: ShiftOption) => {
+    setShiftType(option.key);
+    setTime(option.time);
+    if (option.key === 'PICKUP') {
       setPickup('Kothrud, Pune');
       setDrop('36Route Tech Park, Electronic City');
+    } else {
+      setPickup('36Route Tech Park, Electronic City');
+      setDrop('Kothrud, Pune');
     }
   };
 
@@ -80,239 +90,312 @@ export default function BookRideScreen() {
   };
 
   return (
-    <AppSafeAreaView style={[styles.safe, { backgroundColor: themeColors.background }]}>
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity
-            onPress={() => router.dismissTo('/(tabs)')}
-            style={[styles.backBtn, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}
-          >
-            <Ionicons name="arrow-back" size={20} color={themeColors.text} />
-          </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: themeColors.text }]}>Book a Ride</Text>
-          <View style={{ width: 40 }} />
+    <View style={[styles.safe, { backgroundColor: themeColors.background }]}>
+      <Header
+        title="Book a Ride"
+        subtitle="Schedule your commute"
+        showBack
+      />
+
+      <ScrollView
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        {/* Step 1: Shift Type */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <View style={[styles.stepBadge, { backgroundColor: themeColors.primary }]}>
+              <Text style={styles.stepNumber}>1</Text>
+            </View>
+            <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Shift Type</Text>
+          </View>
+          <View style={styles.shiftGrid}>
+            {SHIFT_OPTIONS.map((option) => {
+              const isActive = shiftType === option.key;
+              return (
+                <View
+                  key={option.key}
+                  style={[
+                    styles.shiftCard,
+                    {
+                      backgroundColor: isActive ? themeColors.primaryLight : themeColors.cardBackground,
+                      borderColor: isActive ? themeColors.primary : themeColors.border,
+                    },
+                    isActive && Shadows.small,
+                  ]}
+                >
+                  <Ionicons
+                    name={option.icon}
+                    size={24}
+                    color={isActive ? themeColors.primary : themeColors.textMuted}
+                  />
+                  <Text
+                    style={[
+                      styles.shiftLabel,
+                      { color: isActive ? themeColors.primary : themeColors.text },
+                    ]}
+                  >
+                    {option.label}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.shiftTime,
+                      { color: isActive ? themeColors.primary : themeColors.textSecondary },
+                    ]}
+                  >
+                    {option.time}
+                  </Text>
+                  <Ionicons
+                    onPress={() => handleShiftSelect(option)}
+                    name={isActive ? 'radio-button-on' : 'radio-button-off'}
+                    size={20}
+                    color={isActive ? themeColors.primary : themeColors.textMuted}
+                  />
+                </View>
+              );
+            })}
+          </View>
         </View>
 
-        {/* Shift Toggle */}
-        <View style={[styles.shiftToggle, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}>
-          <TouchableOpacity
-            onPress={() => shiftType !== 'PICKUP' && toggleShift()}
-            style={[
-              styles.shiftBtn,
-              shiftType === 'PICKUP' && { backgroundColor: themeColors.secondary },
-            ]}
-            activeOpacity={0.7}
-          >
-            <Ionicons
-              name="arrow-up"
-              size={16}
-              color={shiftType === 'PICKUP' ? '#FFFFFF' : themeColors.textSecondary}
+        {/* Step 2: Date & Time */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <View style={[styles.stepBadge, { backgroundColor: themeColors.primary }]}>
+              <Text style={styles.stepNumber}>2</Text>
+            </View>
+            <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Date & Time</Text>
+          </View>
+          <View style={[styles.formCard, { backgroundColor: themeColors.cardBackground }, Shadows.subtle]}>
+            <AppInput
+              label="Date"
+              value={date}
+              onChangeText={setDate}
+              placeholder="Select date"
+              leftIcon={<Ionicons name="calendar-outline" size={18} color={themeColors.primary} />}
+              error={errors.date}
             />
-            <Text
-              style={[
-                styles.shiftBtnText,
-                { color: shiftType === 'PICKUP' ? '#FFFFFF' : themeColors.textSecondary },
-              ]}
-            >
-              Morning Pickup
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => shiftType !== 'DROP' && toggleShift()}
-            style={[
-              styles.shiftBtn,
-              shiftType === 'DROP' && { backgroundColor: themeColors.secondary },
-            ]}
-            activeOpacity={0.7}
-          >
-            <Ionicons
-              name="arrow-down"
-              size={16}
-              color={shiftType === 'DROP' ? '#FFFFFF' : themeColors.textSecondary}
+            <AppInput
+              label="Time"
+              value={time}
+              onChangeText={setTime}
+              placeholder="Select time"
+              leftIcon={<Ionicons name="time-outline" size={18} color={themeColors.primary} />}
+              error={errors.time}
+              containerStyle={{ marginBottom: 0 }}
             />
-            <Text
-              style={[
-                styles.shiftBtnText,
-                { color: shiftType === 'DROP' ? '#FFFFFF' : themeColors.textSecondary },
-              ]}
-            >
-              Evening Drop
-            </Text>
-          </TouchableOpacity>
+          </View>
         </View>
 
-        {/* Form */}
-        <View style={[styles.formCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.small]}>
-          <AppInput
-            label="Date"
-            value={date}
-            onChangeText={setDate}
-            placeholder="Select date"
-            leftIcon={<Ionicons name="calendar-outline" size={18} color={themeColors.textMuted} />}
-            error={errors.date}
-          />
+        {/* Step 3: Locations */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <View style={[styles.stepBadge, { backgroundColor: themeColors.primary }]}>
+              <Text style={styles.stepNumber}>3</Text>
+            </View>
+            <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Locations</Text>
+          </View>
+          <View style={[styles.formCard, { backgroundColor: themeColors.cardBackground }, Shadows.subtle]}>
+            <AppInput
+              label="Pickup Location"
+              value={pickup}
+              onChangeText={setPickup}
+              placeholder="Enter pickup address"
+              leftIcon={<Ionicons name="location-outline" size={18} color={themeColors.accent} />}
+              error={errors.pickup}
+            />
+            <View style={styles.connector}>
+              <View style={[styles.connectorLine, { backgroundColor: themeColors.border }]} />
+              <Ionicons name="swap-vertical" size={18} color={themeColors.textMuted} />
+              <View style={[styles.connectorLine, { backgroundColor: themeColors.border }]} />
+            </View>
+            <AppInput
+              label="Drop Location"
+              value={drop}
+              onChangeText={setDrop}
+              placeholder="Enter drop address"
+              leftIcon={<Ionicons name="location" size={18} color={themeColors.secondary} />}
+              error={errors.drop}
+              containerStyle={{ marginBottom: 0 }}
+            />
+          </View>
+        </View>
 
-          <AppInput
-            label="Time"
-            value={time}
-            onChangeText={setTime}
-            placeholder="Select time"
-            leftIcon={<Ionicons name="time-outline" size={18} color={themeColors.textMuted} />}
-            error={errors.time}
-          />
-
-          <AppInput
-            label="Pickup Location"
-            value={pickup}
-            onChangeText={setPickup}
-            placeholder="Enter pickup address"
-            leftIcon={<Ionicons name="location-outline" size={18} color={themeColors.accent} />}
-            error={errors.pickup}
-          />
-
-          <AppInput
-            label="Drop Location"
-            value={drop}
-            onChangeText={setDrop}
-            placeholder="Enter drop address"
-            leftIcon={<Ionicons name="location" size={18} color={themeColors.secondary} />}
-            error={errors.drop}
-          />
-
-          {/* Route Selection */}
-          {routes.length > 0 && (
-            <View style={{ marginBottom: 16 }}>
-              <Text style={[styles.routeLabel, { color: themeColors.textSecondary }]}>Available Routes</Text>
-              <View style={styles.routeList}>
-                {routes.map((route, index) => (
-                  <View key={route.id}>
-                    <TouchableOpacity
+        {/* Step 4: Route */}
+        {routes.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <View style={[styles.stepBadge, { backgroundColor: themeColors.primary }]}>
+                <Text style={styles.stepNumber}>4</Text>
+              </View>
+              <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Select Route</Text>
+            </View>
+            <View style={styles.routeList}>
+              {routes.map((route) => {
+                const isActive = selectedRoute === route.id;
+                return (
+                  <View
+                    key={route.id}
+                    style={[
+                      styles.routeCard,
+                      {
+                        backgroundColor: isActive ? themeColors.primaryLight : themeColors.cardBackground,
+                        borderColor: isActive ? themeColors.primary : themeColors.border,
+                      },
+                      isActive && Shadows.small,
+                    ]}
+                  >
+                    <Ionicons
                       onPress={() => setSelectedRoute(route.id)}
-                      style={[
-                        styles.routeOption,
-                        {
-                          backgroundColor: selectedRoute === route.id ? themeColors.secondaryLight : themeColors.backgroundElement,
-                          borderColor: selectedRoute === route.id ? themeColors.secondary : themeColors.border,
-                        },
-                      ]}
-                      activeOpacity={0.7}
-                    >
-                      <Ionicons
-                        name={selectedRoute === route.id ? 'radio-button-on' : 'radio-button-off'}
-                        size={18}
-                        color={selectedRoute === route.id ? themeColors.secondary : themeColors.textMuted}
-                      />
-                      <View style={{ flex: 1 }}>
-                        <Text style={[styles.routeName, { color: themeColors.text }]}>{route.name}</Text>
-                        <Text style={[styles.routeDetail, { color: themeColors.textSecondary }]}>
-                          {route.startingPoint} → {route.destination} • {route.distance} km
-                        </Text>
-                      </View>
-                      <Text style={[styles.routeCapacity, { color: themeColors.textMuted }]}>
+                      name={isActive ? 'radio-button-on' : 'radio-button-off'}
+                      size={20}
+                      color={isActive ? themeColors.primary : themeColors.textMuted}
+                    />
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.routeName, { color: themeColors.text }]}>{route.name}</Text>
+                      <Text style={[styles.routeDetail, { color: themeColors.textSecondary }]}>
+                        {route.startingPoint} → {route.destination}
+                      </Text>
+                    </View>
+                    <View style={[styles.capacityBadge, { backgroundColor: themeColors.backgroundElement }]}>
+                      <Text style={[styles.capacityText, { color: themeColors.textSecondary }]}>
                         {route.occupiedSeats}/{route.capacity}
                       </Text>
-                    </TouchableOpacity>
+                    </View>
                   </View>
-                ))}
-              </View>
+                );
+              })}
             </View>
-          )}
-        </View>
+          </View>
+        )}
 
-        {/* Policy */}
-        <View style={[styles.policyCard, { backgroundColor: themeColors.backgroundElement }]}>
-          <Ionicons name="information-circle-outline" size={16} color={themeColors.textMuted} />
-          <Text style={[styles.policyText, { color: themeColors.textSecondary }]}>
-            Cancellations permitted up to 2 hours before scheduled time.
+        {/* Policy Note */}
+        <View style={[styles.policyRow, { backgroundColor: themeColors.primaryLight }]}>
+          <Ionicons name="information-circle-outline" size={16} color={themeColors.primary} />
+          <Text style={[styles.policyText, { color: themeColors.primary }]}>
+            Free cancellation up to 2 hours before departure
           </Text>
         </View>
 
-        <AnimatedAppButton
+        {/* Book Button */}
+        <AppButton
           title="Confirm Booking"
           onPress={handleBook}
           loading={loading}
           size="lg"
-          style={{ marginTop: 8 }}
+          icon={!loading ? <Ionicons name="checkmark-circle-outline" size={20} color="#FFFFFF" /> : undefined}
         />
       </ScrollView>
-    </AppSafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  container: { padding: 18, paddingBottom: 40 },
-  header: {
+  container: {
+    padding: Spacing.base,
+    paddingBottom: Spacing.xxl,
+  },
+  section: {
+    marginBottom: Spacing.lg,
+  },
+  sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 20,
+    gap: Spacing.sm,
+    marginBottom: Spacing.sm + 2,
   },
-  backBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    borderWidth: 1,
-    justifyContent: 'center',
+  stepBadge: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  headerTitle: {
-    fontSize: Typography.fontSizes.lg,
+  stepNumber: {
+    color: '#FFFFFF',
+    fontSize: Typography.fontSizes.xs,
     fontWeight: Typography.weights.bold as any,
   },
-  shiftToggle: {
-    flexDirection: 'row',
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    padding: 4,
-    marginBottom: 16,
+  sectionTitle: {
+    fontSize: Typography.fontSizes.lg,
+    fontWeight: Typography.weights.semibold as any,
   },
-  shiftBtn: {
-    flex: 1,
+  shiftGrid: {
+    gap: Spacing.sm,
+  },
+  shiftCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    borderRadius: BorderRadius.sm,
-    gap: 6,
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1.5,
+    gap: Spacing.sm + 2,
   },
-  shiftBtnText: {
-    fontSize: Typography.fontSizes.sm,
+  shiftLabel: {
+    flex: 1,
+    fontSize: Typography.fontSizes.md,
     fontWeight: Typography.weights.semibold as any,
+  },
+  shiftTime: {
+    fontSize: Typography.fontSizes.sm,
+    marginRight: Spacing.xs,
   },
   formCard: {
     borderRadius: BorderRadius.md,
     borderWidth: 1,
-    padding: 16,
-    marginBottom: 12,
+    borderColor: 'transparent',
+    padding: Spacing.md,
   },
-  routeLabel: {
-    fontSize: Typography.fontSizes.sm,
-    fontWeight: Typography.weights.medium as any,
-    marginBottom: 8,
-  },
-  routeList: { gap: 8 },
-  routeOption: {
+  connector: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 12,
-    borderRadius: BorderRadius.sm,
-    borderWidth: 1,
-    gap: 10,
+    marginVertical: -Spacing.xs,
+    marginLeft: Spacing.xs,
+  },
+  connectorLine: {
+    flex: 1,
+    height: 1,
+  },
+  routeList: {
+    gap: Spacing.sm,
+  },
+  routeCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1.5,
+    gap: Spacing.sm + 2,
   },
   routeName: {
     fontSize: Typography.fontSizes.md,
     fontWeight: Typography.weights.semibold as any,
   },
-  routeDetail: { fontSize: Typography.fontSizes.xs, marginTop: 2 },
-  routeCapacity: { fontSize: Typography.fontSizes.xs },
-  policyCard: {
-    flexDirection: 'row',
-    padding: 12,
-    borderRadius: BorderRadius.sm,
-    gap: 8,
-    marginBottom: 16,
+  routeDetail: {
+    fontSize: Typography.fontSizes.xs,
+    marginTop: 2,
   },
-  policyText: { fontSize: Typography.fontSizes.xs, flex: 1, lineHeight: 18 },
+  capacityBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.full,
+  },
+  capacityText: {
+    fontSize: Typography.fontSizes.xs,
+    fontWeight: Typography.weights.medium as any,
+  },
+  policyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Spacing.md,
+    borderRadius: BorderRadius.sm,
+    gap: Spacing.sm,
+    marginBottom: Spacing.lg,
+  },
+  policyText: {
+    fontSize: Typography.fontSizes.sm,
+    flex: 1,
+    lineHeight: 20,
+  },
 });

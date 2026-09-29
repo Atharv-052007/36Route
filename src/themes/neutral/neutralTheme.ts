@@ -31,10 +31,12 @@ const neutralSyntax = defineSyntaxTheme({
 });
 
 const neutralLocalTokens: Record<string, TokenValue> = {
-  '--astryx-theme-neutral-color-status-fill-accent': ['#0074e2', '#6d9cfe'],
-  '--astryx-theme-neutral-color-status-fill-success': ['#198100', '#64af4c'],
-  '--astryx-theme-neutral-color-status-fill-warning': '#ffce2f',
-  '--astryx-theme-neutral-color-status-fill-error': ['#c9303a', '#ff705d'],
+  // Brand: Electric Blue primary, Cyan accent, Emerald success,
+  // Amber warning, Red error (matches the 36Route brand palette).
+  '--astryx-theme-neutral-color-status-fill-accent': ['#2563eb', '#60a5fa'],
+  '--astryx-theme-neutral-color-status-fill-success': ['#10b981', '#34d399'],
+  '--astryx-theme-neutral-color-status-fill-warning': '#f59e0b',
+  '--astryx-theme-neutral-color-status-fill-error': ['#ef4444', '#f87171'],
   '--astryx-theme-neutral-color-status-muted-accent': [
     blue.light[85],
     withAlpha(blue.dark[75], '3D'),
@@ -101,14 +103,15 @@ export const neutralTheme = defineTheme({
   syntax: neutralSyntax,
 
   tokens: {
-    '--color-background-surface': [neutral.light[100], neutral.dark[15]],
-    '--color-background-body': [neutral.light[95], neutral.dark[10]],
-    '--color-background-card': [neutral.light[100], neutral.dark[10]],
-    '--color-background-popover': [neutral.light[100], neutral.dark[10]],
-    '--color-background-muted': [neutral.light[95], neutral.dark[10]],
+    '--color-background-surface': ['#ffffff', '#1e293b'],
+    '--color-background-body': ['#f8fafc', '#0f172a'],
+    '--color-background-card': ['#ffffff', '#1e293b'],
+    '--color-background-popover': ['#ffffff', '#1e293b'],
+    '--color-background-muted': ['#f1f5f9', '#1e293b'],
 
-    '--color-accent': [neutral.light[15], neutral.dark[95]],
-    '--color-accent-muted': [neutral.light[95], neutral.dark[15]],
+    // Brand accent: Electric Blue primary, Indigo deep accent, Cyan highlight.
+    '--color-accent': ['#2563eb', '#60a5fa'],
+    '--color-accent-muted': ['#4f46e5', '#818cf8'],
     '--color-neutral': [
       withAlpha(neutral.light[0], '0F'),
       withAlpha(neutral.dark[100], '1A'),
@@ -129,26 +132,26 @@ export const neutralTheme = defineTheme({
     ],
 
     // Text
-    '--color-text-primary': [neutral.light[5], neutral.dark[100]],
-    '--color-text-secondary': [neutral.light[35], neutral.dark[65]],
-    '--color-text-disabled': [neutral.light[65], neutral.dark[35]],
-    '--color-text-accent': [neutral.light[15], neutral.dark[95]],
-    '--color-on-dark': neutral.light[100],
-    '--color-on-light': neutral.light[5],
-    '--color-on-accent': [neutral.light[100], neutral.dark[5]],
-    '--color-on-success': [neutral.light[100], neutral.dark[5]],
-    '--color-on-error': [neutral.light[100], neutral.dark[5]],
-    '--color-on-warning': neutral.light[5],
+    '--color-text-primary': ['#0f172a', '#f8fafc'],
+    '--color-text-secondary': ['#64748b', '#cbd5e1'],
+    '--color-text-disabled': ['#94a3b8', '#64748b'],
+    '--color-text-accent': ['#2563eb', '#60a5fa'],
+    '--color-on-dark': '#ffffff',
+    '--color-on-light': '#0f172a',
+    '--color-on-accent': '#ffffff',
+    '--color-on-success': '#ffffff',
+    '--color-on-error': '#ffffff',
+    '--color-on-warning': '#0f172a',
 
     // Icon
-    '--color-icon-accent': [neutral.light[15], neutral.dark[95]],
-    '--color-icon-primary': [neutral.light[5], neutral.dark[100]],
-    '--color-icon-secondary': [neutral.light[50], neutral.dark[65]],
-    '--color-icon-disabled': [neutral.light[65], neutral.dark[35]],
+    '--color-icon-accent': ['#2563eb', '#60a5fa'],
+    '--color-icon-primary': ['#0f172a', '#f8fafc'],
+    '--color-icon-secondary': ['#64748b', '#94a3b8'],
+    '--color-icon-disabled': ['#94a3b8', '#64748b'],
 
-    '--color-success': [green.light[40], green.light[80]],
-    '--color-error': [red.light[35], red.dark[85]],
-    '--color-warning': [yellow.light[40], yellow.light[85]],
+    '--color-success': ['#10b981', '#34d399'],
+    '--color-error': ['#ef4444', '#f87171'],
+    '--color-warning': ['#f59e0b', '#fbbf24'],
     '--color-success-muted': [green.dark[85], withAlpha(green.light[75], '3D')],
     '--color-error-muted': [red.light[85], withAlpha(red.dark[75], '3D')],
     '--color-warning-muted': [
@@ -156,16 +159,13 @@ export const neutralTheme = defineTheme({
       withAlpha(yellow.light[75], '3D'),
     ],
 
-    '--color-border': [
-      withAlpha(neutral.light[0], '14'),
-      withAlpha(neutral.dark[100], '1A'),
-    ],
-    '--color-border-emphasized': [neutral.light[85], neutral.dark[35]],
+    '--color-border': ['#e2e8f0', '#334155'],
+    '--color-border-emphasized': ['#cbd5e1', '#475569'],
 
     // Effects
-    '--color-skeleton': [neutral.light[95], neutral.dark[35]],
+    '--color-skeleton': ['#e2e8f0', '#475569'],
     '--color-shadow': [
-      withAlpha(neutral.light[0], '1A'),
+      withAlpha('#0f172a', '1A'),
       withAlpha(neutral.dark[0], '4D'),
     ],
     '--color-tint-hover': ['black', 'white'],
@@ -215,10 +215,10 @@ export const neutralTheme = defineTheme({
     '--color-icon-pink': [pink.light[30], pink.dark[75]],
     '--color-text-pink': [pink.light[30], pink.dark[80]],
 
-    '--color-background-gray': [neutral.light[90], neutral.dark[20]],
-    '--color-border-gray': [neutral.light[85], neutral.dark[15]],
-    '--color-icon-gray': [neutral.light[35], neutral.dark[65]],
-    '--color-text-gray': [neutral.light[15], neutral.dark[85]],
+    '--color-background-gray': ['#f1f5f9', '#334155'],
+    '--color-border-gray': ['#e2e8f0', '#475569'],
+    '--color-icon-gray': ['#64748b', '#94a3b8'],
+    '--color-text-gray': ['#0f172a', '#e2e8f0'],
 
     // =========================================================================
     // Radius — slightly larger than default (kept as-is)
@@ -263,11 +263,11 @@ export const neutralTheme = defineTheme({
       '0 4px 6px light-dark(oklch(0 0 0 / 10%), oklch(0 0 0 / 50%)), ' +
       '0 12px 24px light-dark(oklch(0 0 0 / 15%), oklch(0 0 0 / 70%)), ' +
       'inset 0 0 0 1px light-dark(transparent, oklch(1 0 0 / 15%))',
-    '--shadow-inset-hover': `inset 0px 0px 0px 2px ${withAlpha(blue.light[50], '4D')}`,
-    '--shadow-inset-selected': `inset 0px 0px 0px 2px ${withAlpha(blue.light[50], '80')}`,
-    '--shadow-inset-success': `inset 0px 0px 0px 2px ${withAlpha(green.light[45], '4D')}`,
-    '--shadow-inset-warning': `inset 0px 0px 0px 2px ${withAlpha(yellow.light[85], '4D')}`,
-    '--shadow-inset-error': `inset 0px 0px 0px 2px ${withAlpha(red.light[55], '4D')}`,
+    '--shadow-inset-hover': `inset 0px 0px 0px 2px ${withAlpha('#2563eb', '4D')}`,
+    '--shadow-inset-selected': `inset 0px 0px 0px 2px ${withAlpha('#2563eb', '80')}`,
+    '--shadow-inset-success': `inset 0px 0px 0px 2px ${withAlpha('#10b981', '4D')}`,
+    '--shadow-inset-warning': `inset 0px 0px 0px 2px ${withAlpha('#f59e0b', '4D')}`,
+    '--shadow-inset-error': `inset 0px 0px 0px 2px ${withAlpha('#ef4444', '4D')}`,
   },
 
   components: {

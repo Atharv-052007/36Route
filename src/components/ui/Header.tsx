@@ -12,6 +12,7 @@ interface HeaderProps {
   onBackPress?: () => void;
   rightAction?: React.ReactNode;
   style?: ViewStyle;
+  live?: boolean;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -21,6 +22,7 @@ export const Header: React.FC<HeaderProps> = ({
   onBackPress,
   rightAction,
   style,
+  live = false,
 }) => {
   const router = useRouter();
   const { isDarkMode } = useApp();
@@ -35,16 +37,7 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <View
-      style={[
-        styles.container,
-        {
-          backgroundColor: theme.cardBackground,
-          borderBottomColor: theme.border,
-        },
-        style,
-      ]}
-    >
+    <View style={[styles.container, style]}>
       <View style={styles.leftRow}>
         {showBack && (
           <TouchableOpacity
@@ -57,9 +50,17 @@ export const Header: React.FC<HeaderProps> = ({
           </TouchableOpacity>
         )}
         <View style={styles.titles}>
-          <Text style={[styles.title, { color: theme.text }]} numberOfLines={1}>
-            {title}
-          </Text>
+          <View style={styles.titleRow}>
+            <Text style={[styles.title, { color: theme.text }]} numberOfLines={1}>
+              {title}
+            </Text>
+            {live && (
+              <View style={styles.liveIndicator}>
+                <View style={styles.liveDot} />
+                <Text style={styles.liveText}>LIVE</Text>
+              </View>
+            )}
+          </View>
           {subtitle && (
             <Text style={[styles.subtitle, { color: theme.textSecondary }]} numberOfLines={1}>
               {subtitle}
@@ -75,22 +76,21 @@ export const Header: React.FC<HeaderProps> = ({
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: Spacing.base,
-    paddingVertical: Spacing.md,
+    paddingVertical: Spacing.sm + 2,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    borderBottomWidth: 1,
-    minHeight: 56,
+    minHeight: 52,
   },
   leftRow: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
-    gap: Spacing.md,
+    gap: Spacing.sm + 4,
   },
   backBtn: {
-    width: 34,
-    height: 34,
+    width: 36,
+    height: 36,
     borderRadius: BorderRadius.sm,
     alignItems: 'center',
     justifyContent: 'center',
@@ -98,16 +98,43 @@ const styles = StyleSheet.create({
   titles: {
     flex: 1,
   },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   title: {
     fontSize: Typography.fontSizes.lg,
     fontWeight: Typography.weights.bold,
-    letterSpacing: -0.2,
+    letterSpacing: -0.3,
   },
   subtitle: {
     fontSize: Typography.fontSizes.xs,
     marginTop: 1,
+    letterSpacing: 0.1,
   },
   rightArea: {
     marginLeft: Spacing.sm,
+  },
+  liveIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: BorderRadius.full,
+    gap: 5,
+  },
+  liveDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#10B981',
+  },
+  liveText: {
+    fontSize: 10,
+    fontWeight: Typography.weights.bold,
+    color: '#10B981',
+    letterSpacing: 0.8,
   },
 });

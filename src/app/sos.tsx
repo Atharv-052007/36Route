@@ -11,8 +11,10 @@ import { AppSafeAreaView } from '@/components/ui/AppSafeAreaView';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useApp } from '@/context/AppContext';
-import { Typography, BorderRadius, Shadows } from '@/constants/theme';
+import { Typography, BorderRadius, Shadows, Spacing } from '@/constants/theme';
 import { ConfirmationModal } from '@/components/ui/AppStates';
+import { Header } from '@/components/ui/Header';
+import { Badge } from '@/components/ui/Badge';
 
 export default function SOSScreen() {
   const router = useRouter();
@@ -28,71 +30,65 @@ export default function SOSScreen() {
 
   return (
     <AppSafeAreaView style={[styles.safe, { backgroundColor: themeColors.background }]}>
-      <ScrollView contentContainerStyle={styles.container}>
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity
-            onPress={() => router.dismissTo('/(tabs)')}
-            style={[styles.backBtn, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}
-          >
-            <Ionicons name="arrow-back" size={20} color={themeColors.text} />
-          </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: themeColors.text }]}>Emergency SOS</Text>
-          <View style={{ width: 40 }} />
-        </View>
+      <Header title="Emergency SOS" showBack live={sosActive} />
 
-        {/* SOS Button */}
-        <View style={styles.sosContainer}>
-          {/* Static halo ring */}
-          <View style={styles.sosOuter}>
-            <View
-              style={[
-                styles.pulseRing,
-                { backgroundColor: themeColors.danger, opacity: 0.3 },
-              ]}
-            />
+      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+        {/* Hero SOS Button */}
+        <View style={styles.heroSection}>
+          <View style={[styles.sosOuterRing, { borderColor: sosActive ? themeColors.danger : `${themeColors.danger}30` }]}>
+            <View style={[styles.sosMiddleRing, { backgroundColor: `${themeColors.danger}10` }]}>
+              <TouchableOpacity
+                onPress={() => sosActive ? null : setConfirmVisible(true)}
+                style={[styles.sosButton, { backgroundColor: themeColors.danger }, sosActive && styles.sosButtonActive]}
+                activeOpacity={0.8}
+              >
+                <Ionicons name={sosActive ? 'shield-checkmark' : 'alert'} size={48} color="#FFF" />
+                <Text style={styles.sosLabel}>{sosActive ? 'SOS ACTIVE' : 'SOS'}</Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
-          {/* Main SOS Button */}
-          <View>
-            <TouchableOpacity
-              onPress={() => sosActive ? null : setConfirmVisible(true)}
-              style={[styles.sosBtn, sosActive && styles.sosBtnActive]}
-              activeOpacity={0.8}
-            >
-              <Ionicons name="alert" size={48} color={themeColors.textInverse} />
-              <Text style={styles.sosBtnText}>{sosActive ? 'SOS ACTIVE' : 'SOS'}</Text>
-            </TouchableOpacity>
-          </View>
+          <Text style={[styles.heroTitle, { color: themeColors.text }]}>Emergency SOS</Text>
+          <Text style={[styles.heroSubtitle, { color: themeColors.textSecondary }]}>
+            {sosActive
+              ? 'Emergency broadcast active. Help is on the way.'
+              : 'Press and hold to alert emergency services'}
+          </Text>
 
           {sosActive && (
-            <View>
-              <Text style={[styles.sosStatus, { color: themeColors.danger }]}>
-                Emergency broadcast active. Help is on the way.
-              </Text>
-            </View>
+            <TouchableOpacity
+              style={[styles.cancelBtn, { backgroundColor: themeColors.backgroundElement }]}
+              onPress={() => setSosActive(false)}
+            >
+              <Ionicons name="close-circle" size={18} color={themeColors.danger} />
+              <Text style={[styles.cancelText, { color: themeColors.danger }]}>Cancel Emergency</Text>
+            </TouchableOpacity>
           )}
         </View>
 
         {/* Live Trip Info */}
         {activeRide && (
-          <View style={[styles.tripInfo, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.small]}>
-            <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Live Trip Info</Text>
-            <View style={styles.tripRow}>
+          <View style={[styles.card, { backgroundColor: themeColors.cardBackground }, Shadows.card]}>
+            <View style={styles.cardHeader}>
+              <Ionicons name="information-circle" size={18} color={themeColors.secondary} />
+              <Text style={[styles.cardTitle, { color: themeColors.text }]}>Live Trip Info</Text>
+              <Badge status="On Trip" size="sm" />
+            </View>
+            <View style={[styles.infoRow, { borderTopColor: themeColors.borderLight }]}>
               <Ionicons name="car-sport" size={16} color={themeColors.textMuted} />
-              <Text style={[styles.tripText, { color: themeColors.textSecondary }]}>
+              <Text style={[styles.infoText, { color: themeColors.textSecondary }]}>
                 {activeRide.vehicle?.model} • {activeRide.vehicle?.vehicleNumber}
               </Text>
             </View>
-            <View style={styles.tripRow}>
+            <View style={[styles.infoRow, { borderTopColor: themeColors.borderLight }]}>
               <Ionicons name="person" size={16} color={themeColors.textMuted} />
-              <Text style={[styles.tripText, { color: themeColors.textSecondary }]}>
+              <Text style={[styles.infoText, { color: themeColors.textSecondary }]}>
                 {activeRide.driver?.name} • {activeRide.driver?.phone}
               </Text>
             </View>
-            <View style={styles.tripRow}>
+            <View style={[styles.infoRow, { borderTopColor: themeColors.borderLight }]}>
               <Ionicons name="location" size={16} color={themeColors.textMuted} />
-              <Text style={[styles.tripText, { color: themeColors.textSecondary }]}>
+              <Text style={[styles.infoText, { color: themeColors.textSecondary }]}>
                 {activeRide.pickup.name}
               </Text>
             </View>
@@ -100,48 +96,46 @@ export default function SOSScreen() {
         )}
 
         {/* Emergency Contacts */}
-        <View style={[styles.contactsCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }, Shadows.small]}>
-          <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Emergency Contacts</Text>
+        <View style={[styles.card, { backgroundColor: themeColors.cardBackground }, Shadows.card]}>
+          <View style={styles.cardHeader}>
+            <Ionicons name="call" size={18} color={themeColors.danger} />
+            <Text style={[styles.cardTitle, { color: themeColors.text }]}>Emergency Contacts</Text>
+          </View>
 
           <TouchableOpacity
-            style={[styles.contactItem, { borderBottomColor: themeColors.borderLight }]}
+            style={[styles.contactItem, { borderTopColor: themeColors.borderLight }]}
             onPress={() => Alert.alert('Calling', `Calling ${employee?.emergencyContact.name}...`)}
           >
-            <View style={[styles.contactIcon, { backgroundColor: themeColors.dangerLight }]}>
-              <Ionicons name="person" size={18} color={themeColors.danger} />
+            <View style={[styles.contactAvatar, { backgroundColor: themeColors.dangerLight }]}>
+              <Text style={[styles.contactInitial, { color: themeColors.danger }]}>
+                {employee?.emergencyContact.name?.charAt(0) || 'E'}
+              </Text>
             </View>
             <View style={{ flex: 1 }}>
               <Text style={[styles.contactName, { color: themeColors.text }]}>{employee?.emergencyContact.name}</Text>
               <Text style={[styles.contactRel, { color: themeColors.textSecondary }]}>{employee?.emergencyContact.relationship}</Text>
             </View>
-            <Ionicons name="call" size={20} color={themeColors.accent} />
+            <View style={[styles.callBtn, { backgroundColor: themeColors.accentLight }]}>
+              <Ionicons name="call" size={16} color={themeColors.accent} />
+            </View>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.contactItem}
+            style={[styles.contactItem, { borderTopColor: themeColors.borderLight }]}
             onPress={() => Alert.alert('Calling', 'Calling Transport Control...')}
           >
-            <View style={[styles.contactIcon, { backgroundColor: themeColors.secondaryLight }]}>
+            <View style={[styles.contactAvatar, { backgroundColor: themeColors.secondaryLight }]}>
               <Ionicons name="bus" size={18} color={themeColors.secondary} />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={[styles.contactName, { color: themeColors.text }]}>Transport Control</Text>
               <Text style={[styles.contactRel, { color: themeColors.textSecondary }]}>24/7 Helpline</Text>
             </View>
-            <Ionicons name="call" size={20} color={themeColors.accent} />
+            <View style={[styles.callBtn, { backgroundColor: themeColors.accentLight }]}>
+              <Ionicons name="call" size={16} color={themeColors.accent} />
+            </View>
           </TouchableOpacity>
         </View>
-
-        {sosActive && (
-          <View>
-            <TouchableOpacity
-              style={[styles.cancelBtn, { backgroundColor: themeColors.backgroundElement }]}
-              onPress={() => setSosActive(false)}
-            >
-              <Text style={[styles.cancelText, { color: themeColors.textSecondary }]}>Cancel Emergency</Text>
-            </TouchableOpacity>
-          </View>
-        )}
       </ScrollView>
 
       <ConfirmationModal
@@ -159,77 +153,125 @@ export default function SOSScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  container: { padding: 18, paddingBottom: 40 },
-  header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20,
-  },
-  backBtn: {
-    width: 40, height: 40, borderRadius: 20, borderWidth: 1,
-    justifyContent: 'center', alignItems: 'center',
-  },
-  headerTitle: {
-    fontSize: Typography.fontSizes.lg, fontWeight: Typography.weights.bold as any,
-  },
-  sosContainer: { alignItems: 'center', marginBottom: 24, position: 'relative', height: 200, justifyContent: 'center' },
-  sosOuter: {
-    position: 'absolute',
-    width: 160,
-    height: 160,
+  container: { padding: Spacing.base, paddingBottom: 40 },
+  heroSection: { alignItems: 'center', paddingVertical: 24 },
+  sosOuterRing: {
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    borderWidth: 3,
     justifyContent: 'center',
     alignItems: 'center',
+    marginBottom: 20,
   },
-  pulseRing: {
-    position: 'absolute',
+  sosMiddleRing: {
     width: 160,
     height: 160,
     borderRadius: 80,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  sosBtn: {
-    width: 160, height: 160, borderRadius: 80,
-    backgroundColor: '#D9534F',
-    justifyContent: 'center', alignItems: 'center',
-    shadowColor: '#D9534F', shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4, shadowRadius: 16, elevation: 8,
+  sosButton: {
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#EF4444',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 16,
+    elevation: 8,
   },
-  sosBtnActive: {
-    shadowOpacity: 0.6, shadowRadius: 24,
-    backgroundColor: '#D9534F',
+  sosButtonActive: {
+    shadowOpacity: 0.6,
+    shadowRadius: 24,
   },
-  sosBtnText: {
-    color: '#FFF', fontSize: Typography.fontSizes.xl,
-    fontWeight: Typography.weights.bold as any, marginTop: 4,
+  sosLabel: {
+    color: '#FFF',
+    fontSize: Typography.fontSizes.lg,
+    fontWeight: Typography.weights.bold as any,
+    marginTop: 4,
+    letterSpacing: 1,
   },
-  sosStatus: {
-    fontSize: Typography.fontSizes.sm, marginTop: 12, textAlign: 'center',
+  heroTitle: {
+    fontSize: Typography.fontSizes.xl,
+    fontWeight: Typography.weights.bold as any,
+    marginBottom: 6,
   },
-  sectionTitle: {
-    fontSize: Typography.fontSizes.md, fontWeight: Typography.weights.bold as any, marginBottom: 12,
+  heroSubtitle: {
+    fontSize: Typography.fontSizes.sm,
+    textAlign: 'center',
+    maxWidth: 260,
+    lineHeight: 20,
   },
-  tripInfo: {
-    borderRadius: BorderRadius.md, borderWidth: 1, padding: 16, marginBottom: 16,
-  },
-  tripRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8,
-  },
-  tripText: { fontSize: Typography.fontSizes.sm },
-  contactsCard: {
-    borderRadius: BorderRadius.md, borderWidth: 1, padding: 16, marginBottom: 16,
-  },
-  contactItem: {
-    flexDirection: 'row', alignItems: 'center', paddingVertical: 12,
-    borderBottomWidth: 1, gap: 12,
-  },
-  contactIcon: {
-    width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center',
-  },
-  contactName: {
-    fontSize: Typography.fontSizes.md, fontWeight: Typography.weights.semibold as any,
-  },
-  contactRel: { fontSize: Typography.fontSizes.xs },
   cancelBtn: {
-    padding: 14, borderRadius: BorderRadius.md, alignItems: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: BorderRadius.full,
+    gap: 8,
+    marginTop: 16,
   },
   cancelText: {
-    fontSize: Typography.fontSizes.md, fontWeight: Typography.weights.semibold as any,
+    fontSize: Typography.fontSizes.md,
+    fontWeight: Typography.weights.semibold as any,
+  },
+  card: {
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.04)',
+    padding: Spacing.base,
+    marginBottom: Spacing.base,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 14,
+  },
+  cardTitle: {
+    fontSize: Typography.fontSizes.md,
+    fontWeight: Typography.weights.bold as any,
+    flex: 1,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 10,
+    borderTopWidth: 1,
+  },
+  infoText: { fontSize: Typography.fontSizes.sm, flex: 1 },
+  contactItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderTopWidth: 1,
+    gap: 12,
+  },
+  contactAvatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  contactInitial: {
+    fontSize: Typography.fontSizes.lg,
+    fontWeight: Typography.weights.bold as any,
+  },
+  contactName: {
+    fontSize: Typography.fontSizes.md,
+    fontWeight: Typography.weights.semibold as any,
+  },
+  contactRel: { fontSize: Typography.fontSizes.xs, marginTop: 2 },
+  callBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

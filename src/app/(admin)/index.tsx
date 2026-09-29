@@ -69,39 +69,46 @@ export default function OverviewScreen() {
         backgroundColor={theme.cardBackground}
       />
 
-      {/* Screen Header */}
+      {/* Premium Header */}
       <View
         style={[
-          styles.headerBar,
+          styles.headerCard,
           {
             backgroundColor: theme.cardBackground,
-            borderBottomColor: theme.border,
+            borderColor: theme.border,
+            ...Shadows.medium,
           },
         ]}
       >
         <View style={styles.headerLeft}>
-          <Text style={[styles.greeting, { color: theme.text }]}>
-            Good morning, {user?.name || 'Govind'}
+          <Text style={[styles.greeting, { color: theme.textSecondary }]}>
+            Good morning
+          </Text>
+          <Text style={[styles.userName, { color: theme.text }]}>
+            {user?.name || 'Govind'}
           </Text>
           <Text style={[styles.dateText, { color: theme.textSecondary }]}>
             Thursday, 4 September
           </Text>
         </View>
-
         <View style={styles.headerRight}>
           <TouchableOpacity
             activeOpacity={0.7}
             onPress={() => router.push('/notifications')}
-            style={[styles.iconButton, { backgroundColor: theme.backgroundElement }]}
+            style={[styles.iconButton, { backgroundColor: theme.backgroundElement, borderColor: theme.border }]}
           >
             <Ionicons name="notifications-outline" size={20} color={theme.text} />
             {unresolvedAlerts.length > 0 && (
               <View
                 style={[
                   styles.notificationBadge,
-                  { backgroundColor: theme.warning },
+                  { backgroundColor: '#EF4444' },
                 ]}
-              />
+              >
+                <Text style={styles.notificationBadgeText}>
+                  {unresolvedAlerts.length}
+                </Text>
+              </View>
             )}
           </TouchableOpacity>
 
@@ -121,7 +128,46 @@ export default function OverviewScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* TODAY Section */}
+        {/* LIVE NOW Hero Section */}
+        <View
+          style={[
+            styles.heroCard,
+            {
+              backgroundColor: theme.cardBackground,
+              borderColor: theme.border,
+              ...Shadows.small,
+            },
+          ]}
+        >
+          <View style={styles.heroCol}>
+            <Text style={[styles.heroValue, { color: '#2563EB' }]}>
+              {kpis.ongoingTrips}
+            </Text>
+            <Text style={[styles.heroLabel, { color: theme.textSecondary }]}>
+              Ongoing
+            </Text>
+          </View>
+          <View style={[styles.heroDivider, { backgroundColor: theme.border }]} />
+          <View style={styles.heroCol}>
+            <Text style={[styles.heroValue, { color: '#4F46E5' }]}>
+              {kpis.upcomingTrips}
+            </Text>
+            <Text style={[styles.heroLabel, { color: theme.textSecondary }]}>
+              Upcoming
+            </Text>
+          </View>
+          <View style={[styles.heroDivider, { backgroundColor: theme.border }]} />
+          <View style={styles.heroCol}>
+            <Text style={[styles.heroValue, { color: '#10B981' }]}>
+              {kpis.completedTrips}
+            </Text>
+            <Text style={[styles.heroLabel, { color: theme.textSecondary }]}>
+              Completed
+            </Text>
+          </View>
+        </View>
+
+        {/* TODAY Metrics */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>
             TODAY
@@ -145,50 +191,7 @@ export default function OverviewScreen() {
           </View>
         </View>
 
-        {/* LIVE NOW Section */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>
-            LIVE NOW
-          </Text>
-          <View
-            style={[
-              styles.liveStatusContainer,
-              {
-                backgroundColor: theme.cardBackground,
-                borderColor: theme.border,
-              },
-            ]}
-          >
-            <View style={styles.liveCol}>
-              <Text style={[styles.liveValue, { color: theme.accent }]}>
-                {kpis.ongoingTrips}
-              </Text>
-              <Text style={[styles.liveLabel, { color: theme.textSecondary }]}>
-                Ongoing
-              </Text>
-            </View>
-            <View style={[styles.liveDivider, { backgroundColor: theme.border }]} />
-            <View style={styles.liveCol}>
-              <Text style={[styles.liveValue, { color: theme.upcoming }]}>
-                {kpis.upcomingTrips}
-              </Text>
-              <Text style={[styles.liveLabel, { color: theme.textSecondary }]}>
-                Upcoming
-              </Text>
-            </View>
-            <View style={[styles.liveDivider, { backgroundColor: theme.border }]} />
-            <View style={styles.liveCol}>
-              <Text style={[styles.liveValue, { color: theme.available }]}>
-                {kpis.completedTrips}
-              </Text>
-              <Text style={[styles.liveLabel, { color: theme.textSecondary }]}>
-                Completed
-              </Text>
-            </View>
-          </View>
-        </View>
-
-        {/* NEEDS ATTENTION Section */}
+        {/* NEEDS ATTENTION */}
         <View style={styles.section}>
           <View style={styles.sectionHeaderRow}>
             <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>
@@ -213,9 +216,9 @@ export default function OverviewScreen() {
                 },
               ]}
             >
-              <Ionicons name="checkmark-circle-outline" size={20} color={theme.available} />
+              <Ionicons name="checkmark-circle" size={22} color="#10B981" />
               <Text style={[styles.emptyAttentionText, { color: theme.textSecondary }]}>
-                All operations running smoothly. No urgent items.
+                All operations running smoothly
               </Text>
             </View>
           ) : (
@@ -231,7 +234,7 @@ export default function OverviewScreen() {
           )}
         </View>
 
-        {/* QUICK ACTIONS Section */}
+        {/* QUICK ACTIONS */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>
             QUICK ACTIONS
@@ -245,18 +248,19 @@ export default function OverviewScreen() {
                 {
                   backgroundColor: theme.cardBackground,
                   borderColor: theme.border,
+                  ...Shadows.subtle,
                 },
               ]}
             >
               <View
                 style={[
                   styles.quickActionIconWrap,
-                  { backgroundColor: theme.accentLight },
+                  { backgroundColor: '#EFF6FF' },
                 ]}
               >
-                <Ionicons name="add" size={18} color={theme.accent} />
+                <Ionicons name="add-circle-outline" size={20} color="#2563EB" />
               </View>
-              <Text style={[styles.quickActionText, { color: theme.text }]}>
+              <Text style={[styles.quickActionLabel, { color: theme.text }]}>
                 Create Trip
               </Text>
             </TouchableOpacity>
@@ -269,18 +273,19 @@ export default function OverviewScreen() {
                 {
                   backgroundColor: theme.cardBackground,
                   borderColor: theme.border,
+                  ...Shadows.subtle,
                 },
               ]}
             >
               <View
                 style={[
                   styles.quickActionIconWrap,
-                  { backgroundColor: theme.availableLight },
+                  { backgroundColor: '#F0FDF4' },
                 ]}
               >
-                <Ionicons name="person-add-outline" size={16} color={theme.available} />
+                <Ionicons name="person-add-outline" size={18} color="#10B981" />
               </View>
-              <Text style={[styles.quickActionText, { color: theme.text }]}>
+              <Text style={[styles.quickActionLabel, { color: theme.text }]}>
                 Add Driver
               </Text>
             </TouchableOpacity>
@@ -293,25 +298,26 @@ export default function OverviewScreen() {
                 {
                   backgroundColor: theme.cardBackground,
                   borderColor: theme.border,
+                  ...Shadows.subtle,
                 },
               ]}
             >
               <View
                 style={[
                   styles.quickActionIconWrap,
-                  { backgroundColor: theme.upcomingLight },
+                  { backgroundColor: '#EEF2FF' },
                 ]}
               >
-                <Ionicons name="car-outline" size={16} color={theme.upcoming} />
+                <Ionicons name="car-outline" size={18} color="#4F46E5" />
               </View>
-              <Text style={[styles.quickActionText, { color: theme.text }]}>
+              <Text style={[styles.quickActionLabel, { color: theme.text }]}>
                 Add Vehicle
               </Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* NEXT UP Section */}
+        {/* NEXT UP */}
         <View style={styles.section}>
           <View style={styles.sectionHeaderRow}>
             <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>
@@ -339,14 +345,18 @@ export default function OverviewScreen() {
                   styles.tripCard,
                   {
                     backgroundColor: theme.cardBackground,
-                    borderColor: needsDriver ? theme.warningBorder : theme.border,
+                    borderColor: needsDriver ? '#FEE2E2' : theme.border,
+                    ...Shadows.subtle,
                   },
                 ]}
               >
                 <View style={styles.tripCardTop}>
-                  <Text style={[styles.tripTime, { color: theme.text }]}>
-                    {trip.scheduledTime}
-                  </Text>
+                  <View style={styles.tripTimeRow}>
+                    <Ionicons name="time-outline" size={14} color={theme.textSecondary} />
+                    <Text style={[styles.tripTime, { color: theme.text }]}>
+                      {trip.scheduledTime}
+                    </Text>
+                  </View>
                   <Badge
                     status={needsDriver ? 'Driver required' : trip.status}
                     size="sm"
@@ -358,24 +368,30 @@ export default function OverviewScreen() {
                 </Text>
 
                 <View style={styles.tripMetaRow}>
+                  <Ionicons name="people-outline" size={12} color={theme.textSecondary} />
                   <Text style={[styles.tripPassengerText, { color: theme.textSecondary }]}>
-                    {trip.passengerCount} passengers
+                    {trip.passengerCount}
                   </Text>
                   <Text style={[styles.tripMetaDot, { color: theme.textMuted }]}>
-                    •
+                    ·
                   </Text>
+                  <Ionicons
+                    name={needsDriver ? 'alert-circle-outline' : 'checkmark-circle-outline'}
+                    size={12}
+                    color={needsDriver ? '#EF4444' : '#10B981'}
+                  />
                   <Text
                     style={[
                       styles.tripDriverText,
                       {
-                        color: needsDriver ? theme.warning : theme.textSecondary,
+                        color: needsDriver ? '#EF4444' : theme.textSecondary,
                         fontWeight: needsDriver ? '600' : '400',
                       },
                     ]}
                   >
                     {needsDriver
                       ? 'Driver required'
-                      : `${trip.driverName} • ${trip.vehicleModel}`}
+                      : `${trip.driverName} · ${trip.vehicleModel}`}
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -392,26 +408,34 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
-  headerBar: {
+  headerCard: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    marginHorizontal: Spacing.base,
+    marginTop: Spacing.md,
     paddingHorizontal: Spacing.base,
     paddingVertical: Spacing.md,
-    borderBottomWidth: 1,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
   },
   headerLeft: {
     flex: 1,
   },
   greeting: {
+    fontSize: Typography.fontSizes.sm,
+    fontWeight: Typography.weights.medium,
+    marginBottom: 2,
+  },
+  userName: {
     fontSize: Typography.fontSizes.xl,
     fontWeight: Typography.weights.bold,
     letterSpacing: -0.3,
+    marginBottom: 2,
   },
   dateText: {
-    fontSize: Typography.fontSizes.sm,
+    fontSize: Typography.fontSizes.xs,
     fontWeight: Typography.weights.medium,
-    marginTop: 2,
   },
   headerRight: {
     flexDirection: 'row',
@@ -419,23 +443,32 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   iconButton: {
-    width: 38,
-    height: 38,
+    width: 40,
+    height: 40,
     borderRadius: BorderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
   },
   notificationBadge: {
     position: 'absolute',
-    top: 8,
-    right: 8,
-    width: 8,
-    height: 8,
-    borderRadius: BorderRadius.full,
+    top: 4,
+    right: 4,
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+  },
+  notificationBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 9,
+    fontWeight: Typography.weights.bold,
   },
   avatarButton: {
-    width: 38,
-    height: 38,
+    width: 40,
+    height: 40,
     borderRadius: BorderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
@@ -443,12 +476,43 @@ const styles = StyleSheet.create({
   avatarText: {
     color: '#FFFFFF',
     fontWeight: Typography.weights.bold,
-    fontSize: Typography.fontSizes.sm,
+    fontSize: Typography.fontSizes.base,
   },
   scrollContent: {
     paddingHorizontal: Spacing.base,
     paddingTop: Spacing.base,
     paddingBottom: Spacing.xxl,
+  },
+  heroCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    marginBottom: Spacing.lg,
+    paddingVertical: Spacing.lg,
+    paddingHorizontal: Spacing.base,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+  },
+  heroCol: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  heroValue: {
+    fontSize: 30,
+    fontWeight: Typography.weights.bold,
+    letterSpacing: -1.5,
+  },
+  heroLabel: {
+    fontSize: Typography.fontSizes.xs,
+    fontWeight: Typography.weights.medium,
+    marginTop: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  heroDivider: {
+    width: 1,
+    height: 36,
+    opacity: 0.3,
   },
   section: {
     marginBottom: Spacing.lg,
@@ -457,13 +521,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: Spacing.sm,
+    marginBottom: Spacing.sm + 2,
   },
   sectionTitle: {
     fontSize: Typography.fontSizes.xs,
     fontWeight: Typography.weights.bold,
     letterSpacing: 0.8,
-    marginBottom: Spacing.xs + 2,
+    textTransform: 'uppercase',
   },
   viewAllText: {
     fontSize: Typography.fontSizes.sm,
@@ -473,45 +537,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: Spacing.sm,
   },
-  liveStatusContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-around',
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.sm,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    ...Shadows.subtle,
-  },
-  liveCol: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  liveValue: {
-    fontSize: Typography.fontSizes.xxl,
-    fontWeight: Typography.weights.bold,
-    letterSpacing: -0.5,
-  },
-  liveLabel: {
-    fontSize: Typography.fontSizes.xs,
-    fontWeight: Typography.weights.medium,
-    marginTop: 2,
-  },
-  liveDivider: {
-    width: 1,
-    height: 28,
-  },
   emptyAttentionBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.sm,
-    padding: Spacing.md,
-    borderRadius: BorderRadius.md,
+    gap: Spacing.md,
+    padding: Spacing.base + 4,
+    borderRadius: BorderRadius.lg,
     borderWidth: 1,
   },
   emptyAttentionText: {
     fontSize: Typography.fontSizes.sm,
     flex: 1,
+    fontWeight: Typography.weights.medium,
   },
   quickActionsRow: {
     flexDirection: 'row',
@@ -520,37 +557,40 @@ const styles = StyleSheet.create({
   quickActionBtn: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: Spacing.md,
+    paddingVertical: Spacing.base + 4,
     paddingHorizontal: Spacing.xs,
-    borderRadius: BorderRadius.md,
+    borderRadius: BorderRadius.lg,
     borderWidth: 1,
-    ...Shadows.subtle,
   },
   quickActionIconWrap: {
-    width: 32,
-    height: 32,
-    borderRadius: BorderRadius.sm,
+    width: 36,
+    height: 36,
+    borderRadius: BorderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 6,
+    marginBottom: 8,
   },
-  quickActionText: {
-    fontSize: Typography.fontSizes.xs + 1,
+  quickActionLabel: {
+    fontSize: Typography.fontSizes.xs,
     fontWeight: Typography.weights.semibold,
     textAlign: 'center',
   },
   tripCard: {
-    padding: Spacing.md,
-    borderRadius: BorderRadius.md,
+    padding: Spacing.base,
+    borderRadius: BorderRadius.lg,
     borderWidth: 1,
     marginBottom: Spacing.sm,
-    ...Shadows.subtle,
   },
   tripCardTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 6,
+  },
+  tripTimeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   tripTime: {
     fontSize: Typography.fontSizes.base,
@@ -559,21 +599,25 @@ const styles = StyleSheet.create({
   tripRoute: {
     fontSize: Typography.fontSizes.base,
     fontWeight: Typography.weights.semibold,
-    marginBottom: 6,
+    marginBottom: 8,
+    lineHeight: 20,
   },
   tripMetaRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 4,
     flexWrap: 'wrap',
   },
   tripPassengerText: {
-    fontSize: Typography.fontSizes.xs + 1,
+    fontSize: Typography.fontSizes.xs,
+    fontWeight: Typography.weights.medium,
   },
   tripMetaDot: {
-    marginHorizontal: 6,
+    marginHorizontal: 2,
     fontSize: Typography.fontSizes.xs,
   },
   tripDriverText: {
-    fontSize: Typography.fontSizes.xs + 1,
+    fontSize: Typography.fontSizes.xs,
+    marginLeft: 2,
   },
 });

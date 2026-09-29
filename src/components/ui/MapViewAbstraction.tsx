@@ -1,8 +1,8 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useApp } from '../../context/AppContext';
-import { BorderRadius, Typography, Shadows } from '../../constants/theme';
+import { useApp } from '@/context/AppContext';
+import { BorderRadius, Typography, Shadows, Colors } from '@/constants/theme';
 
 interface MapViewAbstractionProps {
   eta?: string;
@@ -13,69 +13,147 @@ export const MapViewAbstraction: React.FC<MapViewAbstractionProps> = ({
   eta,
   onRefresh,
 }) => {
-  const { themeColors, isDarkMode } = useApp();
-  const isDark = isDarkMode;
+  const { isDarkMode } = useApp();
+  const theme = isDarkMode ? Colors.dark : Colors.light;
+  const radarAnim = useRef(new Animated.Value(0)).current;
+  const radarAnim2 = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const loop1 = Animated.loop(
+      Animated.sequence([
+        Animated.timing(radarAnim, {
+          toValue: 1,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(radarAnim, {
+          toValue: 0,
+          duration: 0,
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+    const loop2 = Animated.loop(
+      Animated.sequence([
+        Animated.delay(666),
+        Animated.timing(radarAnim2, {
+          toValue: 1,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(radarAnim2, {
+          toValue: 0,
+          duration: 0,
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+    loop1.start();
+    loop2.start();
+    return () => {
+      loop1.stop();
+      loop2.stop();
+    };
+  }, [radarAnim, radarAnim2]);
+
+  const radarScale1 = radarAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 2.8],
+  });
+  const radarOpacity1 = radarAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.35, 0],
+  });
+  const radarScale2 = radarAnim2.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 2.8],
+  });
+  const radarOpacity2 = radarAnim2.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.35, 0],
+  });
+
+  const gridColor = isDarkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.04)';
+  const roadColor = isDarkMode ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.06)';
 
   return (
     <View
       style={[
         styles.container,
         {
-          backgroundColor: isDark ? themeColors.cardBackground : themeColors.backgroundElement,
+          backgroundColor: isDarkMode ? theme.cardBackground : theme.backgroundElement,
           borderRadius: BorderRadius.lg,
         },
       ]}
     >
       {/* Grid lines */}
-      <View style={[styles.gridH, { top: '25%', backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}]} />
-      <View style={[styles.gridH, { top: '50%', backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}]} />
-      <View style={[styles.gridH, { top: '75%', backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}]} />
-      <View style={[styles.gridV, { left: '25%', backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}]} />
-      <View style={[styles.gridV, { left: '50%', backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}]} />
-      <View style={[styles.gridV, { left: '75%', backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}]} />
+      <View style={[styles.gridH, { top: '25%', backgroundColor: gridColor }]} />
+      <View style={[styles.gridH, { top: '50%', backgroundColor: gridColor }]} />
+      <View style={[styles.gridH, { top: '75%', backgroundColor: gridColor }]} />
+      <View style={[styles.gridV, { left: '25%', backgroundColor: gridColor }]} />
+      <View style={[styles.gridV, { left: '50%', backgroundColor: gridColor }]} />
+      <View style={[styles.gridV, { left: '75%', backgroundColor: gridColor }]} />
 
       {/* Main road */}
-      <View
-        style={[
-          styles.road,
-          {
-            backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
-          },
-        ]}
-      />
+      <View style={[styles.road, { backgroundColor: roadColor }]} />
 
-      {/* Route line */}
-      <View style={[styles.routeLine, { borderColor: themeColors.secondary }]} />
+      {/* Route line - solid */}
+      <View style={[styles.routeLine, { backgroundColor: theme.secondary }]} />
 
       {/* Pickup pin */}
-      <View style={[styles.pin, { top: '25%', left: '20%', backgroundColor: themeColors.accent }]}>
-        <Ionicons name="location" size={16} color={themeColors.textInverse} />
+      <View style={[styles.pinWrap, { top: '22%', left: '17%' }]}>
+        <View style={[styles.pinShadow, { backgroundColor: theme.accent, opacity: 0.15 }]} />
+        <View style={[styles.pin, { backgroundColor: theme.accent }]}>
+          <Ionicons name="location" size={14} color={theme.textInverse} />
+        </View>
       </View>
-      <View style={[styles.pinLabel, { top: '19%', left: '14%', backgroundColor: themeColors.accentLight }]}>
-        <Text style={[styles.pinLabelText, { color: themeColors.accent }]}>Pickup</Text>
+      <View style={[styles.pinLabel, { top: '15%', left: '10%', backgroundColor: theme.accentLight }]}>
+        <Text style={[styles.pinLabelText, { color: theme.accent }]}>Pickup</Text>
       </View>
 
-      {/* Vehicle marker with static halo */}
-      <View style={[styles.vehicleWrap, { top: '48%', left: '48%' }]}>
-        <View style={[styles.vehiclePulse, { backgroundColor: themeColors.secondary, opacity: 0.3 }]} />
-        <View style={[styles.vehicleMarker, { backgroundColor: themeColors.secondary }]}>
-          <Ionicons name="car-sport" size={18} color={themeColors.textInverse} />
+      {/* Vehicle marker with pulsing radar */}
+      <View style={[styles.vehicleWrap, { top: '46%', left: '46%' }]}>
+        <Animated.View
+          style={[
+            styles.radarRing,
+            {
+              borderColor: theme.secondary,
+              transform: [{ scale: radarScale1 }],
+              opacity: radarOpacity1,
+            },
+          ]}
+        />
+        <Animated.View
+          style={[
+            styles.radarRing,
+            {
+              borderColor: theme.secondary,
+              transform: [{ scale: radarScale2 }],
+              opacity: radarOpacity2,
+            },
+          ]}
+        />
+        <View style={[styles.vehicleMarker, { backgroundColor: theme.secondary }]}>
+          <Ionicons name="car-sport" size={16} color={theme.textInverse} />
         </View>
       </View>
 
       {/* Drop pin */}
-      <View style={[styles.pin, { top: '70%', left: '75%', backgroundColor: themeColors.secondary }]}>
-        <Ionicons name="flag" size={14} color={themeColors.textInverse} />
+      <View style={[styles.pinWrap, { top: '72%', left: '76%' }]}>
+        <View style={[styles.pinShadow, { backgroundColor: theme.primary, opacity: 0.15 }]} />
+        <View style={[styles.pin, { backgroundColor: theme.primary }]}>
+          <Ionicons name="flag" size={13} color={theme.textInverse} />
+        </View>
       </View>
-      <View style={[styles.pinLabel, { top: '64%', left: '68%', backgroundColor: themeColors.secondaryLight }]}>
-        <Text style={[styles.pinLabelText, { color: themeColors.secondary }]}>Drop</Text>
+      <View style={[styles.pinLabel, { top: '65%', left: '68%', backgroundColor: theme.primaryLight }]}>
+        <Text style={[styles.pinLabelText, { color: theme.primary }]}>Drop</Text>
       </View>
 
       {/* ETA pill */}
       {eta && (
-        <View style={[styles.etaPill, { backgroundColor: themeColors.cardBackground, ...Shadows.small }]}>
-          <Ionicons name="time" size={14} color={themeColors.secondary} />
-          <Text style={[styles.etaText, { color: themeColors.text }]}>{eta}</Text>
+        <View style={[styles.etaPill, { backgroundColor: `${theme.cardBackground}E6` }]}>
+          <Ionicons name="time" size={13} color={theme.secondary} />
+          <Text style={[styles.etaText, { color: theme.text }]}>{eta}</Text>
         </View>
       )}
 
@@ -83,10 +161,10 @@ export const MapViewAbstraction: React.FC<MapViewAbstractionProps> = ({
       {onRefresh && (
         <TouchableOpacity
           onPress={onRefresh}
-          style={[styles.refreshBtn, { backgroundColor: themeColors.cardBackground, ...Shadows.small }]}
+          style={[styles.refreshBtn, { backgroundColor: `${theme.cardBackground}E6` }]}
           activeOpacity={0.7}
         >
-          <Ionicons name="refresh" size={18} color={themeColors.textSecondary} />
+          <Ionicons name="refresh" size={17} color={theme.textSecondary} />
         </TouchableOpacity>
       )}
     </View>
@@ -114,32 +192,40 @@ const styles = StyleSheet.create({
   },
   road: {
     position: 'absolute',
-    top: '40%',
+    top: '38%',
     left: '-10%',
     width: '120%',
-    height: 60,
+    height: 56,
     transform: [{ rotate: '-25deg' }],
-    borderRadius: 8,
+    borderRadius: BorderRadius.sm,
   },
   routeLine: {
     position: 'absolute',
-    top: '30%',
-    left: '25%',
-    width: '55%',
-    height: 0,
-    borderWidth: 2,
-    borderStyle: 'dashed',
-    borderRadius: 1,
+    top: '28%',
+    left: '23%',
+    width: '57%',
+    height: 2.5,
+    borderRadius: 2,
     transform: [{ rotate: '35deg' }],
   },
-  pin: {
+  pinWrap: {
     position: 'absolute',
+  },
+  pin: {
     width: 28,
     height: 28,
     borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
-    ...Shadows.small,
+    ...Shadows.medium,
+  },
+  pinShadow: {
+    position: 'absolute',
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    top: 4,
+    left: 2,
   },
   pinLabel: {
     position: 'absolute',
@@ -148,21 +234,23 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.sm,
   },
   pinLabelText: {
-    fontSize: Typography.fontSizes.xs,
+    fontSize: 10,
     fontWeight: Typography.weights.semibold as any,
+    letterSpacing: 0.3,
   },
   vehicleWrap: {
     position: 'absolute',
-    width: 36,
-    height: 36,
+    width: 44,
+    height: 44,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  vehiclePulse: {
+  radarRing: {
     position: 'absolute',
     width: 36,
     height: 36,
     borderRadius: 18,
+    borderWidth: 1.5,
   },
   vehicleMarker: {
     width: 36,
@@ -182,6 +270,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: BorderRadius.full,
     gap: 6,
+    ...Shadows.small,
   },
   etaText: {
     fontSize: Typography.fontSizes.sm,
@@ -196,5 +285,6 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
+    ...Shadows.small,
   },
 });

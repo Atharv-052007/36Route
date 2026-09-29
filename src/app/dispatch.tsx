@@ -9,18 +9,23 @@ import {
   Platform,
   StatusBar,
   Linking,
-  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Typography, Spacing, BorderRadius, Shadows } from '@/constants/theme';
 import { useApp } from '@/context/AppContext';
 import { Header } from '@/components/ui/Header';
-import { Badge } from '@/components/ui/Badge';
+import { AppButton } from '@/components/ui/AppButton';
 import { MOCK_RECOMMENDATIONS_3821 } from '@/mock';
 import { DriverRecommendation } from '@/types';
 
 type WorkflowStep = 'REVIEW' | 'ASSIGNED_WAITING' | 'ACCEPTED' | 'DECLINED';
+
+const WORKFLOW_STEPS: { key: WorkflowStep; label: string }[] = [
+  { key: 'REVIEW', label: 'Review' },
+  { key: 'ASSIGNED_WAITING', label: 'Assigned' },
+  { key: 'ACCEPTED', label: 'Accepted' },
+];
 
 export default function DispatchScreen() {
   const router = useRouter();
@@ -30,8 +35,8 @@ export default function DispatchScreen() {
     assignDriverToTrip,
     simulateDriverResponse,
     isDarkMode,
+    themeColors,
   } = useApp();
-  const theme = isDarkMode ? Colors.dark : Colors.light;
 
   const trip = trips.find((t) => t.id === selectedTripId) || trips[0];
 
@@ -61,18 +66,18 @@ export default function DispatchScreen() {
     setDeclineReason(reason);
     await simulateDriverResponse(trip.id, currentDriver.driverId, 'Declined');
     setWorkflowState('DECLINED');
-
-    // Recommend next driver
     if (selectedDriverIndex < recommendations.length - 1) {
       setSelectedDriverIndex((prev) => prev + 1);
     }
   };
 
+  const activeStepIndex = WORKFLOW_STEPS.findIndex((s) => s.key === workflowState);
+
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: themeColors.background }]}>
       <StatusBar
         barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={theme.cardBackground}
+        backgroundColor={themeColors.cardBackground}
       />
 
       <Header
@@ -85,76 +90,193 @@ export default function DispatchScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Trip Banner */}
+        {/* Step Indicator */}
+        <View style={styles.workflowIndicator}>
+          {WORKFLOW_STEPS.map((step, i) => {
+            const isActive = i === activeStepIndex;
+            const isCompleted = i < activeStepIndex;
+            return (
+              <React.Fragment key={step.key}>
+                <View style={styles.stepItem}>
+                  <View
+                    style={[
+                      styles.stepCircle,
+                      {
+                        backgroundColor: isCompleted
+                          ? themeColors.available
+                          : isActive
+                          ? themeColors.primary
+                          : themeColors.backgroundElement,
+                        borderColor: isCompleted
+                          ? themeColors.available
+                          : isActive
+                          ? themeColors.primary
+                          : themeColors.border,
+                      },
+                    ]}
+                  >
+                    {isCompleted ? (
+                      <Ionicons name="checkmark" size={14} color="#FFFFFF" />
+                    ) : (
+                      <Text
+                        style={[
+                          styles.stepNumber,
+                          {
+                            color: isActive ? '#FFFFFF' : themeColors.textMuted,
+                          },
+                        ]}
+                      >
+                        {i + 1}
+                      </Text>
+                    )}
+                  </View>
+                  <Text
+                    style={[
+                      styles.stepLabel,
+                      {
+                        color: isActive ? themeColors.text : themeColors.textMuted,
+                        fontWeight: isActive ? '600' : '400',
+                      },
+                    ]}
+                  >
+                    {step.label}
+                  </Text>
+                </View>
+                {i < WORKFLOW_STEPS.length - 1 && (
+                  <View
+                    style={[
+                      styles.stepLine,
+                      {
+                        backgroundColor: isCompleted
+                          ? themeColors.available
+                          : themeColors.border,
+                      },
+                    ]}
+                  />
+                )}
+              </React.Fragment>
+            );
+          })}
+        </View>
+
+        {/* Trip Info Card */}
         <View
           style={[
-            styles.tripBanner,
-            { backgroundColor: theme.cardBackground, borderColor: theme.border },
+            styles.tripCard,
+            { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border },
           ]}
         >
-          <View style={styles.bannerTop}>
-            <View>
-              <Text style={[styles.tripNum, { color: theme.textSecondary }]}>
-                {trip.tripNumber}
-              </Text>
-              <Text style={[styles.timeText, { color: theme.text }]}>
-                {trip.scheduledTime}
+          <View style={styles.tripCardHeader}>
+            <View style={styles.tripTitleRow}>
+              <View
+                style={[
+                  styles.tripIcon,
+                  { backgroundColor: themeColors.primaryLight },
+                ]}
+              >
+                <Ionicons name="bus-outline" size={18} color={themeColors.primary} />
+              </View>
+              <View>
+                <Text style={[styles.tripNumber, { color: themeColors.text }]}>
+                  {trip.tripNumber}
+                </Text>
+                <Text style={[styles.tripTime, { color: themeColors.textSecondary }]}>
+                  {trip.scheduledTime}
+                </Text>
+              </View>
+            </View>
+            <View
+              style={[
+                styles.statusPill,
+                { backgroundColor: themeColors.warningLight, borderColor: themeColors.warning },
+              ]}
+            >
+              <Ionicons name="alert-circle" size={12} color={themeColors.warning} />
+              <Text style={[styles.statusPillText, { color: themeColors.warning }]}>
+                Driver Required
               </Text>
             </View>
-            <Badge status="Needs Attention" label="Driver required" size="sm" />
           </View>
 
-          <Text style={[styles.routeText, { color: theme.text }]}>
-            {trip.routeSummary}
-          </Text>
+          <View style={[styles.tripDivider, { backgroundColor: themeColors.borderLight }]} />
 
-          <View style={styles.passengerRow}>
-            <Ionicons name="people-outline" size={15} color={theme.textSecondary} />
-            <Text style={[styles.passengerText, { color: theme.textSecondary }]}>
-              {trip.passengerCount} passengers • Capacity: {trip.maxCapacity}
+          <View style={styles.tripRouteRow}>
+            <Ionicons name="git-compare-outline" size={16} color={themeColors.textSecondary} />
+            <Text style={[styles.tripRouteText, { color: themeColors.text }]}>
+              {trip.routeSummary}
             </Text>
+          </View>
+
+          <View style={styles.tripMetaRow}>
+            <View style={styles.tripMetaItem}>
+              <Ionicons name="people-outline" size={14} color={themeColors.textMuted} />
+              <Text style={[styles.tripMetaText, { color: themeColors.textSecondary }]}>
+                {trip.passengerCount} passengers
+              </Text>
+            </View>
+            <View style={[styles.tripMetaDot, { backgroundColor: themeColors.textMuted }]} />
+            <View style={styles.tripMetaItem}>
+              <Ionicons name="car-outline" size={14} color={themeColors.textMuted} />
+              <Text style={[styles.tripMetaText, { color: themeColors.textSecondary }]}>
+                Capacity: {trip.maxCapacity}
+              </Text>
+            </View>
           </View>
         </View>
 
-        {/* WORKFLOW STATE: ASSIGNED / WAITING SIMULATION */}
+        {/* ASSIGNED WAITING STATE */}
         {workflowState === 'ASSIGNED_WAITING' && (
           <View
             style={[
-              styles.workflowBox,
-              { backgroundColor: theme.assignedLight, borderColor: theme.assignedBorder },
+              styles.workflowCard,
+              {
+                backgroundColor: themeColors.assignedLight,
+                borderColor: themeColors.assignedBorder,
+              },
             ]}
           >
-            <View style={styles.workflowHeader}>
-              <Ionicons name="paper-plane" size={20} color={theme.assigned} />
-              <Text style={[styles.workflowTitle, { color: theme.text }]}>
-                Assignment sent to {currentDriver.driverName}
-              </Text>
+            <View style={styles.workflowCardHeader}>
+              <View
+                style={[
+                  styles.workflowIcon,
+                  { backgroundColor: themeColors.assigned },
+                ]}
+              >
+                <Ionicons name="paper-plane" size={16} color="#FFFFFF" />
+              </View>
+              <View style={styles.workflowCardText}>
+                <Text style={[styles.workflowCardTitle, { color: themeColors.text }]}>
+                  Assignment Sent
+                </Text>
+                <Text style={[styles.workflowCardSub, { color: themeColors.textSecondary }]}>
+                  To {currentDriver.driverName}
+                </Text>
+              </View>
             </View>
-            <Text style={[styles.workflowSub, { color: theme.textSecondary }]}>
+            <Text style={[styles.workflowCardBody, { color: themeColors.textSecondary }]}>
               Waiting for driver to confirm on mobile terminal. Calling is available as fallback.
             </Text>
 
-            <View style={styles.simControls}>
-              <Text style={[styles.simLabel, { color: theme.textMuted }]}>
-                SIMULATE DRIVER RESPONSE:
+            <View style={[styles.simSection, { borderTopColor: themeColors.border }]}>
+              <Text style={[styles.simLabel, { color: themeColors.textMuted }]}>
+                SIMULATE RESPONSE
               </Text>
-              <View style={styles.simButtonsRow}>
+              <View style={styles.simRow}>
                 <TouchableOpacity
                   activeOpacity={0.8}
                   onPress={handleDriverAccept}
-                  style={[styles.simAcceptBtn, { backgroundColor: theme.available }]}
+                  style={[styles.simBtn, { backgroundColor: themeColors.available }]}
                 >
-                  <Ionicons name="checkmark" size={16} color="#FFFFFF" />
+                  <Ionicons name="checkmark" size={15} color="#FFFFFF" />
                   <Text style={styles.simBtnText}>Accept</Text>
                 </TouchableOpacity>
-
                 <TouchableOpacity
                   activeOpacity={0.8}
                   onPress={() => handleDriverDecline('Busy on another shift')}
-                  style={[styles.simDeclineBtn, { backgroundColor: theme.danger }]}
+                  style={[styles.simBtn, { backgroundColor: themeColors.danger }]}
                 >
-                  <Ionicons name="close" size={16} color="#FFFFFF" />
-                  <Text style={styles.simBtnText}>Decline (Busy)</Text>
+                  <Ionicons name="close" size={15} color="#FFFFFF" />
+                  <Text style={styles.simBtnText}>Decline</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -163,190 +285,205 @@ export default function DispatchScreen() {
               activeOpacity={0.7}
               onPress={handleCall}
               style={[
-                styles.callFallbackBtn,
-                { backgroundColor: theme.cardBackground, borderColor: theme.border },
+                styles.callBtn,
+                { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border },
               ]}
             >
-              <Ionicons name="call-outline" size={16} color={theme.text} />
-              <Text style={[styles.callFallbackText, { color: theme.text }]}>
-                Call {currentDriver.driverName} ({currentDriver.phone})
+              <Ionicons name="call-outline" size={15} color={themeColors.primary} />
+              <Text style={[styles.callBtnText, { color: themeColors.primary }]}>
+                Call {currentDriver.driverName.split(' ')[0]}
               </Text>
             </TouchableOpacity>
           </View>
         )}
 
-        {/* WORKFLOW STATE: ACCEPTED */}
+        {/* ACCEPTED STATE */}
         {workflowState === 'ACCEPTED' && (
           <View
             style={[
-              styles.workflowBox,
-              { backgroundColor: theme.availableLight, borderColor: theme.availableBorder },
+              styles.workflowCard,
+              {
+                backgroundColor: themeColors.availableLight,
+                borderColor: themeColors.availableBorder,
+              },
             ]}
           >
-            <View style={styles.workflowHeader}>
-              <Ionicons name="checkmark-circle" size={24} color={theme.available} />
-              <Text style={[styles.workflowTitle, { color: theme.available }]}>
-                {currentDriver.driverName} accepted the trip!
-              </Text>
+            <View style={styles.workflowCardHeader}>
+              <View
+                style={[
+                  styles.workflowIcon,
+                  { backgroundColor: themeColors.available },
+                ]}
+              >
+                <Ionicons name="checkmark-circle" size={16} color="#FFFFFF" />
+              </View>
+              <View style={styles.workflowCardText}>
+                <Text style={[styles.workflowCardTitle, { color: themeColors.available }]}>
+                  Driver Accepted!
+                </Text>
+                <Text style={[styles.workflowCardSub, { color: themeColors.textSecondary }]}>
+                  {currentDriver.driverName} confirmed the trip
+                </Text>
+              </View>
             </View>
-            <Text style={[styles.workflowSub, { color: theme.textSecondary }]}>
-              Vehicle: {currentDriver.vehicleModel} ({currentDriver.vehiclePlate}). System has updated trip status to Assigned.
+            <Text style={[styles.workflowCardBody, { color: themeColors.textSecondary }]}>
+              {currentDriver.vehicleModel} ({currentDriver.vehiclePlate}). Trip status updated to Assigned.
             </Text>
-
-            <TouchableOpacity
-              activeOpacity={0.8}
+            <AppButton
+              title="Open Trip Details"
               onPress={() => router.replace('/trip-details')}
-              style={[styles.viewTripBtn, { backgroundColor: theme.primary }]}
-            >
-              <Text style={styles.viewTripText}>Open Trip Details</Text>
-              <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
-            </TouchableOpacity>
+              icon={<Ionicons name="arrow-forward" size={16} color="#FFFFFF" />}
+            />
           </View>
         )}
 
-        {/* WORKFLOW STATE: DECLINED */}
+        {/* DECLINED STATE */}
         {workflowState === 'DECLINED' && (
           <View
             style={[
-              styles.workflowBox,
-              { backgroundColor: theme.warningLight, borderColor: theme.warningBorder },
+              styles.workflowCard,
+              {
+                backgroundColor: themeColors.warningLight,
+                borderColor: themeColors.warningBorder,
+              },
             ]}
           >
-            <View style={styles.workflowHeader}>
-              <Ionicons name="alert-circle" size={22} color={theme.warning} />
-              <Text style={[styles.workflowTitle, { color: theme.text }]}>
-                Driver declined: {declineReason}
-              </Text>
+            <View style={styles.workflowCardHeader}>
+              <View
+                style={[
+                  styles.workflowIcon,
+                  { backgroundColor: themeColors.warning },
+                ]}
+              >
+                <Ionicons name="alert-circle" size={16} color="#FFFFFF" />
+              </View>
+              <View style={styles.workflowCardText}>
+                <Text style={[styles.workflowCardTitle, { color: themeColors.text }]}>
+                  Driver Declined
+                </Text>
+                <Text style={[styles.workflowCardSub, { color: themeColors.textSecondary }]}>
+                  {declineReason}
+                </Text>
+              </View>
             </View>
-            <Text style={[styles.workflowSub, { color: theme.textSecondary }]}>
-              Automatically recommended the next best driver below.
+            <Text style={[styles.workflowCardBody, { color: themeColors.textSecondary }]}>
+              Automatically recommending the next best driver below.
             </Text>
           </View>
         )}
 
-        {/* RECOMMENDED DRIVER CARD */}
+        {/* Recommended Driver Card */}
         {workflowState !== 'ACCEPTED' && (
           <View
             style={[
-              styles.recCard,
-              { backgroundColor: theme.cardBackground, borderColor: theme.border },
+              styles.driverCard,
+              { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border },
             ]}
           >
-            <View style={styles.recHeaderRow}>
-              <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>
+            <View style={styles.driverCardHeader}>
+              <Text style={[styles.sectionLabel, { color: themeColors.textMuted }]}>
                 RECOMMENDED DRIVER
               </Text>
               <View
                 style={[
-                  styles.matchBadge,
-                  { backgroundColor: theme.accentLight, borderColor: theme.accent },
+                  styles.matchPill,
+                  { backgroundColor: themeColors.accentLight, borderColor: themeColors.accent },
                 ]}
               >
-                <Text style={[styles.matchText, { color: theme.accent }]}>
+                <Ionicons name="flash" size={12} color={themeColors.accent} />
+                <Text style={[styles.matchPillText, { color: themeColors.accent }]}>
                   {currentDriver.matchScore}% match
                 </Text>
               </View>
             </View>
 
-            <View style={styles.driverMainRow}>
-              <View>
-                <Text style={[styles.driverNameText, { color: theme.text }]}>
+            <View style={styles.driverInfoRow}>
+              <View
+                style={[
+                  styles.driverAvatar,
+                  { backgroundColor: themeColors.primaryLight },
+                ]}
+              >
+                <Text style={[styles.driverInitial, { color: themeColors.primary }]}>
+                  {currentDriver.driverName.charAt(0)}
+                </Text>
+              </View>
+              <View style={styles.driverDetails}>
+                <Text style={[styles.driverName, { color: themeColors.text }]}>
                   {currentDriver.driverName}
                 </Text>
-                <Text style={[styles.driverVehText, { color: theme.textSecondary }]}>
+                <Text style={[styles.driverVehicle, { color: themeColors.textSecondary }]}>
                   {currentDriver.vehicleModel} • {currentDriver.vehiclePlate}
                 </Text>
               </View>
-              <Text style={[styles.driverRating, { color: theme.textSecondary }]}>
-                ★ {currentDriver.rating}
-              </Text>
+              <View style={styles.ratingBadge}>
+                <Ionicons name="star" size={14} color={themeColors.warning} />
+                <Text style={[styles.ratingText, { color: themeColors.text }]}>
+                  {currentDriver.rating}
+                </Text>
+              </View>
             </View>
 
-            {/* Reasons checklist */}
-            <View
-              style={[
-                styles.reasonsBox,
-                { backgroundColor: theme.backgroundElement },
-              ]}
-            >
-              <Text style={[styles.reasonsTitle, { color: theme.textSecondary }]}>
-                Compatibility factors:
+            <View style={[styles.reasonsContainer, { backgroundColor: themeColors.backgroundElement }]}>
+              <Text style={[styles.reasonsTitle, { color: themeColors.textSecondary }]}>
+                Compatibility Factors
               </Text>
               {currentDriver.reasons.map((reason, i) => (
-                <View key={i} style={styles.reasonItem}>
-                  <Ionicons name="checkmark-sharp" size={14} color={theme.available} />
-                  <Text style={[styles.reasonText, { color: theme.text }]}>
+                <View key={i} style={styles.reasonRow}>
+                  <View
+                    style={[
+                      styles.reasonCheck,
+                      { backgroundColor: themeColors.available },
+                    ]}
+                  >
+                    <Ionicons name="checkmark" size={10} color="#FFFFFF" />
+                  </View>
+                  <Text style={[styles.reasonText, { color: themeColors.text }]}>
                     {reason}
                   </Text>
                 </View>
               ))}
             </View>
 
-            {/* Actions: Assign | Call | Choose Another */}
-            <View style={styles.actionButtonsCol}>
-              <TouchableOpacity
-                activeOpacity={0.8}
+            <View style={styles.driverActions}>
+              <AppButton
+                title={`Assign ${currentDriver.driverName.split(' ')[0]}`}
                 onPress={handleAssign}
-                style={[styles.assignBtn, { backgroundColor: theme.primary }]}
-              >
-                <Ionicons name="checkmark-circle-outline" size={18} color="#FFFFFF" />
-                <Text style={styles.assignBtnText}>
-                  Assign {currentDriver.driverName.split(' ')[0]}
-                </Text>
-              </TouchableOpacity>
-
-              <View style={styles.secondaryActionsRow}>
-                <TouchableOpacity
-                  activeOpacity={0.7}
+                icon={<Ionicons name="checkmark-circle-outline" size={18} color="#FFFFFF" />}
+              />
+              <View style={styles.secondaryRow}>
+                <AppButton
+                  title="Call"
                   onPress={handleCall}
-                  style={[
-                    styles.subActionBtn,
-                    {
-                      backgroundColor: theme.backgroundElement,
-                      borderColor: theme.border,
-                    },
-                  ]}
-                >
-                  <Ionicons name="call-outline" size={16} color={theme.text} />
-                  <Text style={[styles.subActionText, { color: theme.text }]}>
-                    Call
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  activeOpacity={0.7}
+                  variant="outline"
+                  size="sm"
+                  icon={<Ionicons name="call-outline" size={15} color={themeColors.primary} />}
+                />
+                <AppButton
+                  title={showRankedList ? 'Hide List' : 'Other Drivers'}
                   onPress={() => setShowRankedList((prev) => !prev)}
-                  style={[
-                    styles.subActionBtn,
-                    {
-                      backgroundColor: theme.backgroundElement,
-                      borderColor: theme.border,
-                    },
-                  ]}
-                >
-                  <Ionicons name="list-outline" size={16} color={theme.text} />
-                  <Text style={[styles.subActionText, { color: theme.text }]}>
-                    {showRankedList ? 'Hide Alternatives' : 'Choose Another'}
-                  </Text>
-                </TouchableOpacity>
+                  variant="outline"
+                  size="sm"
+                  icon={<Ionicons name="list-outline" size={15} color={themeColors.primary} />}
+                />
               </View>
             </View>
           </View>
         )}
 
-        {/* RANKED RECOMMENDATIONS LIST */}
+        {/* Ranked Driver List */}
         {showRankedList && (
           <View
             style={[
               styles.rankedCard,
-              { backgroundColor: theme.cardBackground, borderColor: theme.border },
+              { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border },
             ]}
           >
-            <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>
-              RANKED DRIVERS
+            <Text style={[styles.sectionLabel, { color: themeColors.textMuted }]}>
+              ALL DRIVERS
             </Text>
             {recommendations.map((rec, index) => {
-              const isCurrent = selectedDriverIndex === index;
+              const isSelected = selectedDriverIndex === index;
               return (
                 <TouchableOpacity
                   key={rec.driverId}
@@ -358,22 +495,34 @@ export default function DispatchScreen() {
                   style={[
                     styles.rankedItem,
                     {
-                      borderBottomColor: theme.borderLight,
-                      backgroundColor: isCurrent
-                        ? theme.backgroundElement
-                        : 'transparent',
+                      backgroundColor: isSelected ? themeColors.backgroundSelected : 'transparent',
+                      borderColor: isSelected ? themeColors.primary : 'transparent',
                     },
                   ]}
                 >
                   <View style={styles.rankedLeft}>
-                    <Text style={[styles.rankIndex, { color: theme.textMuted }]}>
-                      {index + 1}.
-                    </Text>
+                    <View
+                      style={[
+                        styles.rankBadge,
+                        {
+                          backgroundColor: index === 0 ? themeColors.primaryLight : themeColors.backgroundElement,
+                        },
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.rankNumber,
+                          { color: index === 0 ? themeColors.primary : themeColors.textSecondary },
+                        ]}
+                      >
+                        {index + 1}
+                      </Text>
+                    </View>
                     <View>
-                      <Text style={[styles.rankedName, { color: theme.text }]}>
+                      <Text style={[styles.rankedName, { color: themeColors.text }]}>
                         {rec.driverName}
                       </Text>
-                      <Text style={[styles.rankedVeh, { color: theme.textSecondary }]}>
+                      <Text style={[styles.rankedVehicle, { color: themeColors.textSecondary }]}>
                         {rec.vehicleModel} • {rec.distanceToPickup}
                       </Text>
                     </View>
@@ -382,17 +531,15 @@ export default function DispatchScreen() {
                     <Text
                       style={[
                         styles.rankedScore,
-                        {
-                          color: index === 0 ? theme.available : theme.accent,
-                        },
+                        { color: index === 0 ? themeColors.available : themeColors.accent },
                       ]}
                     >
                       {rec.matchScore}%
                     </Text>
                     <Ionicons
-                      name={isCurrent ? 'radio-button-on' : 'chevron-forward'}
+                      name={isSelected ? 'radio-button-on' : 'chevron-forward'}
                       size={16}
-                      color={isCurrent ? theme.accent : theme.textMuted}
+                      color={isSelected ? themeColors.primary : themeColors.textMuted}
                     />
                   </View>
                 </TouchableOpacity>
@@ -414,265 +561,357 @@ const styles = StyleSheet.create({
     padding: Spacing.base,
     paddingBottom: Spacing.xxl,
   },
-  tripBanner: {
-    padding: Spacing.md,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    marginBottom: Spacing.md,
-    ...Shadows.subtle,
+  // Workflow step indicator
+  workflowIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.lg,
+    paddingHorizontal: Spacing.sm,
   },
-  bannerTop: {
+  stepItem: {
+    alignItems: 'center',
+    gap: 6,
+  },
+  stepCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+  },
+  stepNumber: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  stepLabel: {
+    fontSize: Typography.fontSizes.xs,
+    letterSpacing: 0.2,
+  },
+  stepLine: {
+    height: 2,
+    flex: 1,
+    marginHorizontal: 6,
+    marginBottom: 20,
+    borderRadius: 1,
+  },
+  // Trip info card
+  tripCard: {
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    padding: Spacing.base,
+    marginBottom: Spacing.md,
+    ...Shadows.card,
+  },
+  tripCardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 4,
+    alignItems: 'center',
   },
-  tripNum: {
-    fontSize: Typography.fontSizes.xs,
-    fontWeight: Typography.weights.medium,
+  tripTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm + 4,
   },
-  timeText: {
-    fontSize: Typography.fontSizes.xl,
+  tripIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: BorderRadius.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tripNumber: {
+    fontSize: Typography.fontSizes.lg,
     fontWeight: Typography.weights.bold,
+    letterSpacing: -0.3,
   },
-  routeText: {
+  tripTime: {
+    fontSize: Typography.fontSizes.xs,
+    marginTop: 1,
+  },
+  statusPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: BorderRadius.full,
+    borderWidth: 1,
+  },
+  statusPillText: {
+    fontSize: Typography.fontSizes.xs,
+    fontWeight: Typography.weights.semibold,
+  },
+  tripDivider: {
+    height: 1,
+    marginVertical: Spacing.sm + 4,
+  },
+  tripRouteRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    marginBottom: Spacing.sm,
+  },
+  tripRouteText: {
     fontSize: Typography.fontSizes.base,
     fontWeight: Typography.weights.semibold,
-    marginBottom: 6,
+    flex: 1,
   },
-  passengerRow: {
+  tripMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  tripMetaItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
   },
-  passengerText: {
+  tripMetaText: {
     fontSize: Typography.fontSizes.xs + 1,
   },
-  workflowBox: {
-    padding: Spacing.md,
-    borderRadius: BorderRadius.md,
+  tripMetaDot: {
+    width: 3,
+    height: 3,
+    borderRadius: 1.5,
+  },
+  // Workflow state cards
+  workflowCard: {
+    borderRadius: BorderRadius.lg,
     borderWidth: 1,
+    padding: Spacing.base,
     marginBottom: Spacing.md,
   },
-  workflowHeader: {
+  workflowCardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 4,
+    gap: Spacing.sm + 4,
+    marginBottom: Spacing.sm,
   },
-  workflowTitle: {
+  workflowIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: BorderRadius.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  workflowCardText: {
+    flex: 1,
+  },
+  workflowCardTitle: {
     fontSize: Typography.fontSizes.base,
     fontWeight: Typography.weights.bold,
   },
-  workflowSub: {
-    fontSize: Typography.fontSizes.xs + 1,
-    lineHeight: 18,
+  workflowCardSub: {
+    fontSize: Typography.fontSizes.xs,
+    marginTop: 1,
+  },
+  workflowCardBody: {
+    fontSize: Typography.fontSizes.sm,
+    lineHeight: 20,
     marginBottom: Spacing.md,
   },
-  simControls: {
-    paddingTop: Spacing.sm,
+  // Simulation
+  simSection: {
+    paddingTop: Spacing.sm + 4,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(0,0,0,0.08)',
+    marginBottom: Spacing.sm + 4,
   },
   simLabel: {
     fontSize: 10,
     fontWeight: '700',
-    letterSpacing: 0.5,
-    marginBottom: 6,
-  },
-  simButtonsRow: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
+    letterSpacing: 0.8,
     marginBottom: Spacing.sm,
   },
-  simAcceptBtn: {
-    flex: 1,
-    height: 38,
-    borderRadius: BorderRadius.sm,
+  simRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 4,
+    gap: Spacing.sm,
   },
-  simDeclineBtn: {
+  simBtn: {
     flex: 1,
-    height: 38,
+    height: 40,
     borderRadius: BorderRadius.sm,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
+    gap: 6,
   },
   simBtnText: {
     color: '#FFFFFF',
     fontSize: Typography.fontSizes.xs + 1,
     fontWeight: Typography.weights.bold,
   },
-  callFallbackBtn: {
+  callBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    height: 40,
+    height: 42,
     borderRadius: BorderRadius.sm,
     borderWidth: 1,
     gap: 6,
-    marginTop: 4,
   },
-  callFallbackText: {
-    fontSize: Typography.fontSizes.xs + 1,
-    fontWeight: Typography.weights.medium,
-  },
-  viewTripBtn: {
-    height: 44,
-    borderRadius: BorderRadius.sm,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    marginTop: Spacing.sm,
-  },
-  viewTripText: {
-    color: '#FFFFFF',
+  callBtnText: {
     fontSize: Typography.fontSizes.sm,
     fontWeight: Typography.weights.semibold,
   },
-  recCard: {
-    padding: Spacing.md,
-    borderRadius: BorderRadius.md,
+  // Driver recommendation card
+  driverCard: {
+    borderRadius: BorderRadius.lg,
     borderWidth: 1,
+    padding: Spacing.base,
     marginBottom: Spacing.md,
-    ...Shadows.subtle,
+    ...Shadows.card,
   },
-  recHeaderRow: {
+  driverCardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: Spacing.sm,
+    marginBottom: Spacing.base,
   },
-  sectionTitle: {
+  sectionLabel: {
     fontSize: Typography.fontSizes.xs,
     fontWeight: Typography.weights.bold,
     letterSpacing: 0.8,
+    textTransform: 'uppercase',
   },
-  matchBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+  matchPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     borderRadius: BorderRadius.full,
     borderWidth: 1,
   },
-  matchText: {
+  matchPillText: {
     fontSize: Typography.fontSizes.xs,
     fontWeight: Typography.weights.bold,
   },
-  driverMainRow: {
+  driverInfoRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: Spacing.md,
+    alignItems: 'center',
+    gap: Spacing.md,
+    marginBottom: Spacing.base,
   },
-  driverNameText: {
+  driverAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  driverInitial: {
+    fontSize: Typography.fontSizes.xl,
+    fontWeight: Typography.weights.bold,
+  },
+  driverDetails: {
+    flex: 1,
+  },
+  driverName: {
     fontSize: Typography.fontSizes.lg,
     fontWeight: Typography.weights.bold,
   },
-  driverVehText: {
+  driverVehicle: {
     fontSize: Typography.fontSizes.xs + 1,
     marginTop: 2,
   },
-  driverRating: {
-    fontSize: Typography.fontSizes.sm,
-    fontWeight: Typography.weights.semibold,
-  },
-  reasonsBox: {
-    padding: Spacing.md,
+  ratingBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: 'rgba(245, 158, 11, 0.10)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
     borderRadius: BorderRadius.sm,
+  },
+  ratingText: {
+    fontSize: Typography.fontSizes.sm,
+    fontWeight: Typography.weights.bold,
+  },
+  reasonsContainer: {
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
     marginBottom: Spacing.base,
-    gap: 6,
+    gap: Spacing.sm,
   },
   reasonsTitle: {
     fontSize: Typography.fontSizes.xs,
     fontWeight: Typography.weights.semibold,
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
     marginBottom: 2,
   },
-  reasonItem: {
+  reasonRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: Spacing.sm,
+  },
+  reasonCheck: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   reasonText: {
-    fontSize: Typography.fontSizes.xs + 1,
-  },
-  actionButtonsCol: {
-    gap: Spacing.sm,
-  },
-  assignBtn: {
-    height: 48,
-    borderRadius: BorderRadius.sm,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-  },
-  assignBtnText: {
-    color: '#FFFFFF',
-    fontSize: Typography.fontSizes.sm + 1,
-    fontWeight: Typography.weights.bold,
-  },
-  secondaryActionsRow: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-  },
-  subActionBtn: {
+    fontSize: Typography.fontSizes.sm,
     flex: 1,
-    height: 42,
-    borderRadius: BorderRadius.sm,
-    borderWidth: 1,
+  },
+  driverActions: {
+    gap: Spacing.sm + 4,
+  },
+  secondaryRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
+    gap: Spacing.sm,
   },
-  subActionText: {
-    fontSize: Typography.fontSizes.xs + 1,
-    fontWeight: Typography.weights.medium,
-  },
+  // Ranked list
   rankedCard: {
-    padding: Spacing.md,
-    borderRadius: BorderRadius.md,
+    borderRadius: BorderRadius.lg,
     borderWidth: 1,
+    padding: Spacing.base,
     marginBottom: Spacing.md,
-    ...Shadows.subtle,
+    ...Shadows.card,
   },
   rankedItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.sm,
-    borderBottomWidth: 1,
-    borderRadius: BorderRadius.xs,
+    paddingVertical: Spacing.sm + 4,
+    paddingHorizontal: Spacing.sm + 4,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    marginTop: Spacing.sm,
   },
   rankedLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.sm,
+    gap: Spacing.sm + 4,
+    flex: 1,
   },
-  rankIndex: {
+  rankBadge: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  rankNumber: {
     fontSize: Typography.fontSizes.sm,
     fontWeight: Typography.weights.bold,
-    width: 20,
   },
   rankedName: {
     fontSize: Typography.fontSizes.sm + 1,
     fontWeight: Typography.weights.semibold,
   },
-  rankedVeh: {
+  rankedVehicle: {
     fontSize: Typography.fontSizes.xs,
     marginTop: 2,
   },
   rankedRight: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: Spacing.sm,
   },
   rankedScore: {
     fontSize: Typography.fontSizes.sm,

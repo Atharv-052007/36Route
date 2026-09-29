@@ -5,24 +5,23 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
-  TouchableOpacity,
   ScrollView,
 } from 'react-native';
 import { AppSafeAreaView } from '@/components/ui/AppSafeAreaView';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { Image as ExpoImage } from 'expo-image';
 import { useApp } from '@/context/AppContext';
-import { Typography, BorderRadius, Shadows } from '@/constants/theme';
+import { Typography, BorderRadius, Shadows, Spacing } from '@/constants/theme';
 import { AppInput } from '@/components/ui/AppInput';
-import { AnimatedAppButton } from '@/components/ui/AnimatedAppButton';
+import { AppButton } from '@/components/ui/AppButton';
 
 export default function LoginScreen() {
   const router = useRouter();
   const { login, themeColors } = useApp();
   const [authMode, setAuthMode] = useState<'otp' | 'password'>('otp');
-  const [identifier, setIdentifier] = useState('aayush.sharma@corptech.com');
-  const [code, setCode] = useState('123456');
+  const [identifier, setIdentifier] = useState('');
+  const [code, setCode] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -63,100 +62,60 @@ export default function LoginScreen() {
   };
 
   return (
-    <AppSafeAreaView edges={['top']} style={[styles.safe, { backgroundColor: themeColors.secondary }]}>
+    <AppSafeAreaView edges={['top']} style={[styles.safe, { backgroundColor: themeColors.background }]}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.flex}
       >
         <ScrollView
-          contentContainerStyle={styles.scrollContainer}
+          contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
           bounces={false}
         >
-          {/* Header Branding with Animated Logo */}
-          <View style={styles.header}>
-            {/* Animated Glow */}
-            <View style={styles.logoGlow} />
-
-            {/* Animated Logo Circle */}
-            <View style={[styles.logoCircle, { backgroundColor: 'rgba(255,255,255,0.18)' }]}>
-              <ExpoImage source={require('@/assets/images/logo.png')} style={styles.logoImage} />
+          {/* Logo & Branding */}
+          <View style={styles.brandingSection}>
+            <View style={[styles.logoCircle, { backgroundColor: themeColors.primaryLight }]}>
+              <Ionicons name="bus" size={36} color={themeColors.primary} />
             </View>
-
-            <View>
-              <Text style={styles.brand}>36Route</Text>
-            </View>
-            <View>
-              <Text style={styles.tagline}>Corporate Commute & Transit Portal</Text>
-            </View>
+            <Text style={[styles.brandTitle, { color: themeColors.text }]}>36Route</Text>
+            <Text style={[styles.brandSubtitle, { color: themeColors.textSecondary }]}>
+              Corporate Commute Portal
+            </Text>
           </View>
 
-          {/* Login Card with Slide-in */}
-          <View
-            style={[styles.card, { backgroundColor: themeColors.cardBackground }, Shadows.medium]}
-          >
-            <Text style={[styles.cardTitle, { color: themeColors.text }]}>Welcome Back</Text>
-            <Text style={[styles.cardSubtitle, { color: themeColors.textSecondary }]}>
-              Sign in to manage and track your employee commute
-            </Text>
-
+          {/* Login Card */}
+          <View style={[styles.card, { backgroundColor: themeColors.cardBackground }, Shadows.card]}>
             {/* Auth Mode Toggle */}
             <View style={[styles.modeToggle, { backgroundColor: themeColors.backgroundElement }]}>
-              <TouchableOpacity
-                onPress={() => {
-                  setAuthMode('otp');
-                  setError('');
-                }}
+              <View
                 style={[
-                  styles.modeBtn,
-                  authMode === 'otp' && { backgroundColor: themeColors.secondary },
+                  styles.modeIndicator,
+                  {
+                    backgroundColor: themeColors.primary,
+                    left: authMode === 'otp' ? 2 : '50%',
+                  },
                 ]}
-                activeOpacity={0.7}
-              >
-                <Ionicons
-                  name="shield-checkmark-outline"
-                  size={16}
-                  color={authMode === 'otp' ? '#FFFFFF' : themeColors.textSecondary}
-                  style={{ marginRight: 6 }}
-                />
-                <Text
-                  style={[
-                    styles.modeBtnText,
-                    { color: authMode === 'otp' ? '#FFFFFF' : themeColors.textSecondary },
-                  ]}
+              />
+              {(['otp', 'password'] as const).map((mode) => (
+                <View
+                  key={mode}
+                  style={[styles.modeBtn, authMode === mode && styles.modeBtnActive]}
                 >
-                  OTP Sign In
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => {
-                  setAuthMode('password');
-                  setError('');
-                }}
-                style={[
-                  styles.modeBtn,
-                  authMode === 'password' && { backgroundColor: themeColors.secondary },
-                ]}
-                activeOpacity={0.7}
-              >
-                <Ionicons
-                  name="key-outline"
-                  size={16}
-                  color={authMode === 'password' ? '#FFFFFF' : themeColors.textSecondary}
-                  style={{ marginRight: 6 }}
-                />
-                <Text
-                  style={[
-                    styles.modeBtnText,
-                    { color: authMode === 'password' ? '#FFFFFF' : themeColors.textSecondary },
-                  ]}
-                >
-                  Password
-                </Text>
-              </TouchableOpacity>
+                  <Text
+                    onPress={() => { setAuthMode(mode); setError(''); }}
+                    style={[
+                      styles.modeBtnText,
+                      { color: authMode === mode ? '#FFFFFF' : themeColors.textSecondary },
+                    ]}
+                  >
+                    {mode === 'otp' ? 'OTP' : 'Password'}
+                  </Text>
+                </View>
+              ))}
             </View>
 
+            {/* Error */}
             {error ? (
               <View style={[styles.errorBanner, { backgroundColor: themeColors.dangerLight }]}>
                 <Ionicons name="alert-circle" size={16} color={themeColors.danger} />
@@ -164,9 +123,10 @@ export default function LoginScreen() {
               </View>
             ) : null}
 
+            {/* Email / Employee ID */}
             <AppInput
-              label="Official Email or Employee ID"
-              placeholder="e.g. name@corptech.com or EMP-1042"
+              label="Email or Employee ID"
+              placeholder="name@company.com"
               value={identifier}
               onChangeText={setIdentifier}
               keyboardType="email-address"
@@ -174,45 +134,57 @@ export default function LoginScreen() {
               leftIcon={<Ionicons name="mail-outline" size={18} color={themeColors.textMuted} />}
             />
 
+            {/* Password / OTP */}
             <AppInput
-              label={authMode === 'otp' ? 'Verification OTP' : 'Account Password'}
-              placeholder={authMode === 'otp' ? 'Enter 6-digit OTP' : 'Enter your password'}
+              label={authMode === 'otp' ? 'Verification Code' : 'Password'}
+              placeholder={authMode === 'otp' ? 'Enter 6-digit code' : 'Enter password'}
               value={code}
               onChangeText={setCode}
               keyboardType={authMode === 'otp' ? 'number-pad' : 'default'}
-              secureTextEntry={authMode === 'password'}
+              secureTextEntry={authMode === 'password' && !showPassword}
               leftIcon={<Ionicons name="lock-closed-outline" size={18} color={themeColors.textMuted} />}
+              rightIcon={
+                authMode === 'password' ? (
+                  <Ionicons
+                    name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                    size={18}
+                    color={themeColors.textMuted}
+                    onPress={() => setShowPassword(!showPassword)}
+                  />
+                ) : undefined
+              }
             />
 
+            {/* Helper Row */}
             <View style={styles.helperRow}>
-              <Text style={[styles.demoHint, { color: themeColors.textMuted }]}>
-                Default test code: <Text style={{ fontWeight: '700' }}>123456</Text>
+              <Text style={[styles.hintText, { color: themeColors.textMuted }]}>
+                {authMode === 'otp' ? 'Code: 123456' : ''}
               </Text>
-              <TouchableOpacity activeOpacity={0.7}>
-                <Text style={[styles.forgotText, { color: themeColors.secondary }]}>
-                  Forgot {authMode === 'otp' ? 'OTP' : 'Password'}?
-                </Text>
-              </TouchableOpacity>
+              <Text
+                onPress={() => {}}
+                style={[styles.forgotText, { color: themeColors.primary }]}
+              >
+                {authMode === 'otp' ? 'Resend OTP' : 'Forgot Password?'}
+              </Text>
             </View>
 
-            <AnimatedAppButton
+            {/* Sign In Button */}
+            <AppButton
               title="Sign In"
               onPress={handleLogin}
               loading={loading}
               size="lg"
             />
 
-            {/* Quick Demo Login Shortcut */}
-            <TouchableOpacity
-              style={[styles.demoBtn, { borderColor: themeColors.border, backgroundColor: themeColors.backgroundElement }]}
+            {/* Demo Login */}
+            <AppButton
+              title="Quick Demo Login"
               onPress={handleDemoLogin}
-              activeOpacity={0.7}
-            >
-              <Ionicons name="flash-outline" size={16} color={themeColors.secondary} />
-              <Text style={[styles.demoBtnText, { color: themeColors.secondary }]}>
-                One-Tap Quick Demo Login
-              </Text>
-            </TouchableOpacity>
+              variant="outline"
+              size="md"
+              icon={<Ionicons name="flash-outline" size={16} color={themeColors.primary} />}
+              style={{ marginTop: Spacing.sm }}
+            />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -223,81 +195,61 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1 },
   flex: { flex: 1 },
-  scrollContainer: {
+  scrollContent: {
     flexGrow: 1,
+    justifyContent: 'center',
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.xl,
   },
-  header: {
+  brandingSection: {
     alignItems: 'center',
-    paddingTop: 36,
-    paddingBottom: 28,
-    paddingHorizontal: 20,
-    position: 'relative',
-  },
-  logoGlow: {
-    position: 'absolute',
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    top: 36,
+    marginBottom: Spacing.xl + 4,
   },
   logoCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: Spacing.md,
   },
-  logoImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-  },
-  brand: {
-    color: '#FFFFFF',
+  brandTitle: {
     fontSize: Typography.fontSizes.hero,
     fontWeight: Typography.weights.bold as any,
-    letterSpacing: -0.5,
+    letterSpacing: -1,
   },
-  tagline: {
-    color: 'rgba(255,255,255,0.8)',
+  brandSubtitle: {
     fontSize: Typography.fontSizes.sm,
     marginTop: 4,
-    textAlign: 'center',
+    letterSpacing: 0.5,
   },
   card: {
-    flex: 1,
-    borderTopLeftRadius: BorderRadius.xl,
-    borderTopRightRadius: BorderRadius.xl,
-    padding: 24,
-    paddingTop: 28,
-    paddingBottom: 40,
-  },
-  cardTitle: {
-    fontSize: Typography.fontSizes.xxl,
-    fontWeight: Typography.weights.bold as any,
-    marginBottom: 4,
-  },
-  cardSubtitle: {
-    fontSize: Typography.fontSizes.sm,
-    lineHeight: 20,
-    marginBottom: 20,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.lg,
   },
   modeToggle: {
     flexDirection: 'row',
-    borderRadius: BorderRadius.md,
-    padding: 4,
-    marginBottom: 20,
+    borderRadius: BorderRadius.sm,
+    padding: 3,
+    marginBottom: Spacing.md,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  modeIndicator: {
+    position: 'absolute',
+    top: 3,
+    bottom: 3,
+    width: '48%',
+    borderRadius: BorderRadius.xs,
   },
   modeBtn: {
     flex: 1,
-    flexDirection: 'row',
     paddingVertical: 10,
-    borderRadius: BorderRadius.sm,
     alignItems: 'center',
     justifyContent: 'center',
+    zIndex: 1,
   },
+  modeBtnActive: {},
   modeBtnText: {
     fontSize: Typography.fontSizes.sm,
     fontWeight: Typography.weights.semibold as any,
@@ -307,7 +259,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 12,
     borderRadius: BorderRadius.sm,
-    marginBottom: 16,
+    marginBottom: Spacing.md,
     gap: 8,
   },
   errorText: {
@@ -318,28 +270,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
-    marginTop: 4,
+    marginBottom: Spacing.lg,
+    marginTop: -Spacing.xs,
   },
-  demoHint: {
+  hintText: {
     fontSize: Typography.fontSizes.xs,
   },
   forgotText: {
     fontSize: Typography.fontSizes.xs,
-    fontWeight: Typography.weights.semibold as any,
-  },
-  demoBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    marginTop: 14,
-    gap: 8,
-  },
-  demoBtnText: {
-    fontSize: Typography.fontSizes.sm,
     fontWeight: Typography.weights.semibold as any,
   },
 });

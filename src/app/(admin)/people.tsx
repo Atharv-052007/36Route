@@ -14,22 +14,39 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Typography, Spacing, BorderRadius, Shadows } from '@/constants/theme';
 import { useApp } from '@/context/AppContext';
+import { Header } from '@/components/ui/Header';
 import { Badge } from '@/components/ui/Badge';
+import { EmptyState } from '@/components/ui/AppStates';
 import { SupervisorDriver } from '@/types';
 
-type TabSection = 'Drivers' | 'Passengers';
-type DriverFilter = 'All' | 'Available' | 'On Trip' | 'Unavailable';
+type PeopleFilter = 'All' | 'Drivers' | 'Passengers';
+
+const AVATAR_COLORS = ['#2563EB', '#06B6D4', '#10B981', '#8B5CF6', '#F59E0B', '#EC4899'];
+
+function getAvatarColor(name: string) {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+}
+
+function getInitials(name: string) {
+  return name
+    .split(' ')
+    .map((w) => w[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+}
 
 export default function PeopleScreen() {
   const router = useRouter();
   const { drivers, kpis, setSelectedDriverId, isDarkMode } = useApp();
   const theme = isDarkMode ? Colors.dark : Colors.light;
 
-  const [activeSection, setActiveSection] = useState<TabSection>('Drivers');
-  const [driverFilter, setDriverFilter] = useState<DriverFilter>('All');
+  const [filter, setFilter] = useState<PeopleFilter>('All');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filterTabs: DriverFilter[] = ['All', 'Available', 'On Trip', 'Unavailable'];
+  const filterTabs: PeopleFilter[] = ['All', 'Drivers', 'Passengers'];
 
   const filteredDrivers = useMemo(() => {
     return drivers.filter((driver) => {
@@ -39,12 +56,9 @@ export default function PeopleScreen() {
         driver.assignedVehicleModel.toLowerCase().includes(searchQuery.toLowerCase()) ||
         driver.assignedVehiclePlate.toLowerCase().includes(searchQuery.toLowerCase());
 
-      const matchesFilter =
-        driverFilter === 'All' || driver.status === driverFilter;
-
-      return matchesSearch && matchesFilter;
+      return matchesSearch;
     });
-  }, [drivers, searchQuery, driverFilter]);
+  }, [drivers, searchQuery]);
 
   const handleDriverPress = (driver: SupervisorDriver) => {
     setSelectedDriverId(driver.id);
@@ -55,290 +69,218 @@ export default function PeopleScreen() {
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
       <StatusBar
         barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={theme.cardBackground}
+        backgroundColor={theme.background}
       />
 
-      {/* Screen Header with Section Switcher */}
-      <View
-        style={[
-          styles.header,
-          {
-            backgroundColor: theme.cardBackground,
-            borderBottomColor: theme.border,
-          },
-        ]}
-      >
-        <View style={styles.topRow}>
-          <Text style={[styles.headerTitle, { color: theme.text }]}>People</Text>
+      <Header title="People" showBack />
 
-          {/* Segmented control: Drivers | Passengers */}
-          <View
-            style={[
-              styles.segmentedWrap,
-              { backgroundColor: theme.backgroundElement, borderColor: theme.border },
-            ]}
-          >
-            <TouchableOpacity
-              onPress={() => setActiveSection('Drivers')}
-              style={[
-                styles.segmentBtn,
-                activeSection === 'Drivers' && {
-                  backgroundColor: theme.cardBackground,
-                  ...Shadows.subtle,
-                },
-              ]}
-            >
-              <Text
-                style={[
-                  styles.segmentText,
-                  {
-                    color: activeSection === 'Drivers' ? theme.text : theme.textSecondary,
-                    fontWeight: activeSection === 'Drivers' ? '600' : '400',
-                  },
-                ]}
-              >
-                Drivers
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => setActiveSection('Passengers')}
-              style={[
-                styles.segmentBtn,
-                activeSection === 'Passengers' && {
-                  backgroundColor: theme.cardBackground,
-                  ...Shadows.subtle,
-                },
-              ]}
-            >
-              <Text
-                style={[
-                  styles.segmentText,
-                  {
-                    color: activeSection === 'Passengers' ? theme.text : theme.textSecondary,
-                    fontWeight: activeSection === 'Passengers' ? '600' : '400',
-                  },
-                ]}
-              >
-                Passengers
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Search Bar */}
+      {/* Search Bar */}
+      <View style={styles.searchSection}>
         <View
           style={[
             styles.searchBar,
             {
-              backgroundColor: theme.backgroundElement,
+              backgroundColor: theme.cardBackground,
               borderColor: theme.border,
             },
           ]}
         >
-          <Ionicons name="search" size={16} color={theme.textMuted} />
+          <Ionicons name="search" size={18} color={theme.textMuted} />
           <TextInput
             style={[styles.searchInput, { color: theme.text }]}
-            placeholder={
-              activeSection === 'Drivers'
-                ? 'Search driver name, vehicle...'
-                : 'Search passenger name, stop...'
-            }
+            placeholder="Search by name, vehicle, plate..."
             placeholderTextColor={theme.textMuted}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => setSearchQuery('')}>
-              <Ionicons name="close-circle" size={16} color={theme.textMuted} />
+              <Ionicons name="close-circle" size={18} color={theme.textMuted} />
             </TouchableOpacity>
           )}
         </View>
-
-        {activeSection === 'Drivers' && (
-          <>
-            {/* Filter Pills */}
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.filterScroll}
-            >
-              {filterTabs.map((tab) => {
-                const isSelected = driverFilter === tab;
-                return (
-                  <TouchableOpacity
-                    key={tab}
-                    activeOpacity={0.7}
-                    onPress={() => setDriverFilter(tab)}
-                    style={[
-                      styles.filterPill,
-                      {
-                        backgroundColor: isSelected ? theme.primary : theme.backgroundElement,
-                        borderColor: isSelected ? theme.primary : theme.border,
-                      },
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.filterText,
-                        {
-                          color: isSelected ? theme.textInverse : theme.textSecondary,
-                          fontWeight: isSelected ? '600' : '500',
-                        },
-                      ]}
-                    >
-                      {tab}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
-
-            {/* Drivers Operational Summary Bar */}
-            <View
-              style={[
-                styles.summaryBar,
-                {
-                  backgroundColor: theme.backgroundElement,
-                  borderColor: theme.border,
-                },
-              ]}
-            >
-              <Text style={[styles.summaryTotal, { color: theme.text }]}>
-                {kpis.totalDrivers} Drivers
-              </Text>
-              <View style={styles.summaryMetaRow}>
-                <Text style={[styles.summaryItem, { color: theme.available }]}>
-                  {kpis.driversAvailable} Available
-                </Text>
-                <Text style={[styles.summaryDot, { color: theme.textMuted }]}>•</Text>
-                <Text style={[styles.summaryItem, { color: theme.onTrip }]}>
-                  {kpis.driversOnTrip} On Trip
-                </Text>
-                <Text style={[styles.summaryDot, { color: theme.textMuted }]}>•</Text>
-                <Text style={[styles.summaryItem, { color: theme.unavailable }]}>
-                  {kpis.driversUnavailable} Unavailable
-                </Text>
-              </View>
-            </View>
-          </>
-        )}
       </View>
 
-      {/* List Content */}
+      {/* Filter Tabs */}
+      <View style={styles.filterSection}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filterScroll}
+        >
+          {filterTabs.map((tab) => {
+            const isSelected = filter === tab;
+            return (
+              <TouchableOpacity
+                key={tab}
+                activeOpacity={0.7}
+                onPress={() => setFilter(tab)}
+                style={[
+                  styles.filterPill,
+                  {
+                    backgroundColor: isSelected ? theme.primary : theme.cardBackground,
+                    borderColor: isSelected ? theme.primary : theme.border,
+                  },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.filterText,
+                    {
+                      color: isSelected ? theme.textInverse : theme.textSecondary,
+                      fontWeight: isSelected ? '600' : '500',
+                    },
+                  ]}
+                >
+                  {tab}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      </View>
+
+      {/* People Summary */}
+      <View style={styles.summarySection}>
+        <Text style={[styles.sectionLabel, { color: theme.textMuted }]}>
+          PERSONNEL
+        </Text>
+        <View
+          style={[
+            styles.summaryBar,
+            {
+              backgroundColor: theme.cardBackground,
+              borderColor: theme.border,
+            },
+          ]}
+        >
+          <View style={[styles.summaryItem, { borderRightColor: theme.border }]}>
+            <Text style={[styles.summaryCount, { color: theme.text }]}>{kpis.totalDrivers}</Text>
+            <Text style={[styles.summaryLabel, { color: theme.textMuted }]}>Total</Text>
+          </View>
+          <View style={[styles.summaryItem, { borderRightColor: theme.border }]}>
+            <Text style={[styles.summaryCount, { color: theme.available }]}>{kpis.driversAvailable}</Text>
+            <Text style={[styles.summaryLabel, { color: theme.textMuted }]}>Available</Text>
+          </View>
+          <View style={[styles.summaryItem, { borderRightColor: theme.border }]}>
+            <Text style={[styles.summaryCount, { color: theme.onTrip }]}>{kpis.driversOnTrip}</Text>
+            <Text style={[styles.summaryLabel, { color: theme.textMuted }]}>On Trip</Text>
+          </View>
+          <View style={styles.summaryItem}>
+            <Text style={[styles.summaryCount, { color: theme.unavailable }]}>{kpis.driversUnavailable}</Text>
+            <Text style={[styles.summaryLabel, { color: theme.textMuted }]}>Unavail.</Text>
+          </View>
+        </View>
+      </View>
+
+      {/* People List */}
       <ScrollView
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
       >
-        {activeSection === 'Drivers' ? (
-          filteredDrivers.length === 0 ? (
-            <View style={styles.emptyState}>
-              <Ionicons name="people-outline" size={40} color={theme.textMuted} />
-              <Text style={[styles.emptyTitle, { color: theme.text }]}>
-                No drivers found
-              </Text>
-            </View>
-          ) : (
-            filteredDrivers.map((driver) => (
+        {filter === 'Passengers' ? (
+          <View>
+            {[
+              { id: '1', name: 'Deepa Dixit', role: 'Passenger', trip: 'Trip #3819', stop: 'Manjari Road', status: 'No-show' },
+              { id: '2', name: 'Kiran More', role: 'Passenger', trip: 'Trip #3821', stop: 'Shivajinagar Station', status: 'Waiting' },
+              { id: '3', name: 'Neha Sharma', role: 'Passenger', trip: 'Trip #3820', stop: 'Magarpatta City', status: 'Boarded' },
+              { id: '4', name: 'Aarav Patel', role: 'Passenger', trip: 'Trip #3821', stop: 'Kothrud Stand', status: 'Waiting' },
+            ]
+              .filter((p) => searchQuery.trim() === '' || p.name.toLowerCase().includes(searchQuery.toLowerCase()))
+              .map((p) => {
+                const color = getAvatarColor(p.name);
+                return (
+                  <View
+                    key={p.id}
+                    style={[
+                      styles.personCard,
+                      {
+                        backgroundColor: theme.cardBackground,
+                        borderLeftColor: color,
+                      },
+                    ]}
+                  >
+                    <View style={styles.cardTopRow}>
+                      <View style={[styles.avatar, { backgroundColor: `${color}20` }]}>
+                        <Text style={[styles.avatarText, { color }]}>{getInitials(p.name)}</Text>
+                      </View>
+                      <View style={styles.personInfo}>
+                        <Text style={[styles.personName, { color: theme.text }]}>{p.name}</Text>
+                        <Text style={[styles.personRole, { color: theme.textMuted }]}>{p.role}</Text>
+                      </View>
+                      <Badge status={p.status} size="sm" />
+                    </View>
+                    <View style={styles.cardBottomRow}>
+                      <View style={styles.metaChip}>
+                        <Ionicons name="bus-outline" size={13} color={theme.textSecondary} />
+                        <Text style={[styles.metaChipText, { color: theme.textSecondary }]}>{p.trip}</Text>
+                      </View>
+                      <View style={styles.metaChip}>
+                        <Ionicons name="location-outline" size={13} color={theme.textSecondary} />
+                        <Text style={[styles.metaChipText, { color: theme.textSecondary }]}>{p.stop}</Text>
+                      </View>
+                    </View>
+                  </View>
+                );
+              })}
+          </View>
+        ) : filteredDrivers.length === 0 ? (
+          <EmptyState
+            title="No drivers found"
+            description="Try adjusting your search or filter"
+            icon="people-outline"
+          />
+        ) : (
+          filteredDrivers.map((driver) => {
+            const color = getAvatarColor(driver.name);
+
+            return (
               <TouchableOpacity
                 key={driver.id}
-                activeOpacity={0.75}
+                activeOpacity={0.7}
                 onPress={() => handleDriverPress(driver)}
                 style={[
-                  styles.driverCard,
+                  styles.personCard,
                   {
                     backgroundColor: theme.cardBackground,
-                    borderColor: theme.border,
+                    borderLeftColor: color,
                   },
                 ]}
               >
-                <View style={styles.driverCardTop}>
-                  <View style={styles.driverNameRow}>
-                    <Text style={[styles.driverName, { color: theme.text }]}>
+                {/* Top Row: Avatar + Info + Badge */}
+                <View style={styles.cardTopRow}>
+                  <View style={[styles.avatar, { backgroundColor: `${color}20` }]}>
+                    <Text style={[styles.avatarText, { color }]}>{getInitials(driver.name)}</Text>
+                  </View>
+                  <View style={styles.personInfo}>
+                    <Text style={[styles.personName, { color: theme.text }]} numberOfLines={1}>
                       {driver.name}
+                    </Text>
+                    <Text style={[styles.personRole, { color: theme.textMuted }]}>
+                      {driver.assignedVehicleModel} • {driver.assignedVehiclePlate}
                     </Text>
                   </View>
                   <Badge status={driver.status} size="sm" />
                 </View>
 
-                <Text style={[styles.vehicleInfo, { color: theme.textSecondary }]}>
-                  {driver.assignedVehicleModel} • {driver.assignedVehiclePlate}
-                </Text>
-
-                <View style={styles.driverCardFooter}>
-                  {driver.status === 'Available' && (
-                    <Text style={[styles.operationalStateText, { color: theme.available }]}>
-                      Next trip: {driver.nextTripTime || 'On standby'}
+                {/* Bottom Row: Trip count + Status info */}
+                <View style={styles.cardBottomRow}>
+                  <View style={styles.metaChip}>
+                    <Ionicons name="bus-outline" size={13} color={theme.textSecondary} />
+                    <Text style={[styles.metaChipText, { color: theme.textSecondary }]}>
+                      {driver.todayTrips} trips today
                     </Text>
-                  )}
-                  {driver.status === 'On Trip' && (
-                    <Text style={[styles.operationalStateText, { color: theme.onTrip }]}>
-                      {driver.currentTripId ? `Trip #${driver.currentTripId.replace('trip-', '')}` : 'In Transit'} • {driver.currentTripRoute || 'Active route'}
+                  </View>
+                  <View style={styles.metaChip}>
+                    <Ionicons name="checkmark-circle-outline" size={13} color={theme.textSecondary} />
+                    <Text style={[styles.metaChipText, { color: theme.textSecondary }]}>
+                      {driver.completedTrips} completed
                     </Text>
-                  )}
-                  {driver.status === 'Unavailable' && (
-                    <Text style={[styles.operationalStateText, { color: theme.unavailable }]}>
-                      Vehicle in maintenance
-                    </Text>
-                  )}
-
-                  <View style={styles.actionArrow}>
-                    <Ionicons name="chevron-forward" size={16} color={theme.textMuted} />
                   </View>
                 </View>
               </TouchableOpacity>
-            ))
-          )
-        ) : (
-          /* Passengers View */
-          <View>
-            <View
-              style={[
-                styles.summaryBar,
-                {
-                  backgroundColor: theme.backgroundElement,
-                  borderColor: theme.border,
-                  marginBottom: Spacing.md,
-                },
-              ]}
-            >
-              <Text style={[styles.summaryTotal, { color: theme.text }]}>
-                Today's Roster: 248 Passengers
-              </Text>
-              <Text style={[styles.summaryItem, { color: theme.danger }]}>
-                2 No-shows reported
-              </Text>
-            </View>
-
-            {/* Sample passenger roster items */}
-            {[
-              { id: '1', name: 'Deepa Dixit', trip: 'Trip #3819', stop: 'Manjari Road', status: 'No-show' },
-              { id: '2', name: 'Kiran More', trip: 'Trip #3821', stop: 'Shivajinagar Station', status: 'Waiting' },
-              { id: '3', name: 'Neha Sharma', trip: 'Trip #3820', stop: 'Magarpatta City', status: 'Boarded' },
-              { id: '4', name: 'Aarav Patel', trip: 'Trip #3821', stop: 'Kothrud Stand', status: 'Waiting' },
-            ].map((p) => (
-              <View
-                key={p.id}
-                style={[
-                  styles.passengerCard,
-                  {
-                    backgroundColor: theme.cardBackground,
-                    borderColor: p.status === 'No-show' ? theme.dangerBorder : theme.border,
-                  },
-                ]}
-              >
-                <View style={styles.passengerTop}>
-                  <Text style={[styles.passengerName, { color: theme.text }]}>
-                    {p.name}
-                  </Text>
-                  <Badge status={p.status} size="sm" />
-                </View>
-                <Text style={[styles.passengerMeta, { color: theme.textSecondary }]}>
-                  {p.trip} • Pickup: {p.stop}
-                </Text>
-              </View>
-            ))}
-          </View>
+            );
+          })
         )}
       </ScrollView>
     </SafeAreaView>
@@ -350,162 +292,127 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
-  header: {
+  searchSection: {
     paddingHorizontal: Spacing.base,
-    paddingTop: Spacing.md,
     paddingBottom: Spacing.sm,
-    borderBottomWidth: 1,
-  },
-  topRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: Spacing.sm,
-  },
-  headerTitle: {
-    fontSize: Typography.fontSizes.xl,
-    fontWeight: Typography.weights.bold,
-    letterSpacing: -0.3,
-  },
-  segmentedWrap: {
-    flexDirection: 'row',
-    borderRadius: BorderRadius.sm,
-    borderWidth: 1,
-    padding: 2,
-  },
-  segmentBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderRadius: BorderRadius.xs,
-  },
-  segmentText: {
-    fontSize: Typography.fontSizes.xs + 1,
   },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: BorderRadius.sm,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: BorderRadius.lg,
     borderWidth: 1,
-    marginBottom: Spacing.xs + 2,
-    gap: 8,
+    gap: 10,
+    ...Shadows.subtle,
   },
   searchInput: {
     flex: 1,
     fontSize: Typography.fontSizes.sm,
     paddingVertical: 0,
   },
+  filterSection: {
+    paddingBottom: Spacing.sm,
+  },
   filterScroll: {
     flexDirection: 'row',
-    gap: Spacing.xs + 2,
-    paddingVertical: 4,
-    marginBottom: Spacing.xs,
+    gap: 8,
+    paddingHorizontal: Spacing.base,
   },
   filterPill: {
-    paddingHorizontal: 12,
-    paddingVertical: 5,
+    paddingHorizontal: 16,
+    paddingVertical: 7,
     borderRadius: BorderRadius.full,
     borderWidth: 1,
   },
   filterText: {
     fontSize: Typography.fontSizes.xs + 1,
   },
-  summaryBar: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: BorderRadius.sm,
-    borderWidth: 1,
-    marginTop: 4,
+  summarySection: {
+    paddingHorizontal: Spacing.base,
+    marginBottom: Spacing.sm,
   },
-  summaryTotal: {
-    fontSize: Typography.fontSizes.sm,
+  sectionLabel: {
+    fontSize: Typography.fontSizes.xs,
     fontWeight: Typography.weights.bold,
+    textTransform: 'uppercase',
+    letterSpacing: 1.2,
+    marginBottom: 8,
   },
-  summaryMetaRow: {
+  summaryBar: {
     flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 2,
-    flexWrap: 'wrap',
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    paddingVertical: 12,
+    ...Shadows.subtle,
   },
   summaryItem: {
-    fontSize: Typography.fontSizes.xs,
-    fontWeight: Typography.weights.medium,
+    flex: 1,
+    alignItems: 'center',
+    borderRightWidth: 1,
   },
-  summaryDot: {
-    marginHorizontal: 6,
+  summaryCount: {
+    fontSize: Typography.fontSizes.lg,
+    fontWeight: Typography.weights.bold,
+  },
+  summaryLabel: {
     fontSize: Typography.fontSizes.xs,
+    marginTop: 2,
   },
   listContent: {
     padding: Spacing.base,
     paddingBottom: Spacing.xxl,
   },
-  emptyState: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 60,
-  },
-  emptyTitle: {
-    fontSize: Typography.fontSizes.lg,
-    fontWeight: Typography.weights.bold,
-    marginTop: 12,
-  },
-  driverCard: {
-    padding: Spacing.md,
-    borderRadius: BorderRadius.md,
+  personCard: {
+    padding: 14,
+    borderRadius: BorderRadius.lg,
     borderWidth: 1,
-    marginBottom: Spacing.sm,
+    borderLeftWidth: 3.5,
+    borderColor: '#E2E8F0',
+    marginBottom: 10,
     ...Shadows.subtle,
   },
-  driverCardTop: {
+  cardTopRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 12,
   },
-  driverNameRow: {
+  avatar: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  avatarText: {
+    fontSize: Typography.fontSizes.sm,
+    fontWeight: Typography.weights.bold,
+    letterSpacing: 0.5,
+  },
+  personInfo: {
     flex: 1,
   },
-  driverName: {
+  personName: {
     fontSize: Typography.fontSizes.base,
     fontWeight: Typography.weights.bold,
+    letterSpacing: -0.2,
   },
-  vehicleInfo: {
-    fontSize: Typography.fontSizes.sm,
-    marginBottom: 8,
+  personRole: {
+    fontSize: Typography.fontSizes.xs + 1,
+    marginTop: 2,
   },
-  driverCardFooter: {
+  cardBottomRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: 6,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(150, 150, 150, 0.1)',
+    gap: 16,
   },
-  operationalStateText: {
+  metaChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  metaChipText: {
     fontSize: Typography.fontSizes.xs + 1,
     fontWeight: Typography.weights.medium,
-  },
-  actionArrow: {
-    marginLeft: 8,
-  },
-  passengerCard: {
-    padding: Spacing.md,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    marginBottom: Spacing.sm,
-  },
-  passengerTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  passengerName: {
-    fontSize: Typography.fontSizes.sm + 1,
-    fontWeight: Typography.weights.semibold,
-  },
-  passengerMeta: {
-    fontSize: Typography.fontSizes.xs,
   },
 });

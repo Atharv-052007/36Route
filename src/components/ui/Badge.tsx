@@ -1,5 +1,5 @@
-import React from 'react';
-import { StyleSheet, Text, View, ViewStyle } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { Animated, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { Colors, Typography, BorderRadius } from '@/constants/theme';
 import { useApp } from '@/context/AppContext';
 
@@ -28,6 +28,8 @@ interface BadgeProps {
   style?: ViewStyle;
 }
 
+const LIVE_STATUSES = ['on trip', 'ongoing'];
+
 export const Badge: React.FC<BadgeProps> = ({
   status,
   label,
@@ -37,15 +39,36 @@ export const Badge: React.FC<BadgeProps> = ({
 }) => {
   const { isDarkMode } = useApp();
   const theme = isDarkMode ? Colors.dark : Colors.light;
+  const pulseAnim = useRef(new Animated.Value(1)).current;
 
   const displayLabel = label || status;
+  const normalized = status.toLowerCase();
+  const isLive = LIVE_STATUSES.includes(normalized);
+
+  useEffect(() => {
+    if (!isLive) return;
+    const pulse = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 0.4,
+          duration: 1200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 1200,
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+    pulse.start();
+    return () => pulse.stop();
+  }, [isLive, pulseAnim]);
 
   let bg = theme.unavailableLight;
   let text = theme.unavailable;
   let border = theme.unavailableBorder;
   let dotColor = theme.unavailable;
-
-  const normalized = status.toLowerCase();
 
   if (normalized === 'available' || normalized === 'boarded') {
     bg = theme.availableLight;
@@ -108,34 +131,45 @@ export const Badge: React.FC<BadgeProps> = ({
         {
           backgroundColor: bg,
           borderColor: border,
-          paddingVertical: isSmall ? 2 : isLarge ? 5 : 3,
+          paddingVertical: isSmall ? 1.5 : isLarge ? 4 : 2.5,
           paddingHorizontal: isSmall ? 6 : isLarge ? 10 : 8,
         },
         style,
       ]}
     >
       {showDot && (
-        <View
-          style={[
-            styles.dot,
-            {
-              backgroundColor: dotColor,
-              width: isSmall ? 5 : 6,
-              height: isSmall ? 5 : 6,
-            },
-          ]}
-        />
+        <View style={styles.dotRow}>
+          <View
+            style={[
+              styles.dot,
+              {
+                backgroundColor: dotColor,
+                width: isSmall ? 5 : 6,
+                height: isSmall ? 5 : 6,
+              },
+            ]}
+          />
+          {isLive && (
+            <Animated.View
+              style={[
+                styles.dotPulse,
+                {
+                  backgroundColor: dotColor,
+                  width: isSmall ? 5 : 6,
+                  height: isSmall ? 5 : 6,
+                  opacity: pulseAnim,
+                },
+              ]}
+            />
+          )}
+        </View>
       )}
       <Text
         style={[
           styles.text,
           {
             color: text,
-            fontSize: isSmall
-              ? Typography.fontSizes.xs
-              : isLarge
-              ? Typography.fontSizes.sm
-              : Typography.fontSizes.xs + 1,
+            fontSize: 11,
             fontWeight: Typography.weights.semibold,
           },
         ]}
@@ -154,12 +188,21 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.full,
     borderWidth: 1,
   },
+  dotRow: {
+    marginRight: 5,
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   dot: {
     borderRadius: BorderRadius.full,
-    marginRight: 5,
+  },
+  dotPulse: {
+    position: 'absolute',
+    borderRadius: BorderRadius.full,
   },
   text: {
     textTransform: 'capitalize',
-    letterSpacing: 0.1,
+    letterSpacing: 0.2,
   },
 });

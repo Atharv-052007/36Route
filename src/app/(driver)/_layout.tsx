@@ -1,9 +1,9 @@
 import React from 'react';
-import { ColorValue, Platform } from 'react-native';
+import { ColorValue, View, useColorScheme } from 'react-native';
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useApp } from '@/context/AppContext';
-import { Typography } from '@/constants/theme';
+import { Colors, Typography } from '@/constants/theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const TAB_ICONS: Record<string, { focused: string; unfocused: string }> = {
@@ -22,22 +22,40 @@ const TAB_LABELS: Record<string, string> = {
   profile: 'Profile',
 };
 
-function AnimatedTabIcon({
+function TabIcon({
   name,
   color,
   size,
+  focused,
 }: {
   name: string;
   color: ColorValue;
   size: number;
   focused: boolean;
 }) {
-  return <Ionicons name={name as any} size={size} color={color} />;
+  return (
+    <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+      <Ionicons name={name as any} size={size} color={color} />
+      {focused && (
+        <View
+          style={{
+            width: 18,
+            height: 3,
+            borderRadius: 1.5,
+            backgroundColor: Colors.light.primary,
+            marginTop: 4,
+          }}
+        />
+      )}
+    </View>
+  );
 }
 
 export default function DriverTabLayout() {
   const { themeColors } = useApp();
   const insets = useSafeAreaInsets();
+  const colorScheme = useColorScheme();
+  const activeTint = Colors[colorScheme === 'dark' ? 'dark' : 'light'].primary;
 
   const bottomInset = insets.bottom;
   const tabHeight = 60 + (bottomInset > 0 ? bottomInset : 4);
@@ -47,21 +65,21 @@ export default function DriverTabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: themeColors.secondary,
+        tabBarActiveTintColor: activeTint,
         tabBarInactiveTintColor: themeColors.textMuted,
         tabBarHideOnKeyboard: true,
         tabBarStyle: {
-          backgroundColor: themeColors.cardBackground,
+          backgroundColor: '#FFFFFF',
           borderTopColor: themeColors.border,
+          borderTopWidth: 1,
           height: tabHeight,
           paddingBottom: tabPaddingBottom,
           paddingTop: 8,
-          borderTopWidth: 1,
-          elevation: 8,
+          elevation: 12,
           shadowColor: themeColors.shadowColor,
-          shadowOffset: { width: 0, height: -2 },
-          shadowOpacity: 0.08,
-          shadowRadius: 8,
+          shadowOffset: { width: 0, height: -4 },
+          shadowOpacity: 0.1,
+          shadowRadius: 16,
         },
         tabBarItemStyle: {
           justifyContent: 'center',
@@ -84,7 +102,7 @@ export default function DriverTabLayout() {
         options={{
           title: TAB_LABELS.index,
           tabBarIcon: ({ color, size, focused }) => (
-            <AnimatedTabIcon
+            <TabIcon
               name={focused ? TAB_ICONS.index.focused : TAB_ICONS.index.unfocused}
               color={color}
               size={size}
@@ -98,7 +116,7 @@ export default function DriverTabLayout() {
         options={{
           title: TAB_LABELS.trips,
           tabBarIcon: ({ color, size, focused }) => (
-            <AnimatedTabIcon
+            <TabIcon
               name={focused ? TAB_ICONS.trips.focused : TAB_ICONS.trips.unfocused}
               color={color}
               size={size}
@@ -112,7 +130,7 @@ export default function DriverTabLayout() {
         options={{
           title: TAB_LABELS['active-trip'],
           tabBarIcon: ({ color, size, focused }) => (
-            <AnimatedTabIcon
+            <TabIcon
               name={focused ? TAB_ICONS['active-trip'].focused : TAB_ICONS['active-trip'].unfocused}
               color={color}
               size={size}
@@ -126,7 +144,7 @@ export default function DriverTabLayout() {
         options={{
           title: TAB_LABELS.vehicle,
           tabBarIcon: ({ color, size, focused }) => (
-            <AnimatedTabIcon
+            <TabIcon
               name={focused ? TAB_ICONS.vehicle.focused : TAB_ICONS.vehicle.unfocused}
               color={color}
               size={size}
@@ -140,7 +158,7 @@ export default function DriverTabLayout() {
         options={{
           title: TAB_LABELS.profile,
           tabBarIcon: ({ color, size, focused }) => (
-            <AnimatedTabIcon
+            <TabIcon
               name={focused ? TAB_ICONS.profile.focused : TAB_ICONS.profile.unfocused}
               color={color}
               size={size}
